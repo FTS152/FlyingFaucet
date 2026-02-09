@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飛行水龍頭 - 同人展售模擬器 (Ver 1.3 Deluxe)</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --panel-bg: #2d2d2d;
+            --accent: #4caf50;
+            --danger: #ef5350;
+            --text: #e0e0e0;
+            --secondary-text: #b0b0b0;
+            --highlight: #ffb74d;
+            --action-bar: #1976d2;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        h1, h2, h3 { margin-top: 0; }
+        
+        /* Layout */
+        #game-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            grid-column: 1 / -1;
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--accent);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .stats-bar span {
+            margin-right: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        /* Sidebar */
+        aside {
+            background: var(--panel-bg);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* Main Content */
+        main {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Elements */
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%;
+            text-align: left;
+            transition: 0.2s;
+            font-size: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { background: #555; cursor: not-allowed; transform: none; color: #888; box-shadow: none;}
+        .btn-danger { background: var(--danger); }
+        .btn-info { background: var(--action-bar); }
+        
+        .card {
+            background: #3d3d3d;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #666;
+        }
+
+        /* Phase Views */
+        .phase-view { display: none; }
+        .active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Social Media Feed */
+        #tweet-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .tweet {
+            background: #252525;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.95em;
+            border-left: 3px solid var(--accent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .tweet-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+            color: #888;
+        }
+        .tweet-user { font-weight: bold; color: #64b5f6; }
+        .tweet-content { line-height: 1.4; color: #ececec; }
+        .tweet-content strong { color: var(--highlight); }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #444; padding: 8px; text-align: left; font-size: 0.9em; }
+        th { background: #333; color: var(--highlight); }
+        tr:nth-child(even) { background: #353535; }
+
+        /* Input Groups */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; color: var(--secondary-text); }
+        .input-group input, .input-group select {
+            width: 100%; padding: 10px;
+            background: #222; border: 1px solid #444; color: white;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Logs */
+        #event-log {
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap;
+            color: #a5d6a7;
+            background: #000;
+            padding: 10px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: scroll;
+        }
+
+        /* Action Counter */
+        .action-counter {
+            background: var(--action-bar);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>飛行水龍頭 Ver 1.3</h1>
+            <small>當前階段: <span id="current-phase-display" style="color:var(--highlight)">社群觀察</span></small>
+        </div>
+        <div class="stats-bar">
+            <span>⚡ 行動: <span id="action-point-display">5/5</span></span>
+            <span>💰 $<span id="money-display">10000</span></span>
+            <span>📅 第 <span id="round-display">1</span> 場</span>
+        </div>
+    </header>
+
+    <div id="game-container">
+        <aside>
+            <div class="card">
+                <h3>你的狀態</h3>
+                <div id="player-status">
+                    <small style="color:#888">暫無原稿，請開始活動。</small>
+                </div>
+            </div>
+            
+            <hr style="width:100%; border-color:#444;">
+            
+            <h3>指令面板</h3>
+            <div id="action-buttons"></div>
+            
+            <hr style="width:100%; border-color:#444;">
+            <button class="btn btn-info" onclick="game.toggleHistoryView()">📦 庫存與紀錄</button>
+        </aside>
+
+        <main>
+            <div id="view-social" class="phase-view active">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2>📱 社群趨勢</h2>
+                    <button class="btn" style="width:auto;" onclick="game.nextPhase()">結束觀察，開始活動 ➔</button>
+                </div>
+                <p style="color:#aaa; margin-bottom:15px;">根據發文時間與內容，分析本季流量密碼...</p>
+                <div id="tweet-feed"></div>
+            </div>
+
+            <div id="view-action" class="phase-view">
+                <h2>🛠️ 自由活動階段</h2>
+                <div style="background:#444; color:#fff; padding:10px; border-radius:5px; margin-bottom:15px;">
+                    剩餘行動次數：<strong id="ap-count-big" style="color:var(--highlight); font-size:1.2em;">5</strong>
+                </div>
+                
+                <div id="action-log-display" class="card" style="min-height: 80px;">
+                    <div id="latest-action-msg">等待指令...</div>
+                </div>
+
+                <div id="info-panel" style="display:none; margin-top:20px;">
+                    <h3>📊 市場情報分析</h3>
+                    <table id="info-table"></table>
+                </div>
+            </div>
+
+            <div id="view-prep" class="phase-view">
+                <h2>🖨️ 送印設定</h2>
+                <div class="card">
+                    <div class="input-group">
+                        <label>選擇原稿</label>
+                        <select id="prep-draft-select" onchange="ui.updatePrepCost()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>刊物名稱</label>
+                        <input type="text" id="prep-title" value="新刊">
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div class="input-group">
+                            <label>印量 (本)</label>
+                            <input type="number" id="prep-count" value="100" min="10" step="10" onchange="ui.updatePrepCost()">
+                        </div>
+                        <div class="input-group">
+                            <label>售價 (元)</label>
+                            <input type="number" id="prep-price" value="200" min="50" step="10">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label>紙張材質 (影響成本與吸引力)</label>
+                        <select id="prep-quality" onchange="ui.updatePrepCost()">
+                            <option value="0.8">再生紙 (成本 -20%)</option>
+                            <option value="1.0" selected>一般道林紙 (標準)</option>
+                            <option value="1.5">高級炫光紙 (成本 +50%, 吸引力UP)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>封面委託</label>
+                        <select id="prep-cover" onchange="ui.updatePrepCost()">
+                            <option value="0">AI 生成 ($0 / 20% 成功率)</option>
+                            <option value="1">凹親友 ($1000 / 30% 成功率)</option>
+                            <option value="2">委託小手 ($4000 / 50% 成功率)</option>
+                            <option value="3">委託大手 ($10000 / 80% 成功率)</option>
+                        </select>
+                    </div>
+                    
+                    <hr style="border-color:#555">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                        <div>
+                            <div style="font-size:0.9em; color:#bbb">單本成本: $<span id="prep-unit-cost">0</span></div>
+                            <div style="font-size:0.9em; color:#bbb">封面費用: $<span id="prep-cover-cost">0</span></div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="font-size:1.5em; font-weight:bold; color:var(--danger)">總支出: $<span id="prep-total-cost">0</span></span>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <button class="btn" style="width:48%; background:#666;" onclick="game.skipPrep()">本回不參展 (跳過)</button>
+                    <button class="btn" style="width:48%;" onclick="game.startEvent()">確認送印並參展</button>
+                </div>
+            </div>
+
+            <div id="view-event" class="phase-view">
+                <h2>🎪 展場實況</h2>
+                <div class="card" id="event-stats" style="display:flex; justify-content:space-around;">
+                    <div style="text-align:center;">👥 人流<br><span id="event-attendees" style="font-size:1.5em">0</span></div>
+                    <div style="text-align:center;">📦 總銷量<br><span id="event-sales" style="font-size:1.5em">0</span></div>
+                    <div style="text-align:center;">💰 本場營收<br><span id="event-revenue" style="font-size:1.5em; color:var(--accent)">0</span></div>
+                </div>
+                <div id="event-log"></div>
+                <button class="btn" id="btn-next-round" style="display:none; margin-top:15px;" onclick="game.nextRound()">結算並進入下一場 ➔</button>
+            </div>
+
+            <div id="view-history" class="phase-view">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>📦 庫存與紀錄</h2>
+                    <button class="btn" style="width:auto; padding:5px 10px;" onclick="game.closeHistory()">關閉</button>
+                </div>
+                
+                <h3>當前庫存 (未售出將保留)</h3>
+                <div id="inventory-list">無庫存</div>
+                <p style="font-size:0.8em; color:#aaa;">* 每回合結束將收取每本 $1 的倉庫保管費。</p>
+
+                <hr style="border-color:#444; margin:20px 0;">
+                
+                <h3>經銷紀錄</h3>
+                <table id="history-table">
+                    <thead><tr><th>場次</th><th>總營收</th><th>售出/印量</th><th>損益備註</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+<script>
+/**
+ * Global Constants & Data
+ */
+const FAN_TYPES = ['一般', '狂熱', '低調', '嘴砲', '有錢', '油王', '黑特', '黑粉'];
+
+// Expanded Genres (10 Types)
+const GENRES_DATA = [
+    { id: 0, name: "Paranoia RPG", tags: ["TRPG", "科幻", "反烏托邦"], fans: [100, 50, 20, 10, 5, 2, 5, 5] },
+    { id: 1, name: "噬謊者", tags: ["智鬥", "漫畫", "顏藝"], fans: [200, 150, 50, 30, 20, 10, 10, 5] },
+    { id: 2, name: "北歐神話", tags: ["神話", "歷史", "戰鬥"], fans: [300, 20, 100, 50, 30, 5, 10, 0] },
+    { id: 3, name: "小紅帽起源", tags: ["童話", "考察", "黑深殘"], fans: [150, 30, 150, 20, 10, 0, 5, 0] },
+    { id: 4, name: "海貓鳴泣之時", tags: ["推理", "獵奇", "魔女"], fans: [100, 200, 50, 100, 30, 20, 50, 30] },
+    { id: 5, name: "Vtuber全明星", tags: ["直播", "偶像", "迷因"], fans: [500, 300, 50, 200, 100, 50, 100, 100] },
+    { id: 6, name: "賽博龐克2077", tags: ["科幻", "改造", "開放世界"], fans: [400, 100, 50, 50, 50, 10, 20, 10] },
+    { id: 7, name: "異世界叔叔", tags: ["搞笑", "轉生", "懷舊"], fans: [200, 50, 200, 10, 20, 5, 5, 0] },
+    { id: 8, name: "治癒系露營", tags: ["日常", "風景", "美食"], fans: [300, 10, 300, 5, 50, 10, 0, 0] },
+    { id: 9, name: "魂系遊戲", tags: ["硬核", "動作", "碎片敘事"], fans: [250, 250, 50, 150, 20, 10, 50, 20] }
+];
+
+// Richer Tweet Templates
+const TWEET_TEMPLATES = [
+    // 0: 一般
+    ["最近好多人在討論這部。", "畫風還不錯，有點興趣。", "期待下一集。", "有人看過這部嗎？推嗎？", "普通的推一下。", "這個設定挺有趣的。"],
+    // 1: 狂熱
+    ["神作！！神作確認！！", "我哭了，這什麼神仙劇情...", "一生推！此生無悔入坑！", "我要買爆週邊！錢都給你！", "啊啊啊啊啊尊死！！", "每天都要吸這部！"],
+    // 2: 低調
+    ["...", "默默點讚。", "（轉推）", "已閱。", "低調推。", "懂的都懂。"],
+    // 3: 嘴砲
+    ["這什麼糞作w", "笑死，這種劇情也能紅？", "過氣了啦，還有人在看？", "畫崩成這樣也能播？", "這操作我看不懂。", "誰買誰盤子。"],
+    // 4: 有錢
+    ["已贊助。", "這點小錢不算什麼。", "全買了。", "期待作者新作，已預購。", "不錯，支持一下。", "剛把限定版全收了。"],
+    // 5: 油王
+    ["出多少收多少！", "給作者加雞腿！", "供奉起來！", "我買三套，一套傳教，一套收藏，一套用。", "這就是我要的！", "祭壇已架設完成。"],
+    // 6: 黑特
+    ["難看死。", "浪費時間。", "這畫風不行，看不下去。", "爛尾預定。", "不懂這部在紅什麼。", "比起前作差遠了。"],
+    // 7: 黑粉
+    ["燒！", "炎上預備。", "去檢舉囉。", "這種東西不該存在。", "抵制！大家不要買！", "看一次黑一次。"]
+];
+
+function getRandomName() {
+    const prefix = ['User', 'Player', 'Anon', 'Guest', 'Otaku', 'FTS', 'JP', 'TW', 'Kuma', 'Neko', 'Yee', 'Sky', 'Moon'];
+    const suffix = ['123', '5566', '888', '007', 'X', '_tw', '.eth', '99', '2026', 'Fan', '_Real'];
+    const p = prefix[Math.floor(Math.random() * prefix.length)];
+    const s = suffix[Math.floor(Math.random() * suffix.length)];
+    const r = Math.floor(Math.random() * 999);
+    if(Math.random() > 0.7) return `${p}_${s}`;
+    return `${p}${r}`;
+}
+
+// Generate random time string (e.g., "12m", "2h")
+function getRandomTime() {
+    const r = Math.random();
+    if(r < 0.6) return Math.floor(Math.random() * 59 + 1) + "m";
+    return Math.floor(Math.random() * 23 + 1) + "h";
+}
+
+class Player {
+    constructor() {
+        this.money = 10000;
+        this.round = 1;
+        this.stats = {}; // stock, essence, audience
+        this.inventory = []; // { id, genreId, title, count, price, cost, quality, coverRate, essence, roundCreated }
+        this.salesHistory = []; // { round, revenue, sold, note }
+        
+        GENRES_DATA.forEach(g => {
+            this.stats[g.id] = { stock: 0, essence: 0, audience: 0 };
+        });
+    }
+}
+
+class Game {
+    constructor() {
+        this.player = new Player();
+        this.phase = 0; 
+        this.actionsLeft = 5; // Fixed 5 actions per round
+        this.maxActions = 5;
+        this.prevPhase = 0; // For returning from History view
+    }
+
+    start() {
+        // Randomize Seasonal
+        GENRES_DATA.forEach(g => g.is_seasonal = Math.random() > 0.8);
+        this.renderSocialPhase();
+        ui.updateHeader();
+    }
+
+    // --- Phase 1: Social Media ---
+    renderSocialPhase() {
+        this.phase = 0;
+        ui.switchView('view-social');
+        ui.updatePhaseDisplay("社群觀察");
+        ui.renderSidebarActions([]); 
+        
+        const feed = document.getElementById('tweet-feed');
+        feed.innerHTML = '';
+        const tweets = this.generateTweets(50);
+        
+        // Sort by time (faked: "1m" is top, "23h" is bottom) - Simplified logic
+        // We generated them randomly, let's just render them. 
+        // Better: Sort by "minutes ago"
+        tweets.sort((a,b) => a.timeVal - b.timeVal);
+
+        tweets.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'tweet';
+            div.innerHTML = `
+                <div class="tweet-header">
+                    <span class="tweet-user">@${t.userName}</span>
+                    <span>${t.timeStr} ago</span>
+                </div>
+                <div class="tweet-content">
+                    關於 <strong>${t.genreName}</strong>...<br>
+                    ${t.content}
+                </div>`;
+            feed.appendChild(div);
+        });
+    }
+
+    generateTweets(count) {
+        let tweets = [];
+        let weightPool = [];
+        
+        GENRES_DATA.forEach(g => {
+            let w = (g.fans[0]*1) + (g.fans[1]*20) + (g.fans[2]*0.01) + (g.fans[3]*1) + 
+                    (g.fans[4]*5) + (g.fans[5]*20) + (g.fans[6]*0.1) + (g.fans[7]*20);
+            if(g.is_seasonal) w *= 5;
+            let tickets = Math.ceil(w / 10); 
+            if(tickets < 1) tickets = 1;
+            for(let i=0; i<tickets; i++) weightPool.push(g);
+        });
+
+        for(let i=0; i<count; i++) {
+            const genre = weightPool[Math.floor(Math.random() * weightPool.length)];
+            let fanPool = [];
+            genre.fans.forEach((num, typeIdx) => {
+                let n = Math.ceil(num / 10); 
+                for(let k=0; k<n; k++) fanPool.push(typeIdx);
+            });
+            let typeIdx = fanPool.length > 0 ? fanPool[Math.floor(Math.random() * fanPool.length)] : 0;
+            
+            // Time logic
+            let mins = Math.floor(Math.random() * 1400) + 1; // 1 min to 23 hours
+            let timeStr = mins < 60 ? `${mins}m` : `${Math.floor(mins/60)}h`;
+
+            tweets.push({
+                genreName: genre.name,
+                userName: getRandomName(),
+                content: this.getTweetContent(typeIdx),
+                timeStr: timeStr,
+                timeVal: mins
+            });
+        }
+        return tweets;
+    }
+
+    getTweetContent(typeIdx) {
+        if(typeIdx < 0 || typeIdx >= TWEET_TEMPLATES.length) return "...";
+        const pool = TWEET_TEMPLATES[typeIdx];
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    // --- Phase 2: Action ---
+    nextPhase() {
+        if(this.phase === 0) this.startActionPhase();
+    }
+
+    startActionPhase() {
+        this.phase = 1;
+        this.actionsLeft = this.maxActions; // Reset actions
+        ui.switchView('view-action');
+        ui.updatePhaseDisplay("自由活動");
+        ui.updateActionCount();
+        ui.renderSidebarActions(['create', 'watch', 'social', 'info']);
+        ui.renderPlayerStatus();
+    }
+
+    doAction(type) {
+        if(this.actionsLeft <= 0) {
+            alert("行動次數已用盡！請準備送印。");
+            return;
+        }
+
+        const promptText = "請輸入題材 ID:\n" + GENRES_DATA.map(g=>`${g.id}. [${g.name}]`).join("\n");
+        let input = prompt(promptText);
+        if(input === null) return;
+        
+        const genreId = parseInt(input);
+        if(isNaN(genreId) || genreId < 0 || genreId >= GENRES_DATA.length) {
+            alert("無效的 ID");
+            return;
+        }
+
+        this.actionsLeft--;
+        ui.updateActionCount();
+
+        const gName = GENRES_DATA[genreId].name;
+        const msgBox = document.getElementById('latest-action-msg');
+        
+        if (type === 'create') {
+            this.player.stats[genreId].stock++;
+            msgBox.innerHTML = `✍️ 創作 <strong style="color:var(--highlight)">《${gName}》</strong>。<br>存稿增加 (現有 ${this.player.stats[genreId].stock} 份)`;
+        } else if (type === 'watch') {
+            this.player.stats[genreId].essence++;
+            let hint = ``;
+            let r1 = Math.floor(Math.random() * 8);
+            hint += `${FAN_TYPES[r1]}約 ${GENRES_DATA[genreId].fans[r1]} 人`;
+            msgBox.innerHTML = `📺 觀看 <strong style="color:var(--highlight)">《${gName}》</strong>。<br>本質理解 UP (Lv.${this.player.stats[genreId].essence})。<br>情報：${hint}`;
+        } else if (type === 'social') {
+             this.player.stats[genreId].audience++;
+             msgBox.innerHTML = `📱 刷 <strong style="color:var(--highlight)">《${gName}》</strong> 的討論。<br>觀眾理解 UP (Lv.${this.player.stats[genreId].audience})`;
+        }
+        
+        ui.renderPlayerStatus();
+
+        if(this.actionsLeft <= 0) {
+            alert("行動次數用盡！即將進入準備階段。");
+            setTimeout(() => this.finishActionPhase(), 1000);
+        }
+    }
+
+    showInfo() {
+        const panel = document.getElementById('info-panel');
+        const table = document.getElementById('info-table');
+        panel.style.display = 'block';
+        table.innerHTML = `<tr><th>題材</th><th>本質</th><th>觀眾</th><th>情報</th></tr>`;
+        
+        GENRES_DATA.forEach(g => {
+            const stat = this.player.stats[g.id];
+            let info = "";
+            const level = stat.audience;
+            
+            if(level === 0) info = "<span style='color:#666'>???</span>";
+            else {
+                let sortedFans = g.fans.map((cnt, idx) => ({cnt, idx})).sort((a,b) => b.cnt - a.cnt);
+                let revealCount = level >= 5 ? 8 : (level * 2);
+                if(revealCount > 8) revealCount = 8;
+                
+                let details = [];
+                for(let i=0; i<revealCount; i++) {
+                    let type = sortedFans[i];
+                    details.push(`${FAN_TYPES[type.idx]}:${type.cnt}`);
+                }
+                info = details.join(", ");
+            }
+
+            table.innerHTML += `<tr>
+                <td>${g.name}</td>
+                <td style="text-align:center">${stat.essence}</td>
+                <td style="text-align:center">${stat.audience}</td>
+                <td>${info}</td>
+            </tr>`;
+        });
+    }
+
+    finishActionPhase() {
+        this.phase = 2;
+        ui.switchView('view-prep');
+        ui.updatePhaseDisplay("準備參展");
+        ui.renderSidebarActions([]); 
+        
+        const select = document.getElementById('prep-draft-select');
+        select.innerHTML = '';
+        let hasDraft = false;
+        GENRES_DATA.forEach(g => {
+            const s = this.player.stats[g.id];
+            if(s.stock > 0) {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.text = `${g.name} (存稿:${s.stock}, 本質:${s.essence})`;
+                select.appendChild(opt);
+                hasDraft = true;
+            }
+        });
+        
+        if(!hasDraft) {
+            // If no drafts, user can only rely on existing inventory or skip
+            const opt = document.createElement('option');
+            opt.text = "(無新刊原稿)";
+            select.appendChild(opt);
+            select.disabled = true;
+            document.getElementById('prep-count').disabled = true;
+        } else {
+             select.disabled = false;
+             document.getElementById('prep-count').disabled = false;
+        }
+        ui.updatePrepCost();
+    }
+
+    // --- Phase 3: Prep ---
+    startEvent() {
+        if(document.getElementById('prep-draft-select').disabled) {
+            // No new book, just go to event with inventory
+            this.runEventSimulation();
+            return;
+        }
+
+        const genreId = parseInt(document.getElementById('prep-draft-select').value);
+        const title = document.getElementById('prep-title').value;
+        const count = parseInt(document.getElementById('prep-count').value);
+        const price = parseInt(document.getElementById('prep-price').value);
+        const quality = parseFloat(document.getElementById('prep-quality').value);
+        const coverType = parseInt(document.getElementById('prep-cover').value);
+        
+        const costData = ui.calculateCost();
+        
+        if(this.player.money < costData.total) {
+            alert("金錢不足！無法支付印費。請減少印量或選擇便宜的紙張。");
+            return;
+        }
+
+        this.player.money -= costData.total;
+        
+        let coverRate = 20; // Default AI
+        if(coverType === 1) coverRate = 30;
+        else if(coverType === 2) coverRate = 50;
+        else if(coverType === 3) coverRate = 80;
+
+        // Quality Bonus to cover appeal
+        if(quality > 1.0) coverRate += 10;
+        if(quality < 1.0) coverRate -= 5;
+
+        // Create Item
+        const newItem = {
+            id: Date.now(),
+            genreId: genreId,
+            title: title,
+            count: count,
+            price: price,
+            cost: costData.unitCost, // Record unit cost
+            coverRate: coverRate,
+            essence: this.player.stats[genreId].essence,
+            round: this.player.round
+        };
+
+        this.player.inventory.push(newItem);
+        
+        // Reset draft stock (consumed) but keep understanding
+        this.player.stats[genreId].stock = 0;
+        // Decay audience understanding
+        this.player.stats[genreId].audience = Math.max(0, this.player.stats[genreId].audience - 1);
+
+        ui.updateHeader();
+        this.runEventSimulation();
+    }
+
+    skipPrep() {
+        if(this.player.inventory.length > 0) {
+            if(confirm("確定不印新刊，直接用現有庫存參展嗎？")) {
+                this.runEventSimulation();
+            }
+        } else {
+            alert("沒有庫存也沒有新刊，本回無法參展。");
+            this.nextRound();
+        }
+    }
+
+    // --- Phase 4: Event ---
+    runEventSimulation() {
+        this.phase = 3;
+        ui.switchView('view-event');
+        ui.updatePhaseDisplay("參展中");
+        ui.renderSidebarActions([]);
+
+        const attendees = Math.floor(Math.random() * 2000) + 1000;
+        document.getElementById('event-attendees').innerText = attendees;
+        const logEl = document.getElementById('event-log');
+        logEl.innerHTML = ">>> 展場開門，人潮湧入...\n";
+
+        let totalRevenue = 0;
+        let totalSold = 0;
+        let logs = [];
+
+        // Pre-calc visitor pool
+        let allFans = [];
+        GENRES_DATA.forEach(g => {
+             g.fans.forEach((count, typeIdx) => {
+                 let weight = Math.ceil(count / 5);
+                 for(let k=0; k<weight; k++) allFans.push({gid: g.id, type: typeIdx});
+             });
+        });
+
+        // Loop Attendees
+        for(let i=0; i<attendees; i++) {
+            // Check if we have anything to sell
+            let totalStock = 0;
+            this.player.inventory.forEach(item => totalStock += item.count);
+            if(totalStock <= 0) break;
+
+            const visitor = allFans[Math.floor(Math.random() * allFans.length)];
+            
+            // Does player have books of this genre?
+            // Filter inventory for matching genre and has stock
+            let matchingBooks = this.player.inventory.filter(b => b.genreId === visitor.gid && b.count > 0);
+            
+            if(matchingBooks.length === 0) continue;
+
+            // Pick one book (randomly or user strategy? Random for now)
+            let book = matchingBooks[Math.floor(Math.random() * matchingBooks.length)];
+
+            // Cover Check
+            if(Math.random() * 100 > book.coverRate) continue;
+
+            // Buy Logic
+            let buyCount = 0;
+            const price = book.price;
+            const type = visitor.type;
+
+            if (type === 0 && price <= 400) buyCount = 1; 
+            else if (type === 1) { 
+                buyCount = 1;
+                if(book.essence >= 3) buyCount = 2;
+                if(book.essence >= 7) buyCount = 3;
+            }
+            else if (type === 2 && price <= 500) buyCount = 1; 
+            else if (type === 3) buyCount = 0; 
+            else if (type === 4) buyCount = 1; 
+            else if (type === 5) { 
+                let base = 1; 
+                if(book.essence >= 3) base = 2; 
+                if(book.essence >= 7) base = 3;
+                buyCount = (base * 2) + 2;
+            }
+            else if (type === 6) buyCount = 0; 
+            else if (type === 7) buyCount = 1; // Hate buy
+
+            if(buyCount > 0) {
+                let actualBuy = Math.min(buyCount, book.count);
+                book.count -= actualBuy;
+                let profit = actualBuy * price;
+                totalRevenue += profit;
+                totalSold += actualBuy;
+                
+                if(logs.length < 50 && Math.random() > 0.8) { 
+                     logs.push(`> [${FAN_TYPES[type]}] 買了 ${actualBuy} 本《${book.title}》`);
+                }
+            }
+        }
+
+        if(totalSold === 0) logs.push(">>> 門可羅雀...");
+        else logs.push(`>>> 展場結束！總共賣出 ${totalSold} 本`);
+
+        logEl.innerHTML += logs.join("\n");
+        document.getElementById('event-sales').innerText = totalSold;
+        document.getElementById('event-revenue').innerText = totalRevenue;
+
+        this.player.money += totalRevenue;
+        
+        // Record History
+        this.player.salesHistory.push({
+            round: this.player.round,
+            revenue: totalRevenue,
+            sold: totalSold,
+            note: totalSold > 0 ? "正常參展" : "滯銷"
+        });
+
+        ui.updateHeader();
+        document.getElementById('btn-next-round').style.display = 'block';
+    }
+
+    nextRound() {
+        // Inventory Storage Fee logic
+        let storageFee = 0;
+        let totalItems = 0;
+        // Filter out empty books (Sold out)
+        this.player.inventory = this.player.inventory.filter(b => b.count > 0);
+        
+        this.player.inventory.forEach(b => {
+            storageFee += b.count * 1; // $1 per book
+            totalItems += b.count;
+        });
+
+        if(storageFee > 0) {
+            this.player.money -= storageFee;
+            alert(`回合結束結算：\n剩餘庫存 ${totalItems} 本\n支付倉庫保管費 $${storageFee}`);
+        }
+
+        this.player.round++;
+        document.getElementById('btn-next-round').style.display = 'none';
+        
+        GENRES_DATA.forEach(g => {
+            g.is_seasonal = Math.random() > 0.8;
+        });
+        
+        this.start();
+    }
+
+    // --- History View ---
+    toggleHistoryView() {
+        if(this.phase === 99) { // Already in history
+            this.closeHistory();
+        } else {
+            this.prevPhase = this.phase;
+            this.phase = 99;
+            ui.switchView('view-history');
+            ui.renderInventory();
+            ui.renderHistory();
+        }
+    }
+    closeHistory() {
+        // Restore previous view
+        if(this.prevPhase === 0) this.renderSocialPhase();
+        else if(this.prevPhase === 1) ui.switchView('view-action');
+        else if(this.prevPhase === 2) ui.switchView('view-prep');
+        else if(this.prevPhase === 3) ui.switchView('view-event');
+        
+        this.phase = this.prevPhase;
+    }
+}
+
+class UI {
+    switchView(viewId) {
+        document.querySelectorAll('.phase-view').forEach(el => {
+            el.classList.remove('active');
+        });
+        document.getElementById(viewId).classList.add('active');
+    }
+
+    updateHeader() {
+        document.getElementById('money-display').innerText = game.player.money;
+        document.getElementById('round-display').innerText = game.player.round;
+        this.updateActionCount();
+    }
+
+    updatePhaseDisplay(text) {
+        document.getElementById('current-phase-display').innerText = text;
+    }
+
+    updateActionCount() {
+        const text = `${game.actionsLeft}/${game.maxActions}`;
+        document.getElementById('action-point-display').innerText = text;
+        
+        // Also update big number in Action Phase
+        const bigNum = document.getElementById('ap-count-big');
+        if(bigNum) bigNum.innerText = game.actionsLeft;
+    }
+
+    renderPlayerStatus() {
+        const div = document.getElementById('player-status');
+        div.innerHTML = '';
+        let hasData = false;
+        GENRES_DATA.forEach(g => {
+            const s = game.player.stats[g.id];
+            if(s.stock > 0 || s.essence > 0 || s.audience > 0) {
+                hasData = true;
+                div.innerHTML += `<div style="margin-bottom:8px; font-size:0.9em; border-bottom:1px solid #444; padding-bottom:4px;">
+                    <strong style="color:var(--highlight)">${g.name}</strong><br>
+                    存稿: ${s.stock} | 本質: ${s.essence} | 觀眾: ${s.audience}
+                </div>`;
+            }
+        });
+        if(!hasData) div.innerHTML = '<small style="color:#888">暫無原稿。</small>';
+    }
+
+    renderSidebarActions(actions) {
+        const div = document.getElementById('action-buttons');
+        div.innerHTML = '';
+        if(actions.length === 0) return;
+
+        if(actions.includes('create')) div.innerHTML += `<button class="btn" onclick="game.doAction('create')">✍️ 創作原稿 <span>(-1 AP)</span></button>`;
+        if(actions.includes('watch')) div.innerHTML += `<button class="btn" onclick="game.doAction('watch')">📺 觀看作品 <span>(-1 AP)</span></button>`;
+        if(actions.includes('social')) div.innerHTML += `<button class="btn" onclick="game.doAction('social')">📱 刷社群 <span>(-1 AP)</span></button>`;
+        if(actions.includes('info')) div.innerHTML += `<button class="btn" onclick="game.showInfo()">📊 市場情報 <span>(Free)</span></button>`;
+    }
+
+    updatePrepCost() {
+        if(document.getElementById('prep-draft-select').disabled) {
+            document.getElementById('prep-unit-cost').innerText = 0;
+            document.getElementById('prep-total-cost').innerText = 0;
+            return;
+        }
+
+        const id = document.getElementById('prep-draft-select').value;
+        const count = parseInt(document.getElementById('prep-count').value) || 0;
+        const quality = parseFloat(document.getElementById('prep-quality').value) || 1.0;
+        
+        const stock = game.player.stats[id].stock;
+        
+        // Base Cost Formula
+        let unitCost = 50 + (stock * 50);
+        
+        // Apply Quality Multiplier
+        unitCost = Math.floor(unitCost * quality);
+        
+        // Cover Cost
+        const coverType = parseInt(document.getElementById('prep-cover').value);
+        let coverCost = 0;
+        if(coverType == 1) coverCost = 1000;
+        if(coverType == 2) coverCost = 4000;
+        if(coverType == 3) coverCost = 10000;
+
+        const total = (unitCost * count) + coverCost;
+
+        document.getElementById('prep-unit-cost').innerText = unitCost;
+        document.getElementById('prep-cover-cost').innerText = coverCost;
+        document.getElementById('prep-total-cost').innerText = total;
+    }
+
+    calculateCost() {
+        const total = parseInt(document.getElementById('prep-total-cost').innerText);
+        const unit = parseInt(document.getElementById('prep-unit-cost').innerText);
+        return { total, unitCost: unit };
+    }
+
+    renderInventory() {
+        const div = document.getElementById('inventory-list');
+        if(game.player.inventory.length === 0) {
+            div.innerHTML = '<div style="padding:10px; text-align:center; color:#666;">無庫存</div>';
+            return;
+        }
+        
+        let html = '<table style="width:100%"><tr><th>刊名</th><th>數量</th><th>成本</th><th>售價</th></tr>';
+        game.player.inventory.forEach(item => {
+            html += `<tr>
+                <td>${item.title} <span style="font-size:0.8em; color:#888">(${GENRES_DATA.find(g=>g.id==item.genreId).name})</span></td>
+                <td>${item.count}</td>
+                <td>$${item.cost}</td>
+                <td>$${item.price}</td>
+            </tr>`;
+        });
+        html += '</table>';
+        div.innerHTML = html;
+    }
+
+    renderHistory() {
+        const tbody = document.querySelector('#history-table tbody');
+        tbody.innerHTML = '';
+        game.player.salesHistory.forEach(h => {
+            tbody.innerHTML += `<tr>
+                <td>Round ${h.round}</td>
+                <td style="color:var(--accent)">+$${h.revenue}</td>
+                <td>${h.sold}</td>
+                <td>${h.note}</td>
+            </tr>`;
+        });
+    }
+}
+
+// Init Game
+const ui = new UI();
+const game = new Game();
+window.onload = () => {
+    game.start();
+};
+</script>
+</body>
+</html>
