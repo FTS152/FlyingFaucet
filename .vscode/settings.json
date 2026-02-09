@@ -10,7 +10,9 @@
         ".specify/scripts/bash/": true,
         ".specify/scripts/powershell/": true,
         "git checkout": true,
-        "git add": true
-    }
+        "git add": true,
+        "git commit": true
+    },
+    "chat.agent.maxRequests": 100
 }
 

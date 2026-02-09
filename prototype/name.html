@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>同人社團遊戲：作品名/中文簡介生成器（離線模板＋詞庫測試）</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", sans-serif; margin: 24px; line-height: 1.5; }
+    h1 { margin: 0 0 12px; font-size: 20px; }
+    .row { display: grid; grid-template-columns: 1fr; gap: 12px; max-width: 1100px; }
+    .panel { border: 1px solid rgba(127,127,127,.35); border-radius: 12px; padding: 14px; }
+    .controls { display: grid; grid-template-columns: repeat(12, 1fr); gap: 10px; align-items: end; }
+    .controls > div { grid-column: span 12; }
+    @media (min-width: 980px) {
+      .controls > div.c3 { grid-column: span 3; }
+      .controls > div.c4 { grid-column: span 4; }
+      .controls > div.c6 { grid-column: span 6; }
+    }
+    label { display: block; font-size: 12px; opacity: .85; margin-bottom: 6px; }
+    input, select, button, textarea {
+      width: 100%; box-sizing: border-box;
+      border: 1px solid rgba(127,127,127,.35);
+      background: rgba(127,127,127,.08);
+      padding: 10px 10px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    button { cursor: pointer; font-weight: 650; }
+    button.primary { background: rgba(0, 120, 255, .18); border-color: rgba(0, 120, 255, .45); }
+    button.secondary { background: rgba(0, 200, 120, .14); border-color: rgba(0, 200, 120, .35); }
+    button:active { transform: translateY(1px); }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(127,127,127,.35); background: rgba(127,127,127,.08); font-size: 13px; }
+    .tag input { width: auto; margin-right: 6px; transform: translateY(1px); }
+    .results { display: grid; gap: 10px; }
+    .card { border: 1px solid rgba(127,127,127,.35); border-radius: 14px; padding: 12px 14px; background: rgba(127,127,127,.06); }
+    .title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .meta { font-size: 12px; opacity: .8; margin-bottom: 8px; }
+    .syn { white-space: pre-wrap; }
+    .small { font-size: 12px; opacity: .8; }
+    .two { display: grid; gap: 12px; grid-template-columns: 1fr; }
+    @media (min-width: 980px) { .two { grid-template-columns: 1fr 1fr; } }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Noto Sans Mono", monospace; }
+  </style>
+</head>
+<body>
+  <h1>作品名/中文簡介生成器（離線：模板＋詞庫）</h1>
+
+  <div class="row">
+    <div class="panel">
+      <div class="controls">
+        <div class="c3">
+          <label>生成數量</label>
+          <input id="count" type="number" min="1" max="50" value="12" />
+        </div>
+        <div class="c3">
+          <label>每部作品 Tag 數量</label>
+          <select id="tagCount">
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <div class="c3">
+          <label>標題語言</label>
+          <select id="titleLang">
+            <option value="auto" selected>自動（混合）</option>
+            <option value="jp">日文</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+        <div class="c3">
+          <label>隨機種子（可重現）</label>
+          <input id="seed" class="mono" placeholder="例如：20260209" />
+        </div>
+
+        <div class="c6">
+          <label>可用 Tag（勾選池；生成時會從池裡抽）</label>
+          <div id="tagPool" class="tags"></div>
+          <div class="small">你可以把 Tag 清單換成最終版。若「完全不勾」，系統也會自動隨機挑 Tag 來生成。</div>
+        </div>
+
+        <div class="c6">
+          <label>手動加權（可選）：把某些 Tag 抽到的機率提高</label>
+          <textarea id="tagBoost" rows="6" class="mono"
+            placeholder='格式：每行 "Tag=倍率"\n例如：\n燒腦=2\n迷因化=1.5\n只適合R18發揮=1.8'></textarea>
+          <div class="small">這只影響「抽 Tag」機率；Tag 對模板/詞庫偏好是內建 mapping。</div>
+        </div>
+
+        <div class="c4">
+          <button class="primary" id="gen">生成（若未選 Tag 會自動隨機）</button>
+        </div>
+        <div class="c4">
+          <button class="secondary" id="genForceRandomTags">強制隨機選 Tag → 生成</button>
+        </div>
+        <div class="c4">
+          <button id="copyJson">複製 JSON（最後一批）</button>
+        </div>
+        <div class="c4">
+          <button id="clear">清空</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="two">
+      <div class="panel">
+        <div class="small">輸出（標題：日/中；簡介：中文）</div>
+        <div id="out" class="results"></div>
+      </div>
+
+      <div class="panel">
+        <div class="small">內建模板/詞庫（要調就直接改這一頁）</div>
+        <details open>
+          <summary>標題模板（JP / ZH）</summary>
+          <pre id="tmplDump" class="mono small"></pre>
+        </details>
+        <details>
+          <summary>中文簡介模板（多樣）</summary>
+          <pre id="synDump" class="mono small"></pre>
+        </details>
+        <details>
+          <summary>詞庫（分組）</summary>
+          <pre id="dictDump" class="mono small"></pre>
+        </details>
+        <details>
+          <summary>Tag → 權重影響（簡化版）</summary>
+          <pre id="mapDump" class="mono small"></pre>
+        </details>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** =========================
+ *  RNG（可選 seed）
+ *  ========================= */
+function mulberry32(a) {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+}
+function seedToInt(s) {
+  if (!s) return (Date.now() ^ (Math.random()*1e9)) >>> 0;
+  let h = 2166136261;
+  for (let i=0;i<s.length;i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/** =========================
+ *  詞庫：標題用（日文/中文），簡介用（中文）
+ *  ========================= */
+const Dict = {
+  // ====== JP 標題詞庫 ======
+  jp: {
+    place: ["学園","研究都市","辺境","旧市街","地下施設","帝国","王国","図書館","監獄区","廃都","海上都市","終末世界","封鎖区","隔離都市","霧の港町","商店街","田舎町","駅前","放課後","体育館","グラウンド","プール","合宿所","部室","河川敷"],
+    event: ["事故","転生","覚醒","契約","暴走","崩壊","任務","再構築","事件簿","追放","断罪","反転","反撃","侵蝕"],
+    role: ["探偵","司書","魔導士","錬金術師","研究員","騎士","薬師","監視者","守護者","執行官","新人","教官","召喚士","王女","悪役令嬢","観測者","審問官","マネージャー","主将","エース","コーチ","先輩","後輩","同級生","幼なじみ","転校生","部員"],
+    kanji: ["境界","機関","連盟","監獄","楽園","終焉","黎明","追憶","虚構","呪い","契約","代償","記録","反転","深淵","断章","禁域","残響","天秤","偽装"],
+    abstract: ["真実","証明","解析","観測","因果","仮説","例外","臨界","誤差","同期","反証","再現","不確定","欠落","分岐","干渉"],
+    subtitle: ["序章","断罪","反撃","追放","覚醒","再起","黒幕","事件簿","記憶","邂逅","迷宮","終章","戦線","反証","禁忌","残響","零地点","再演"],
+    kataName: ["アストラ","ノヴァ","ルミナ","クロノ","エーテル","オルタ","レイヴン","イシュラ","シンギュラ","ヴァルキュリア","ネビュラ","セレス","ヴァイス","ラグナ"],
+    syllPre: ["クロ","シン","アル","ノヴ","ルミ","エン","ヴァ","レイ","オル","グラ","ネ","セ","フェ","ラグ"],
+    syllSuf: ["ナ","ラ","ル","ス","ア","オ","テ","リア","ノン","クス","イア","ルム","ディア","シア"],
+    longOpen: ["転生したら","目が覚めたら","気づいたら","うっかり","なぜか","間違って","勢いで","成り行きで"],
+    longEnd: ["することになった件","やり直す話","してしまった話","だった件","しかなかった","が止まらない","は間違いだった？"],
+    marks: ["!!","!?","☆","×","～","√","II","Re:","??"]
+  },
+
+  // ====== ZH 標題詞庫 ======
+  zh: {
+    core: ["境界","深淵","終焉","黎明","樂園","禁域","灰燼","殘響","天秤","斷章","虛構","契約","代價","記錄","例外","臨界","誤差","因果","反證","再演"],
+    pair: ["契約","詛咒","記憶","謎題","選擇","祕密","真相","規則","觀測","證明","異常","禁忌","回聲","失控","倒影","裂縫"],
+    role: ["偵探","藥師","鍊金術師","魔導士","研究員","騎士","守護者","監視者","審問官","召喚師","執行官","新人成員","前王牌","惡役千金"],
+    place: ["學園","研究都市","封鎖區","舊市街","地下設施","邊境小鎮","海上都市","霧港","隔離都市","帝國","王國","廢都"],
+    hook: ["事故","轉生","覺醒","契約","失控","崩壞","追放","斷罪","再構築","事件簿","任務","反擊","侵蝕","再起","大賽","預選","合宿","引退","受傷","復健","轉社","練習賽","文化祭","體育祭"],
+    subtitle: ["序章","覺醒","追放","斷罪","反擊","黑幕","記憶篇","迷宮篇","終章","戰線","反證","禁忌","零地點","再演"],
+    punct: ["！","！！","？","！？","☆","×","～","Ⅱ","Re:","??"]
+  },
+
+  // ====== 中文簡介詞庫（全部中文，不混日文） ======
+  syn: {
+    setting: [
+    "在【syn_place】，『【syn_system】』被視為日常。",
+    "【syn_place】表面平靜，實際上【syn_threat】正在蔓延。",
+    "一場【syn_incident】改寫了【syn_place】的秩序。",
+    "當【syn_system】開始失靈，人們才發現【syn_truth】一直被隱藏。",
+    "新學期開始，【syn_place】迎來【syn_incident】，每個人都得重新定位自己。",
+    "在【syn_place】裡，大家都默認【syn_rule】；但總有人偏要挑戰它。",
+    "這是一個「只要照著【syn_system】走就不會出事」的地方——直到【syn_incident】發生。",
+    "【syn_place】最有名的不是傳說，而是【syn_threat】與【syn_truth】一起出現的那種尷尬。",
+    "平凡的日常裡藏著不平凡：只要踏進【syn_place】，你就會被捲進【syn_core_conflict】。",
+    "在眾人以為只是【syn_surface】的一天，【syn_incident】讓一切變得【syn_turn】。"
+  ],
+    lead: [
+    "【syn_lead】原本只想【syn_goal_small】，卻意外捲入【syn_core_conflict】。",
+    "身為【syn_role】的【syn_lead】，每天的工作是【syn_job】，直到【syn_incident】發生。",
+    "【syn_lead】背負著【syn_burden】，卻被迫成為【syn_key】。",
+    "【syn_lead】明明是【syn_trait】，卻總是在關鍵時刻做出【syn_choice_style】的選擇。",
+    "【syn_lead】本來只是「路過」【syn_place】，卻被【syn_rival】盯上。",
+    "為了【syn_goal_small】，【syn_lead】加入了【syn_system】約束下的團隊，沒想到從此無法退出。",
+    "【syn_lead】和【syn_rival】明明水火不容，卻被迫在同一條【syn_rule】下合作。",
+    "身為【syn_role】，他最擅長【syn_job】；但最不擅長的是面對【syn_dilemma】。",
+    "【syn_lead】決定把【syn_burden】埋起來，結果它在【syn_incident】那天自己爆出來。",
+    "在所有人都想【syn_goal_small】的時候，只有【syn_lead】選了【syn_choice_style】那條路。"
+  ],
+    conflict: [
+    "為了【syn_goal_big】，他必須【syn_action】；失敗的代價是【syn_stake】。",
+    "當【syn_rival】出現後，局勢走向【syn_turn】。",
+    "每一次【syn_action】都會引發【syn_consequence】，而【syn_rule】不允許犯錯。",
+    "面對【syn_dilemma】，他只能在【syn_two_bad】之間做出決定。",
+    "想贏不只靠努力：在【syn_rule】面前，努力可能只是最低門檻。",
+    "團隊表面團結，私下卻因【syn_truth】分裂成兩派。",
+    "他以為只要【syn_action】就能解決，結果【syn_consequence】把問題放大十倍。",
+    "當【syn_system】要求「正確」，【syn_lead】卻只能做出「不討喜但必要」的選擇。",
+    "一個小小的【syn_incident】引爆【syn_threat】，讓【syn_place】瞬間變成戰場。",
+    "要守住【syn_stake】就得違反【syn_rule】——這種事，真的做得到嗎？",
+    "他們必須在期限內完成【syn_goal_big】，否則就會迎來【syn_twist】式的清算。"
+  ],
+    hook: [
+    "然而，真正的【syn_twist】才正要開始。",
+    "而這一切，都指向同一個名字：『【syn_titlecore】』。",
+    "看似【syn_surface】，其實是【syn_hidden】。",
+    "「【syn_quote】」——從這句話開始，故事再也回不去。",
+    "這不是關於天才的故事，而是關於「不想輸的人」如何活下去。",
+    "只要你笑著看完第一集，就會在第二集突然被【syn_turn】打臉。",
+    "大家以為最麻煩的是【syn_threat】，沒想到真正的敵人是【syn_rule】。",
+    "有些真相不適合公開——可惜【syn_lead】偏偏最擅長【syn_action】。",
+    "當你以為主線是【syn_goal_big】，作品卻突然拋出【syn_dilemma】。",
+    "從【syn_incident】開始，每一次選擇都會留下「改不回來」的痕跡。"
+  ],
+    pitch: [
+    "一場【syn_tone】的【syn_genre_mix】，關於【syn_theme】與【syn_theme2】。",
+    "本作以【syn_sell】為賣點，帶來【syn_viewer】停不下來的節奏。",
+    "在【syn_mood】與【syn_mood2】之間切換，讓人一集接一集。",
+    "這不是單純的【syn_genre】，而是一場【syn_meta】。",
+    "放學後的【syn_mood】裡，藏著每個人都不想說的【syn_burden】。",
+    "沒有救世主、沒有外掛，只有一次次練習與一次次【syn_consequence】。",
+    "用最【syn_mood】的方式講最【syn_mood2】的事：你會笑，然後突然被刺到。",
+    "看點不是「會不會成功」，而是「失敗後要怎麼站起來」。",
+    "本作把【syn_theme】講得很近：近到像你隔壁班就正在發生。",
+    "你可以把它當【syn_genre_mix】看，但最後你會記住的是那些小小的選擇。"
+  ],
+
+    // slot dictionaries
+    syn_place: ["學園","研究都市","封鎖區","舊市街","地下設施","邊境小鎮","海上都市","霧港","隔離都市","帝國首都","王國邊境","廢都遺址","商店街","鄉下小鎮","車站前","放學後的教室","社團教室","體育館","操場","泳池","合宿所","河堤球場","公寓樓下","便利商店門口"],
+    syn_system: ["「系統」","「協議」","「觀測」","「分級制度」","「記錄機制」","「契約規則」","「禁令」","「替代方案」","「社團規則」","「隊規」","「選拔制度」","「訓練菜單」","「學校傳統」","「學長學妹制度」"],
+    syn_threat: ["失控","侵蝕","異常","謠言","黑箱操作","連鎖事故","未知生物","記憶錯置","低迷","連敗","內鬨","退部潮","焦慮","失誤陰影","壓力爆表","謎之規定"],
+    syn_incident: ["事故","斷電","暴走事件","大規模失蹤","禁忌實驗","直播翻車","校園事件","審判日"],
+    syn_truth: ["真相","祕密","錯誤","規則漏洞","被竄改的紀錄","不該存在的例外"],
+    syn_lead: ["某位平凡的學生","不被期待的新人成員","前王牌","剛上任的審問官","見習研究員","被放逐的騎士","自稱只是路人的旁觀者","擅長拆台的偵探"],
+    syn_role: ["偵探","藥師","鍊金術師","研究員","騎士","守護者","監視者","審問官","召喚師","執行官"],
+    syn_goal_small: ["安穩畢業","準時下班","低調活著","把麻煩推給別人","當作什麼都沒看見","把日常撐過去"],
+    syn_job: ["處理離奇委託","維持秩序","回收失控樣本","整理被封存的檔案","監控異常訊號","把每個人都當嫌疑犯"],
+    syn_burden: ["一段消失的記憶","一份不能公開的契約","不該知道的祕密","被指名的罪名","無法證明的清白","一個註定失敗的任務"],
+    syn_key: ["關鍵人物","替罪羊","例外樣本","唯一證人","系統漏洞","最後的備案"],
+    syn_trait: ["過於理性","太容易心軟","嘴上不饒人","總是倒楣","看起來很可靠","一臉不在乎"],
+    syn_choice_style: ["最正確","最不討喜","最冒險","最不合理","最直覺","最諷刺"],
+    syn_core_conflict: ["一場被掩蓋的事件","失控的系統","逐步崩壞的規則","被刻意設計的陷阱","一段無法驗證的真相"],
+    syn_goal_big: ["查明真相","推翻規則","救回重要的人","阻止暴走","完成任務","證明自己"],
+    syn_action: ["追查線索","破解機制","違反禁令","與敵人合作","把祕密公諸於眾","做出交換","按下重置鍵","把規則玩壞"],
+    syn_stake: ["整座城市的秩序","一個人的人生","整個體制的崩塌","不可逆的後果","你最在意的那個人","被改寫的現實"],
+    syn_rival: ["神祕組織","同陣營的叛徒","看似完美的對手","比你更懂規則的人","只會添亂的搭檔"],
+    syn_turn: ["不可收拾","完全反轉","更荒謬的方向","連續超展開","充滿吐槽點"],
+    syn_consequence: ["更大的災難","更難收拾的後果","新的嫌疑人","更多謊言","更離譜的解釋"],
+    syn_rule: ["規則","系統","協議","審判機制","封鎖令","契約條款"],
+    syn_dilemma: ["兩難局面","不可解的選擇","無解的謎題","自相矛盾的證據","情感與理性的衝突"],
+    syn_two_bad: ["救一個人或救所有人","說出真相或保住現狀","相信同伴或相信證據","遵守規則或破壞規則","放手或堅持到底"],
+    syn_twist: ["反轉","黑幕","超展開","失控","崩壞","誤會"],
+    syn_titlecore: ["境界","契約","例外","深淵","天秤","斷章","反證","殘響","黎明","終焉"],
+    syn_surface: ["合理","溫馨","正常","王道","日常","單純"],
+    syn_hidden: ["精心設計的陷阱","一連串的誤導","最惡劣的測試","一場集體幻覺","誰都不想承認的錯誤"],
+    syn_quote: ["你確定你看到的是真的嗎？","規則不是用來遵守的。","別相信任何記錄。","你只是被選中的那個。","我們從一開始就輸了。"],
+    syn_tone: ["荒謬","緊張","熱血","陰鬱","輕快","諷刺"],
+    syn_genre_mix: ["懸疑冒險","科幻解謎","奇幻戰鬥","校園群像","末日逃亡","黑色喜劇","青春日常","社團成長","運動熱血","競技策略","校園戀愛喜劇","友情群像劇","輕鬆治癒","放學後喜劇"],
+    syn_theme: ["真相","選擇","代價","記憶","規則","自由"],
+    syn_theme2: ["救贖","背叛","成長","執念","友情","崩壞"],
+    syn_sell: ["高密度反轉","節奏超快","吐槽點滿滿","壓迫感十足","名場面連發","謎題鋪陳"],
+    syn_viewer: ["觀眾","粉絲","路人","你"],
+    syn_mood: ["日常","溫馨","搞笑","冷冽","壓抑","浪漫"],
+    syn_mood2: ["驚悚","熱血","荒唐","感傷","失控","詭異"],
+    syn_genre: ["校園劇","奇幻","科幻","懸疑","冒險","喜劇"],
+    syn_meta: ["對規則的挑戰","對真相的追逐","對世界的反證","對命運的拆解","對人性的測試"]
+  }
+};
+
+/** =========================
+ *  標題模板（JP / ZH）
+ *  ========================= */
+const TitleTemplates = {
+  jp: {
+    A: [
+      "【kanji】の【kanji】",
+      "【kanji】と【kanji】",
+      "【kanji】の【role】",
+      "【kanji】－【subtitle】",
+      "【kanji】:【subtitle】"
+    ],
+    B: [
+      "【kata】",
+      "【kata】 【subtitle】",
+      "【kata】 -【subtitle】-",
+      "【kata】×【kata】",
+      "【kata】:【subtitle】"
+    ],
+    C: [
+      "【longOpen】【place】で【event】したら【role】だった件",
+      "【longOpen】【kanji】の【kanji】に巻き込まれた件",
+      "【longOpen】【kata】を拾ったら【event】が始まった話",
+      "【longOpen】【role】になってしまった話",
+      "【longOpen】【abstract】を【actionJP】しかなかった"
+    ],
+    D: [
+      "【role】の【nameJP】",
+      "【nameJP】は【role】",
+      "【nameJP】の【subtitle】",
+      "【role】、【kanji】に挑む"
+    ],
+    E: [
+      "【base】 【subtitle】編",
+      "【base】 -【subtitle】-",
+      "【base】（season【season】）",
+      "【base】 【mark】"
+    ]
+  },
+
+  zh: {
+    A: [
+      "《【zh_core】之【zh_pair】》",
+      "《【zh_core】與【zh_pair】》",
+      "《【zh_place】的【zh_role】》",
+      "《【zh_core】：【zh_subtitle】》",
+      "《【zh_core】—【zh_subtitle】》"
+    ],
+    B: [
+      "《【zh_core】計畫》",
+      "《【zh_core】協議》",
+      "《【zh_core】事件簿》",
+      "《【zh_core】（【zh_subtitle】）》"
+    ],
+    C: [
+      "《我在【zh_place】因為【zh_hook】結果成了【zh_role】》",
+      "《不小心簽了【zh_core】的【zh_pair】，我只能【zh_hook】》",
+      "《明明只是想【zh_small】卻被捲進【zh_core】》"
+    ],
+    D: [
+      "《【zh_role】的【zh_name】》",
+      "《【zh_name】不是【zh_role】》",
+      "《【zh_name】：【zh_subtitle】》"
+    ],
+    E: [
+      "《【base】・【zh_subtitle】篇》",
+      "《【base】（第【zh_season】季）》",
+      "《【base】【zh_punct】》"
+    ]
+  }
+};
+
+/** =========================
+ *  Tag 池（你可替換/擴充）
+ *  ========================= */
+const Tags = [
+  "超展開",
+  "燒腦",
+  "爛到好笑",
+  "作畫崩壞",
+  "迷因化",
+  "社群炎上",
+  "跟風潮",
+  "角色魅力強",
+  "聲優加成",
+  "特定族群向",
+  "只適合R18發揮",
+  "全年齡向"
+];
+
+/** =========================
+ *  Tag → 權重影響（簡化版）
+ *  ========================= */
+const TagMapping = {
+  "超展開":       { styleW: {C: 1.8, A: 1.1, B: 1.2, D: 1.0, E: 1.1}, synW: {hook: 1.4, conflict: 1.2}, punct: {ex: 1.5, q: 1.2} },
+  "燒腦":         { styleW: {A: 1.6, B: 1.2, C: 1.0, D: 1.1, E: 1.1}, synW: {setting: 1.4, conflict: 1.3}, dictSynW: {syn_system: 1.3, syn_truth: 1.3}, punct: {mark: 1.2} },
+  "爛到好笑":     { styleW: {C: 1.5, B: 1.2, A: 0.9, D: 1.0, E: 1.0}, synW: {pitch: 1.2}, punct: {ex: 2.0, q: 1.6} },
+  "作畫崩壞":     { styleW: {C: 1.2, B: 1.1, A: 1.0, D: 1.0, E: 1.0}, synW: {pitch: 1.1}, punct: {ex: 1.4} },
+  "迷因化":       { styleW: {C: 1.6, B: 1.2, A: 0.95, D: 1.0, E: 1.1}, synW: {hook: 1.2, pitch: 1.2}, punct: {ex: 2.2, q: 1.5, star: 1.7} },
+  "社群炎上":     { styleW: {C: 1.2, A: 1.2, B: 1.0, D: 1.0, E: 1.0}, synW: {conflict: 1.3, hook: 1.2}, dictSynW: {syn_threat: 1.4}, punct: {ex: 1.3, q: 1.2} },
+  "跟風潮":       { styleW: {C: 1.7, B: 1.1, A: 1.0, D: 1.0, E: 1.0}, synW: {pitch: 1.3}, punct: {ex: 1.5, q: 1.2} },
+  "角色魅力強":   { styleW: {D: 1.8, A: 1.1, B: 1.0, C: 1.0, E: 1.0}, synW: {lead: 1.4}, dictSynW: {syn_trait: 1.3}, punct: {ex: 1.2} },
+  "聲優加成":     { styleW: {D: 1.2, C: 1.1, A: 1.0, B: 1.0, E: 1.0}, synW: {pitch: 1.05}, punct: {ex: 1.1} },
+  "特定族群向":   { styleW: {D: 1.25, C: 1.2, A: 1.0, B: 1.0, E: 1.0}, synW: {lead: 1.1}, punct: {ex: 1.1} },
+  "只適合R18發揮":{ styleW: {A: 1.1, C: 1.2, B: 1.05, D: 1.0, E: 1.0}, synW: {conflict: 1.2, hook: 1.2}, dictSynW: {syn_quote: 1.15}, punct: {ex: 1.1} },
+  "全年齡向":     { styleW: {A: 1.2, D: 1.1, C: 0.95, B: 1.0, E: 1.0}, synW: {lead: 1.05}, dictSynW: {}, punct: {ex: 0.95} }
+};
+
+/** =========================
+ *  工具：抽樣
+ *  ========================= */
+function choice(rng, arr) { return arr[Math.floor(rng()*arr.length)] }
+
+function weightedChoice(rng, items, weights) {
+  let sum = 0;
+  for (let i=0;i<items.length;i++) sum += weights[i];
+  let t = rng() * sum;
+  for (let i=0;i<items.length;i++) {
+    t -= weights[i];
+    if (t <= 0) return items[i];
+  }
+  return items[items.length-1];
+}
+
+function parseBoostText(txt) {
+  const m = new Map();
+  (txt || "").split("\n").map(x=>x.trim()).filter(Boolean).forEach(line => {
+    const [k,v] = line.split("=").map(s=>s.trim());
+    const f = Number(v);
+    if (k && Number.isFinite(f) && f>0) m.set(k, f);
+  });
+  return m;
+}
+
+/** =========================
+ *  Tag 抽取
+ *  - 若 pool 空：用全部 Tags 當池
+ *  ========================= */
+function drawTags(rng, pool, n, boostMap) {
+  const src = (pool && pool.length) ? pool : Tags.slice();
+  const uniq = new Set();
+  const weights = src.map(t => boostMap.get(t) || 1);
+  while (uniq.size < n && uniq.size < src.length) {
+    const t = weightedChoice(rng, src, weights);
+    uniq.add(t);
+  }
+  return [...uniq];
+}
+
+/** =========================
+ *  Tag 影響：計算權重
+ *  ========================= */
+function computeWeights(tags) {
+  const styleW = {A:1, B:1, C:1, D:1, E:1};
+  const synW = {setting:1, lead:1, conflict:1, hook:1, pitch:1};
+  const dictSynW = {}; // slot dict multiplier
+  const punct = { ex: 1, q: 1, star: 1, mark: 1 };
+
+  for (const t of tags) {
+    const m = TagMapping[t];
+    if (!m) continue;
+    if (m.styleW) for (const k in m.styleW) styleW[k] *= m.styleW[k];
+    if (m.synW)   for (const k in m.synW)   synW[k]   *= m.synW[k];
+    if (m.dictSynW) for (const k in m.dictSynW) dictSynW[k] = (dictSynW[k]||1)*m.dictSynW[k];
+    if (m.punct)  for (const k in m.punct)  punct[k]  *= m.punct[k];
+  }
+  return {styleW, synW, dictSynW, punct};
+}
+
+function pickStyle(rng, styleW) {
+  const styles = ["A","B","C","D","E"];
+  const weights = styles.map(s => styleW[s] || 1);
+  return weightedChoice(rng, styles, weights);
+}
+
+/** =========================
+ *  標題生成：JP / ZH / auto
+ *  ========================= */
+function genKataName(rng) {
+  if (rng() < 0.5) return choice(rng, Dict.jp.kataName);
+  const pre = choice(rng, Dict.jp.syllPre);
+  const suf = choice(rng, Dict.jp.syllSuf);
+  if (rng() < 0.35) return pre + suf + choice(rng, Dict.jp.syllSuf);
+  return pre + suf;
+}
+
+function genJPName(rng) {
+  const family = ["天城","一ノ瀬","九条","白石","黒川","綾瀬","結城","神楽","東雲","柊","御影","久遠","橘","如月"];
+  const given  = ["ユイ","レン","ハル","ミオ","サラ","アキ","カナ","シオン","ナギ","ツバサ","ヒナ","ソラ","リツ","マコト"];
+  return choice(rng, family) + " " + choice(rng, given);
+}
+
+function genZHName(rng) {
+  const family = ["白","黑","柊","橘","久遠","天城","東雲","九條","如月","御影","綾瀨","結城"];
+  const given = ["悠","凜","晴","澪","紗","秋","奏","詩音","凪","翼","雛","蒼","律","誠"];
+  return choice(rng, family) + choice(rng, given);
+}
+
+function fillJPTitle(rng, tpl, w) {
+  let out = tpl;
+
+  // base for E
+  if (out.includes("【base】")) {
+    const baseStyle = weightedChoice(rng, ["A","B","D"], [1.3, 1.0, 1.1]);
+    const baseTpl = choice(rng, TitleTemplates.jp[baseStyle]);
+    const base = fillJPTitle(rng, baseTpl, w);
+    out = out.replaceAll("【base】", base);
+  }
+
+  const token = {
+    place: () => choice(rng, Dict.jp.place),
+    event: () => choice(rng, Dict.jp.event),
+    role: () => choice(rng, Dict.jp.role),
+    kanji: () => choice(rng, Dict.jp.kanji),
+    abstract: () => choice(rng, Dict.jp.abstract),
+    subtitle: () => choice(rng, Dict.jp.subtitle),
+    kata: () => genKataName(rng),
+    nameJP: () => genJPName(rng),
+    longOpen: () => choice(rng, Dict.jp.longOpen),
+    actionJP: () => choice(rng, ["守る","壊す","暴く","隠す","選ぶ","抗う","逃げる","追う","証明する","記録する"]),
+    season: () => String(1 + Math.floor(rng()*4)),
+    mark: () => choice(rng, Dict.jp.marks)
+  };
+
+  let safety = 30;
+  while (safety-- > 0 && /【[^】]+】/.test(out)) {
+    out = out.replace(/【([^】]+)】/g, (_, key) => token[key] ? token[key]() : "");
+  }
+  return out.replace(/\s+/g, " ").trim();
+}
+
+function fillZHTitle(rng, tpl, w) {
+  let out = tpl;
+
+  if (out.includes("【base】")) {
+    const baseStyle = weightedChoice(rng, ["A","B","D"], [1.2, 1.1, 1.1]);
+    const baseTpl = choice(rng, TitleTemplates.zh[baseStyle]);
+    const base = fillZHTitle(rng, baseTpl, w);
+    out = out.replaceAll("【base】", base);
+  }
+
+  const token = {
+    zh_core: () => choice(rng, Dict.zh.core),
+    zh_pair: () => choice(rng, Dict.zh.pair),
+    zh_role: () => choice(rng, Dict.zh.role),
+    zh_place: () => choice(rng, Dict.zh.place),
+    zh_hook: () => choice(rng, Dict.zh.hook),
+    zh_subtitle: () => choice(rng, Dict.zh.subtitle),
+    zh_small: () => choice(rng, ["準時下班","低調活著","安穩畢業","別惹麻煩","平凡度日","當作沒看見"]),
+    zh_name: () => genZHName(rng),
+    zh_season: () => String(1 + Math.floor(rng()*4)),
+    zh_punct: () => choice(rng, Dict.zh.punct)
+  };
+
+  let safety = 30;
+  while (safety-- > 0 && /【[^】]+】/.test(out)) {
+    out = out.replace(/【([^】]+)】/g, (_, key) => token[key] ? token[key]() : "");
+  }
+  return out.replace(/\s+/g, " ").trim();
+}
+
+function maybeAddTitlePunct(rng, title, punct, tags, lang) {
+  let t = title;
+  const exRate = Math.min(0.6, 0.08 * punct.ex);
+  const qRate  = Math.min(0.5, 0.06 * punct.q);
+  const starRate = Math.min(0.45, 0.05 * punct.star);
+
+  // JP 長句式已有件，少加
+  if (lang === "jp" && /件$/.test(t)) return t;
+
+  if (rng() < exRate) t += (lang === "zh" ? choice(rng, ["！","！！"]) : choice(rng, ["!","!!"]));
+  if (rng() < qRate)  t += (lang === "zh" ? choice(rng, ["？","！？"]) : choice(rng, ["?","!?"]));
+  if (rng() < starRate && !t.includes("☆")) t += "☆";
+
+  // R18 暗示：不寫 R18，用 ×
+  if (tags.includes("只適合R18發揮") && rng() < 0.18 && !t.includes("×")) t += "×";
+  return t;
+}
+
+function genTitle(rng, langMode, styleW, punct, tags) {
+  const style = pickStyle(rng, styleW);
+  // auto: 55% JP / 45% ZH（你可改）
+  const lang = (langMode === "auto") ? (rng() < 0.55 ? "jp" : "zh") : langMode;
+
+  const tpl = choice(rng, TitleTemplates[lang][style]);
+  const raw = (lang === "jp") ? fillJPTitle(rng, tpl) : fillZHTitle(rng, tpl);
+  return { title: maybeAddTitlePunct(rng, raw, punct, tags, lang), lang, style };
+}
+
+/** =========================
+ *  中文簡介：模板組合（多樣）
+ *  ========================= */
+function pickSynSlot(rng, key, mult) {
+  const arr = Dict.syn[key];
+  if (!arr || !arr.length) return "";
+  const m = mult || 1;
+  // multiplier >1: 偏向後半（你可把更「強烈」的詞放後半）
+  if (m <= 1) return choice(rng, arr);
+  const bias = Math.min(0.7, 0.25 + (m-1)*0.18);
+  if (rng() < bias) {
+    const half = Math.floor(arr.length/2);
+    return arr[half + Math.floor(rng()*(arr.length-half))];
+  }
+  return choice(rng, arr);
+}
+
+function fillChineseSynopsisTemplate(rng, tpl, dictSynW, titleCoreHint) {
+  let out = tpl;
+
+  // Token map for synopsis slots
+  const token = {
+    syn_place: () => choice(rng, Dict.syn.syn_place),
+    syn_system: () => pickSynSlot(rng, "syn_system", dictSynW.syn_system),
+    syn_threat: () => pickSynSlot(rng, "syn_threat", dictSynW.syn_threat),
+    syn_incident: () => choice(rng, Dict.syn.syn_incident),
+    syn_truth: () => pickSynSlot(rng, "syn_truth", dictSynW.syn_truth),
+    syn_lead: () => choice(rng, Dict.syn.syn_lead),
+    syn_role: () => choice(rng, Dict.syn.syn_role),
+    syn_goal_small: () => choice(rng, Dict.syn.syn_goal_small),
+    syn_job: () => choice(rng, Dict.syn.syn_job),
+    syn_burden: () => choice(rng, Dict.syn.syn_burden),
+    syn_key: () => choice(rng, Dict.syn.syn_key),
+    syn_trait: () => pickSynSlot(rng, "syn_trait", dictSynW.syn_trait),
+    syn_choice_style: () => choice(rng, Dict.syn.syn_choice_style),
+    syn_core_conflict: () => choice(rng, Dict.syn.syn_core_conflict),
+    syn_goal_big: () => choice(rng, Dict.syn.syn_goal_big),
+    syn_action: () => choice(rng, Dict.syn.syn_action),
+    syn_stake: () => choice(rng, Dict.syn.syn_stake),
+    syn_rival: () => choice(rng, Dict.syn.syn_rival),
+    syn_turn: () => choice(rng, Dict.syn.syn_turn),
+    syn_consequence: () => choice(rng, Dict.syn.syn_consequence),
+    syn_rule: () => choice(rng, Dict.syn.syn_rule),
+    syn_dilemma: () => choice(rng, Dict.syn.syn_dilemma),
+    syn_two_bad: () => choice(rng, Dict.syn.syn_two_bad),
+    syn_twist: () => choice(rng, Dict.syn.syn_twist),
+    syn_titlecore: () => titleCoreHint || choice(rng, Dict.syn.syn_titlecore),
+    syn_surface: () => choice(rng, Dict.syn.syn_surface),
+    syn_hidden: () => choice(rng, Dict.syn.syn_hidden),
+    syn_quote: () => pickSynSlot(rng, "syn_quote", dictSynW.syn_quote),
+    syn_tone: () => choice(rng, Dict.syn.syn_tone),
+    syn_genre_mix: () => choice(rng, Dict.syn.syn_genre_mix),
+    syn_theme: () => choice(rng, Dict.syn.syn_theme),
+    syn_theme2: () => choice(rng, Dict.syn.syn_theme2),
+    syn_sell: () => choice(rng, Dict.syn.syn_sell),
+    syn_viewer: () => choice(rng, Dict.syn.syn_viewer),
+    syn_mood: () => choice(rng, Dict.syn.syn_mood),
+    syn_mood2: () => choice(rng, Dict.syn.syn_mood2),
+    syn_genre: () => choice(rng, Dict.syn.syn_genre),
+    syn_meta: () => choice(rng, Dict.syn.syn_meta)
+  };
+
+  let safety = 40;
+  while (safety-- > 0 && /【[^】]+】/.test(out)) {
+    out = out.replace(/【([^】]+)】/g, (_, key) => token[key] ? token[key]() : "");
+  }
+  return out.trim();
+}
+
+function genChineseSynopsis(rng, tags, synW, dictSynW, titleHint) {
+  // 依 Tag 決定段落組合偏好
+  // 基本：setting + lead + conflict + (hook/pitch)
+  const blocks = [];
+
+  // 句數：1~4
+  let target = 3;
+  if (tags.includes("爛到好笑") || tags.includes("作畫崩壞")) target = 2;
+  if (tags.includes("燒腦")) target = 4;
+  if (tags.includes("超展開")) target = Math.max(target, 3);
+
+  // 類別池（加權）
+  const kinds = ["setting","lead","conflict","hook","pitch"];
+  const weights = kinds.map(k => synW[k] || 1);
+
+  // 先強制保留前 2 段更像作品介紹
+  const first = weightedChoice(rng, ["setting","lead"], [synW.setting||1, synW.lead||1]);
+  blocks.push(pickSynSlot(rng, first, 1));
+
+  const second = (first === "setting") ? "lead" : "setting";
+  blocks.push(pickSynSlot(rng, second, 1));
+
+  // 剩下的抽
+  while (blocks.length < target) {
+    const k = weightedChoice(rng, kinds, weights);
+    // 避免全都同類
+    if (blocks.length >= 3 && k === "setting") continue;
+    blocks.push(pickSynSlot(rng, k, 1));
+  }
+
+  // 對「只適合R18發揮」：提高張力類句子出現概率（用 hook/conflict 的某些 slot 已被 dictSynW 影響）
+  // 這裡不直接寫敏感內容，只加「禁忌/越界」語氣。
+
+  // 後處理：迷因化/跟風潮加一句宣傳口吻
+  const addTail = (tags.includes("迷因化") || tags.includes("跟風潮") || tags.includes("爛到好笑")) && (rng() < 0.75);
+  const tails = [
+    "——本季話題度爆表，錯過就跟不上梗了。",
+    "——你以為你看懂了？其實才剛開始。",
+    "——看完一集就會想吐槽，但又忍不住點下一集。"
+  ];
+
+  // 用 titleHint 讓簡介更像「對到標題」
+  const titleCoreHint = titleHint && titleHint.length ? titleHint : null;
+
+  const filled = blocks.map(t => fillChineseSynopsisTemplate(rng, t, dictSynW, titleCoreHint)).join("\n");
+  return addTail ? (filled + "\n" + choice(rng, tails)) : filled;
+}
+
+/** =========================
+ *  UI
+ *  ========================= */
+const elTagPool = document.getElementById("tagPool");
+const elOut = document.getElementById("out");
+const elCount = document.getElementById("count");
+const elTagCount = document.getElementById("tagCount");
+const elSeed = document.getElementById("seed");
+const elBoost = document.getElementById("tagBoost");
+const elTitleLang = document.getElementById("titleLang");
+
+const elTmplDump = document.getElementById("tmplDump");
+const elSynDump  = document.getElementById("synDump");
+const elDictDump = document.getElementById("dictDump");
+const elMapDump  = document.getElementById("mapDump");
+
+let lastBatch = [];
+
+function renderTagPool() {
+  elTagPool.innerHTML = "";
+  for (const t of Tags) {
+    const wrap = document.createElement("label");
+    wrap.className = "tag";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = true; // 預設全勾
+    cb.value = t;
+    wrap.appendChild(cb);
+    wrap.appendChild(document.createTextNode(t));
+    elTagPool.appendChild(wrap);
+  }
+}
+
+function selectedTagsPool() {
+  const cbs = [...elTagPool.querySelectorAll("input[type=checkbox]")];
+  return cbs.filter(c => c.checked).map(c => c.value);
+}
+
+function forceRandomizeTagChecks(rng, count) {
+  // 把所有都取消，然後隨機勾選 count 個
+  const cbs = [...elTagPool.querySelectorAll("input[type=checkbox]")];
+  cbs.forEach(c => c.checked = false);
+  const pool = Tags.slice();
+  for (let i=0;i<Math.min(count, pool.length);i++) {
+    const idx = Math.floor(rng()*pool.length);
+    const t = pool.splice(idx,1)[0];
+    const cb = cbs.find(c => c.value === t);
+    if (cb) cb.checked = true;
+  }
+}
+
+function dumpData() {
+  elTmplDump.textContent = JSON.stringify(TitleTemplates, null, 2);
+  elSynDump.textContent = JSON.stringify({
+    setting: Dict.syn.setting,
+    lead: Dict.syn.lead,
+    conflict: Dict.syn.conflict,
+    hook: Dict.syn.hook,
+    pitch: Dict.syn.pitch
+  }, null, 2);
+  elDictDump.textContent = JSON.stringify({
+    jp: { ...Dict.jp, syllPre: Dict.jp.syllPre, syllSuf: Dict.jp.syllSuf },
+    zh: Dict.zh,
+    synSlots: {
+      syn_place: Dict.syn.syn_place,
+      syn_system: Dict.syn.syn_system,
+      syn_threat: Dict.syn.syn_threat,
+      syn_incident: Dict.syn.syn_incident,
+      syn_truth: Dict.syn.syn_truth
+    }
+  }, null, 2);
+  elMapDump.textContent = JSON.stringify(TagMapping, null, 2);
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function renderBatch(batch) {
+  elOut.innerHTML = "";
+  batch.forEach((w, idx) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="title">${escapeHtml(w.title)} <span class="small mono">(${escapeHtml(w.titleLang.toUpperCase())}/${escapeHtml(w.style)})</span></div>
+      <div class="meta">#${idx+1}　Tag: ${w.tags.map(t=>`<span class="mono">[${escapeHtml(t)}]</span>`).join(" ")}</div>
+      <div class="syn">${escapeHtml(w.synopsis)}</div>
+    `;
+    elOut.appendChild(card);
+  });
+}
+
+function extractTitleHint(title) {
+  // 給中文簡介用的一點「標題關鍵字」提示（避免完全不相干）
+  // 取一些常見核心字詞
+  const hit = ["境界","契約","例外","深淵","天秤","斷章","反證","殘響","黎明","終焉","禁域","記錄"];
+  for (const h of hit) if (title.includes(h)) return h;
+  return null;
+}
+
+function generateBatch({forceRandomTags=false} = {}) {
+  const rng = mulberry32(seedToInt(elSeed.value));
+  const n = Math.max(1, Math.min(50, Number(elCount.value) || 12));
+  const k = Number(elTagCount.value) || 3;
+  const boostMap = parseBoostText(elBoost.value);
+
+  // 若按「強制隨機選Tag」：先把勾選狀態改成隨機 k 個
+  if (forceRandomTags) forceRandomizeTagChecks(rng, k);
+
+  const pool = selectedTagsPool(); // 可能為空
+  const titleLangMode = elTitleLang.value;
+
+  lastBatch = [];
+  for (let i=0;i<n;i++) {
+    // 若 pool 空：drawTags 會改用全部 Tags
+    const tags = drawTags(rng, pool, k, boostMap);
+    const {styleW, synW, dictSynW, punct} = computeWeights(tags);
+
+    const {title, lang, style} = genTitle(rng, titleLangMode, styleW, punct, tags);
+    const hint = extractTitleHint(title);
+    const synopsis = genChineseSynopsis(rng, tags, synW, dictSynW, hint);
+
+    lastBatch.push({ title, titleLang: lang, style, tags, synopsis });
+  }
+  renderBatch(lastBatch);
+}
+
+document.getElementById("gen").addEventListener("click", () => generateBatch({forceRandomTags:false}));
+document.getElementById("genForceRandomTags").addEventListener("click", () => generateBatch({forceRandomTags:true}));
+
+document.getElementById("clear").addEventListener("click", () => {
+  elOut.innerHTML = "";
+  lastBatch = [];
+});
+
+document.getElementById("copyJson").addEventListener("click", async () => {
+  if (!lastBatch.length) { alert("目前沒有可複製的輸出。先生成一批。"); return; }
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(lastBatch, null, 2));
+    alert("已複製 JSON 到剪貼簿。");
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = JSON.stringify(lastBatch, null, 2);
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    alert("已複製 JSON（使用 fallback）。");
+  }
+});
+
+renderTagPool();
+dumpData();
+</script>
+</body>
+</html>
