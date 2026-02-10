@@ -677,11 +677,471 @@
         padding: 10px 16px;
       }
     }
+    
+    /* === V2: 社團管理介面樣式 (T015) === */
+    
+    .club-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .club-tab {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #aaa;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .club-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    
+    .club-tab.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-color: transparent;
+      color: #fff;
+    }
+    
+    .club-tab-content.hidden {
+      display: none;
+    }
+    
+    .upgrade-grid {
+      display: grid;
+      gap: 16px;
+    }
+    
+    .upgrade-item {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .upgrade-item:hover {
+      border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .upgrade-item.max-level {
+      opacity: 0.7;
+      border-color: rgba(34, 197, 94, 0.5);
+    }
+    
+    .upgrade-item.cannot-afford {
+      opacity: 0.6;
+    }
+    
+    .upgrade-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .upgrade-name {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    
+    .upgrade-level {
+      color: #60a5fa;
+      font-size: 0.85rem;
+    }
+    
+    .upgrade-effect {
+      color: #22c55e;
+      font-size: 0.85rem;
+    }
+    
+    .upgrade-description {
+      color: #aaa;
+      font-size: 0.8rem;
+    }
+    
+    .upgrade-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    
+    .upgrade-cost {
+      font-size: 0.9rem;
+      color: #fbbf24;
+    }
+    
+    .upgrade-btn {
+      padding: 8px 20px;
+      font-size: 0.9rem;
+    }
+    
+    .upgrade-btn:disabled {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+    
+    .inventory-grid {
+      display: grid;
+      gap: 12px;
+    }
+    
+    .inventory-item {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .inventory-item.retired {
+      opacity: 0.5;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    
+    .inventory-info h4 {
+      margin: 0 0 4px 0;
+    }
+    
+    .inventory-stock {
+      color: #60a5fa;
+      font-size: 0.9rem;
+    }
+    
+    .inventory-cost {
+      color: #aaa;
+      font-size: 0.85rem;
+    }
+    
+    .retire-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+    
+    .retire-btn:hover {
+      background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    }
+    
+    .finance-card {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .loan-input-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    
+    .loan-input-group input {
+      flex: 1;
+    }
+    
+    /* === V2: 遊戲結束畫面樣式 (T017) === */
+    
+    #game-over-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    
+    .game-over-container {
+      animation: fadeInUp 0.5s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .game-over-stats .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .game-over-stats .stat-row:last-child {
+      border-bottom: none;
+    }
+    
+    /* === V2: 事件彈窗樣式 === */
+    
+    .event-popup {
+      animation: popIn 0.3s ease-out;
+    }
+    
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+    
+    .event-popup.positive {
+      border-color: rgba(34, 197, 94, 0.5);
+    }
+    
+    .event-popup.negative {
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+    
+    .event-popup.mixed {
+      border-color: rgba(251, 191, 36, 0.5);
+    }
+    
+    /* === V2: 開發者日誌樣式 === */
+    
+    .dev-log-filter {
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: #aaa;
+      cursor: pointer;
+    }
+    
+    .dev-log-filter:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .dev-log-filter.active {
+      background: #667eea;
+      border-color: #667eea;
+      color: #fff;
+    }
+    
+    .dev-log-entry {
+      padding: 8px;
+      margin-bottom: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+      border-left: 3px solid #667eea;
+    }
+    
+    .dev-log-entry.SALES {
+      border-left-color: #22c55e;
+    }
+    
+    .dev-log-entry.EVENT {
+      border-left-color: #f59e0b;
+    }
+    
+    .dev-log-entry.UPGRADE {
+      border-left-color: #8b5cf6;
+    }
+    
+    .dev-log-entry.CALC {
+      border-left-color: #60a5fa;
+    }
+    
+    .dev-log-timestamp {
+      color: #666;
+      font-size: 10px;
+    }
+    
+    .dev-log-category {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-right: 8px;
+    }
+    
+    /* === V2: 響應式調整 === */
+    
+    @media (max-width: 768px) {
+      .upgrade-item {
+        grid-template-columns: 1fr;
+      }
+      
+      .upgrade-actions {
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+      }
+      
+      #dev-log-panel {
+        width: 100%;
+      }
+      
+      .club-tabs {
+        flex-wrap: wrap;
+      }
+      
+      .club-tab {
+        flex: 1 1 45%;
+      }
+    }
+    
+    /* === V2 通知動畫 === */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+    
+    @keyframes fadeOutUp {
+      from {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      to {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+      }
+    }
+    
+    /* === 升級項目額外樣式 === */
+    .upgrade-item.max-level {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    
+    .upgrade-item.cannot-afford {
+      opacity: 0.6;
+    }
+    
+    .upgrade-item.cannot-afford .upgrade-btn {
+      background: #4b5563;
+      cursor: not-allowed;
+    }
+    
+    .inventory-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .inventory-item.retired {
+      opacity: 0.6;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    
+    .retire-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+    
+    .loan-input-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .loan-input-group input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      color: #fff;
+    }
+    
+    .loan-input-group button {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      padding: 8px 16px;
+    }
+    
+    /* === 開發者日誌面板樣式 === */
+    .dev-log-filter {
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    
+    .dev-log-filter:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+    
+    .dev-log-filter.active {
+      box-shadow: 0 0 0 2px #fff;
+    }
+    
+    .dev-log-entry {
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 3px solid;
+    }
+    
+    .dev-log-entry.SALES { border-left-color: #4CAF50; }
+    .dev-log-entry.EVENT { border-left-color: #FF9800; }
+    .dev-log-entry.UPGRADE { border-left-color: #2196F3; }
+    .dev-log-entry.STATE { border-left-color: #9C27B0; }
+    .dev-log-entry.CALC { border-left-color: #607D8B; }
+    
+    .dev-log-entry .log-time {
+      color: #666;
+      font-size: 0.7rem;
+    }
+    
+    .dev-log-entry .log-category {
+      font-weight: bold;
+      margin-left: 8px;
+    }
+    
+    .dev-log-entry .log-message {
+      color: #ddd;
+    }
+    
+    .dev-log-entry .log-data {
+      color: #888;
+      font-size: 0.7rem;
+      margin-top: 2px;
+      word-break: break-all;
+    }
   </style>
   
   <!-- 外部配置檔案 -->
   <script src="balance-config.js"></script>
   <script src="content-templates.js"></script>
+  
+  <!-- V2 功能模組（載入順序重要：配置 → 模板 → dev-logger → 其他功能模組 → 主程式） -->
+  <script src="js/dev-logger.js"></script>
+  <script src="js/upgrade-system.js"></script>
+  <script src="js/event-system.js"></script>
+  <script src="js/sales-calculator.js"></script>
+  <script src="js/inventory-manager.js"></script>
+  <script src="js/game-over.js"></script>
 </head>
 <body>
   <div class="container">
@@ -720,7 +1180,43 @@
       <!-- 版本與製作資訊 -->
       <div style="margin-top: 32px; text-align: center; font-size: 0.75rem; color: #666;">
         <p>Version 1.0 | Made with 💜</p>
+        <!-- 開發者模式切換（隱藏按鈕，多次點擊版本文字啟用） -->
+        <p id="dev-mode-hint" class="hidden" style="color: #ff9800; margin-top: 8px;">🔧 開發者模式已啟用</p>
       </div>
+      
+      <!-- 開發者模式設定區（點擊版本啟用後顯示） -->
+      <div id="dev-mode-panel" class="hidden" style="margin-top: 16px; padding: 16px; background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 8px; max-width: 300px; margin-left: auto; margin-right: auto;">
+        <h4 style="color: #ff9800; margin-bottom: 12px;">🔧 開發者選項</h4>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="dev-mode-toggle" style="width: 18px; height: 18px;">
+          <span>啟用詳細日誌</span>
+        </label>
+        <button id="btn-show-dev-logs" class="hidden" style="margin-top: 12px; width: 100%; padding: 8px; font-size: 0.85rem; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">📋 查看開發者日誌</button>
+        <button id="btn-add-money" style="margin-top: 8px; width: 100%; padding: 8px; font-size: 0.85rem; background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);">💰 增加 $100,000</button>
+      </div>
+    </div>
+    
+    <!-- === 開發者日誌面板 === -->
+    <div id="dev-log-panel" class="hidden" style="position: fixed; top: 0; right: 0; width: 400px; height: 100vh; background: rgba(20, 20, 30, 0.98); border-left: 2px solid #ff9800; z-index: 9999; display: flex; flex-direction: column;">
+      <div style="padding: 16px; border-bottom: 1px solid rgba(255, 152, 0, 0.3); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="color: #ff9800; margin: 0;">📋 開發者日誌</h3>
+        <button id="btn-close-dev-logs" style="padding: 4px 12px; font-size: 0.8rem;">✕ 關閉</button>
+      </div>
+      <div style="padding: 12px; border-bottom: 1px solid rgba(255, 152, 0, 0.2);">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="dev-log-filter active" data-filter="ALL" style="padding: 4px 10px; font-size: 0.75rem;">全部</button>
+          <button class="dev-log-filter" data-filter="SALES" style="padding: 4px 10px; font-size: 0.75rem; background: #4CAF50;">💰 SALES</button>
+          <button class="dev-log-filter" data-filter="EVENT" style="padding: 4px 10px; font-size: 0.75rem; background: #FF9800;">⚡ EVENT</button>
+          <button class="dev-log-filter" data-filter="UPGRADE" style="padding: 4px 10px; font-size: 0.75rem; background: #2196F3;">⬆️ UPGRADE</button>
+          <button class="dev-log-filter" data-filter="CALC" style="padding: 4px 10px; font-size: 0.75rem; background: #607D8B;">🔢 CALC</button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button id="btn-clear-dev-logs" style="flex: 1; padding: 6px; font-size: 0.75rem; background: #f44336;">🗑️ 清除日誌</button>
+          <button id="btn-export-dev-logs" style="flex: 1; padding: 6px; font-size: 0.75rem; background: #9c27b0;">📤 匯出</button>
+        </div>
+      </div>
+      <div id="dev-log-content" style="flex: 1; overflow-y: auto; padding: 12px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.75rem; line-height: 1.6;"></div>
+      <div id="dev-log-stats" style="padding: 8px 12px; border-top: 1px solid rgba(255, 152, 0, 0.2); font-size: 0.7rem; color: #888;"></div>
     </div>
     
     <!-- === 社群觀察介面 === -->
@@ -783,6 +1279,7 @@
         </div>
       </div>
       <p style="margin-bottom: 16px; color: #aaa;">選擇作品進行創作，每次創作消耗 1 行動點</p>
+      
       <div id="franchise-list" class="franchise-grid"></div>
       <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
         <button id="btn-action-history" class="secondary-btn">📊 查看狀態</button>
@@ -827,17 +1324,19 @@
         <div class="form-group">
           <label>紙質選擇</label>
           <select id="paper-quality">
-            <option value="recycled">再生紙 (-20% 成本)</option>
-            <option value="normal" selected>普通紙 (標準)</option>
-            <option value="premium">高級紙 (+50% 成本, 吸引力+)</option>
+            <option value="economy">再生紙 (-30% 成本, 吸引力-20%)</option>
+            <option value="standard" selected>標準 (基準成本)</option>
+            <option value="quality">高級紙 (+40% 成本, 吸引力+20%)</option>
+            <option value="luxury">豪華紙 (+100% 成本, 吸引力+50%)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>封面繪師</label>
+          <label>封面等級</label>
           <select id="cover-artist">
-            <option value="ai">AI繪圖 (免費, 停留率20%)</option>
-            <option value="friend" selected>朋友幫忙 ($500, 停留率40%)</option>
-            <option value="pro">專業繪師 ($2000, 停留率80%)</option>
+            <option value="free">AI繪圖 ($0, 吸引力-20%)</option>
+            <option value="basic" selected>朋友幫忙 ($500, 吸引力±0)</option>
+            <option value="refined">專業繪師 ($2000, 吸引力+25%)</option>
+            <option value="premium">大手繪師 ($10000, 吸引力+50%)</option>
           </select>
         </div>
         <div class="form-group">
@@ -957,6 +1456,142 @@
       <button class="history-close" id="btn-close-history">×</button>
       <h2>📊 經營歷史</h2>
       <div id="history-content"></div>
+    </div>
+    
+    <!-- === V2: 社團管理介面 (T014) === -->
+    <div id="club-management" class="phase hidden">
+      <div class="phase-header">
+        <h2>🏠 社團管理</h2>
+        <div class="stats-bar">
+          <div class="stat">
+            <span class="stat-label">資金</span>
+            <span class="stat-value money" id="club-money">$10,000</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">負債</span>
+            <span class="stat-value" id="club-debt" style="color: #ef4444;">$0</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 升級選項分頁 -->
+      <div class="club-tabs" style="display: flex; gap: 8px; margin-bottom: 20px;">
+        <button class="club-tab active" data-tab="upgrades">🆙 升級</button>
+        <button class="club-tab" data-tab="inventory">📦 庫存</button>
+        <button class="club-tab" data-tab="finance">💰 財務</button>
+      </div>
+      
+      <!-- 升級頁面 -->
+      <div id="club-tab-upgrades" class="club-tab-content">
+        <p style="color: #aaa; margin-bottom: 16px;">投資升級社團能力，提升經營效率</p>
+        <div id="upgrade-list" class="upgrade-grid">
+          <!-- 升級項目由 JS 動態渲染 -->
+        </div>
+      </div>
+      
+      <!-- 庫存頁面 -->
+      <div id="club-tab-inventory" class="club-tab-content hidden">
+        <p style="color: #aaa; margin-bottom: 16px;">管理作品庫存，銷毀滯銷刊物以減少倉儲成本</p>
+        <div class="storage-cost-info" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+          <span style="color: #aaa;">總倉儲成本：</span>
+          <span id="total-storage-cost" style="color: #ef4444; font-weight: bold;">$0/回合</span>
+        </div>
+        <div id="inventory-list" class="inventory-grid">
+          <!-- 庫存項目由 JS 動態渲染 -->
+        </div>
+      </div>
+      
+      <!-- 財務頁面 -->
+      <div id="club-tab-finance" class="club-tab-content hidden">
+        <p style="color: #aaa; margin-bottom: 16px;">管理資金與負債</p>
+        
+        <!-- 舉債功能 -->
+        <div id="loan-section" class="finance-card" style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <h3 style="margin-bottom: 12px;">💳 天使投資人</h3>
+          <div id="loan-status">
+            <p style="color: #aaa;">需要先升級「天使投資人」才能舉債</p>
+          </div>
+        </div>
+        
+        <!-- 投資收益 -->
+        <div id="investment-section" class="finance-card" style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 16px;">
+          <h3 style="margin-bottom: 12px;">📈 股市投資</h3>
+          <div id="investment-status">
+            <p style="color: #aaa;">需要先升級「股市投資」才能獲得利息</p>
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 24px; text-align: center;">
+        <button id="btn-close-club-management">確認並繼續 →</button>
+      </div>
+    </div>
+    
+    <!-- === V2: 遊戲結束畫面 (T016) === -->
+    <div id="game-over-screen" class="phase hidden">
+      <div class="game-over-container" style="text-align: center; padding: 40px 20px;">
+        <div class="game-over-icon" style="font-size: 64px; margin-bottom: 24px;">💸</div>
+        <h1 style="color: #ef4444; margin-bottom: 16px;">社團破產</h1>
+        <p id="game-over-reason" style="color: #aaa; margin-bottom: 32px;">資金耗盡，無法繼續經營...</p>
+        
+        <!-- 最終統計 -->
+        <div class="game-over-stats" style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto;">
+          <h3 style="margin-bottom: 16px; text-align: center;">📊 經營統計</h3>
+          <div class="stat-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>存活回合</span>
+            <span id="game-over-rounds" style="color: #60a5fa;">0</span>
+          </div>
+          <div class="stat-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>創作作品數</span>
+            <span id="game-over-works" style="color: #60a5fa;">0</span>
+          </div>
+          <div class="stat-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>總銷售量</span>
+            <span id="game-over-sales" style="color: #60a5fa;">0</span>
+          </div>
+          <div class="stat-row" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>最高資金</span>
+            <span id="game-over-peak-money" style="color: #22c55e;">$0</span>
+          </div>
+          <div class="stat-row" style="display: flex; justify-content: space-between;">
+            <span>最終負債</span>
+            <span id="game-over-final-debt" style="color: #ef4444;">$0</span>
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button id="btn-game-over-restart" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">🎮 重新開始</button>
+          <button id="btn-game-over-menu" class="secondary-btn">🏠 回到主選單</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- === V2: 事件通知彈窗 === -->
+    <div id="event-popup" class="event-popup hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: linear-gradient(135deg, rgba(30, 30, 40, 0.98) 0%, rgba(20, 20, 30, 0.98) 100%); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 24px 32px; max-width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+      <div id="event-popup-icon" style="font-size: 48px; text-align: center; margin-bottom: 16px;">🎲</div>
+      <h3 id="event-popup-title" style="text-align: center; margin-bottom: 12px; font-size: 1.3rem;"></h3>
+      <p id="event-popup-message" style="color: #aaa; text-align: center; line-height: 1.6;"></p>
+      <div id="event-popup-effect" style="margin-top: 16px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; text-align: center;"></div>
+    </div>
+    <div id="event-popup-overlay" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 999;"></div>
+    
+    <!-- === V2: 開發者日誌面板 === -->
+    <div id="dev-log-panel" class="hidden" style="position: fixed; right: 0; top: 0; width: 400px; height: 100vh; background: rgba(0,0,0,0.95); border-left: 1px solid rgba(255,255,255,0.1); z-index: 2000; display: flex; flex-direction: column;">
+      <div style="padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">🔧 開發者日誌</h3>
+        <button id="btn-close-dev-log" style="background: none; border: none; color: #fff; font-size: 20px; cursor: pointer;">×</button>
+      </div>
+      <div style="padding: 8px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 8px;">
+        <button class="dev-log-filter active" data-filter="all">全部</button>
+        <button class="dev-log-filter" data-filter="SALES">銷量</button>
+        <button class="dev-log-filter" data-filter="EVENT">事件</button>
+        <button class="dev-log-filter" data-filter="UPGRADE">升級</button>
+        <button class="dev-log-filter" data-filter="CALC">計算</button>
+      </div>
+      <div id="dev-log-content" style="flex: 1; overflow-y: auto; padding: 16px; font-family: monospace; font-size: 12px; line-height: 1.6;"></div>
+      <div style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <button id="btn-clear-dev-log" style="width: 100%;">清除日誌</button>
+      </div>
     </div>
   </div>
 
@@ -1480,7 +2115,40 @@
       eventLog: [],
       eventCooldowns: {},
       seed: Date.now(),
-      currentPosts: []
+      currentPosts: [],
+      
+      // === V2 新增欄位 (T004-T007) ===
+      
+      // T005: 新增負債、開發者模式
+      debt: 0,                    // 負債金額
+      devMode: false,             // 開發者模式開關
+      
+      // T004: 社團升級物件
+      circle: {
+        name: '',                 // 社團名稱 (向後相容 circleName)
+        reputation: 0,            // 社團知名度 0~100
+        upgrades: {
+          helper: 0,              // 培訓小幫手 (0-5) - 提升最大銷售量
+          coser: 0,               // 僱傭Coser小幫手 (0-3) - 提升停留機率
+          adobe: 0,               // Adobe排版課程 (0-3) - 提升作品品質
+          storage: 0,             // 老家倉儲 (0-5) - 降低倉儲成本
+          friends: 0,             // 親友團 (0-3) - 保底銷量
+          social: 0,              // 社群經營 (0-5) - 銷量乘數
+          investor: 0,            // 天使投資人 (0-3) - 舉債額度
+          stock: 0,               // 股市投資 (0-3) - 資金利息
+          writing: 0              // 提升文筆 (0-∞) - 趣味升級
+        }
+      },
+      
+      // T007: 場次狀態
+      sessionState: {
+        isActive: false,          // 場次是否進行中
+        activeEvents: [],         // 本場次觸發的事件
+        salesRecords: [],         // 銷售紀錄
+        totalVisitors: 0,         // 總來客數
+        maxSalesReached: false,   // 是否觸發銷售上限
+        lostSales: 0              // 因上限損失的潛在銷量
+      }
     };
     
     // === 工具函數 ===
@@ -1513,6 +2181,30 @@
       return '$' + Math.round(amount).toLocaleString();
     }
     
+    // T102: 衰退度標示與 T103: 趨勢預測
+    function getDecayInfo(publication) {
+      const decayRates = BalanceConfig.DECAY_RATES || {};
+      const decayRate = publication.decayRate || 'normal';
+      const rates = decayRates[decayRate] || { minDecay: 0.05, maxDecay: 0.10 };
+      
+      const labels = {
+        trending: { label: '🔥 熱門', color: '#f97316', trend: '⬇️ 快速衰退' },
+        normal: { label: '📊 普通', color: '#60a5fa', trend: '➡️ 穩定衰退' },
+        evergreen: { label: '🌲 長青', color: '#22c55e', trend: '✨ 緩慢衰退' }
+      };
+      
+      const info = labels[decayRate] || labels.normal;
+      const avgDecay = (rates.minDecay + rates.maxDecay) / 2;
+      const roundsUntilHalf = Math.ceil(Math.log(0.5) / Math.log(1 - avgDecay));
+      
+      return {
+        ...info,
+        avgDecay: Math.round(avgDecay * 100),
+        roundsUntilHalf,
+        prediction: `約 ${roundsUntilHalf} 回合後人氣減半`
+      };
+    }
+
     function pickRandom(array, rng = Math.random) {
       return array[Math.floor(rng() * array.length)];
     }
@@ -1782,6 +2474,60 @@
       HATER: '黑粉'
     };
     
+    // T107: 粉絲類型偏好說明
+    const FAN_TYPE_PREFERENCES = {
+      ENTHUSIAST: { 
+        desc: '熱愛作品，重視封面和紙質',
+        coverPref: '★★★', paperPref: '★★★',
+        tips: '適合高品質製作'
+      },
+      CASUAL: { 
+        desc: '隨意逛逛，不太在意品質',
+        coverPref: '★★☆', paperPref: '★☆☆',
+        tips: '價格敏感，適合平價策略'
+      },
+      CRITIC: { 
+        desc: '挑剔的評論者，在意內容品質',
+        coverPref: '★★☆', paperPref: '★★☆',
+        tips: '需要高理解度作品'
+      },
+      MEMER: { 
+        desc: '追求有趣梗圖，喜歡華麗封面',
+        coverPref: '★★★', paperPref: '★☆☆',
+        tips: '封面要吸睛'
+      },
+      LURKER: { 
+        desc: '低調的潛水者，偏好一般品質',
+        coverPref: '★★☆', paperPref: '★★☆',
+        tips: '中等價位即可'
+      },
+      WHALE: { 
+        desc: '願意大量消費的忠實支持者',
+        coverPref: '★★★', paperPref: '★★★',
+        tips: '不惜成本拉高價格'
+      },
+      COLLECTOR: { 
+        desc: '收藏癖好者，極度重視紙質',
+        coverPref: '★★★', paperPref: '★★★★',
+        tips: '必用高級紙，可高價'
+      },
+      HATER: { 
+        desc: '黑粉，幾乎不會購買',
+        coverPref: '★☆☆', paperPref: '★☆☆',
+        tips: '避免浪費資源'
+      }
+    };
+    
+    // T107: 獲取粉絲類型說明
+    function getFanTypeDescription(type) {
+      return FAN_TYPE_PREFERENCES[type] || { 
+        desc: '未知類型', 
+        coverPref: '???', 
+        paperPref: '???', 
+        tips: '' 
+      };
+    }
+    
     // 獲取分層市場情報
     function getMarketIntelligence(franchise, audienceLevel) {
       const result = {
@@ -1852,25 +2598,51 @@
       return result;
     }
     
-    // 獲取銷量預測
+    // T096: 獲取銷量預測（整合市場了解度）
     function getSalesPrediction(draft) {
+      console.log('Calculating sales prediction for draft:', draft);
+      console.log('Current market understanding:', GameState);
       const franchise = GameState.franchises.find(f => f.id === draft.franchiseId);
       if (!franchise) return null;
       
       const combinedLevel = (draft.essenceLevel + draft.audienceLevel) / 2;
       
-      // 估算基礎銷量
+      // T096: 使用 SalesCalculator 的預估功能（如果可用）
+      if (typeof SalesCalculator !== 'undefined') {
+        const work = {
+          title: franchise.name,
+          popularity: franchise.popularity,
+          audienceDensity: franchise.audienceDensity,
+          purchasingPower: franchise.purchasingPower
+        };
+        
+        // 使用作品各自的市場了解度（基於研究等級）
+        const workUnderstanding = Math.min(1.0, draft.audienceLevel / 10);
+        
+        const prediction = SalesCalculator.estimateSales(work, workUnderstanding);
+        
+        // 根據 essence 調整預估（高理解度 = 更好的品質）
+        const essenceBonus = 1 + (draft.essenceLevel * 0.03);
+        
+        return {
+          minSales: Math.round(prediction.min * essenceBonus),
+          maxSales: Math.round(prediction.max * essenceBonus),
+          confidence: prediction.confidence,
+          combinedLevel,
+          errorPercent: prediction.errorPercent
+        };
+      }
+      
+      // 回退到原始計算邏輯
       const baseRate = franchise.purchasingPower * franchise.audienceDensity * 0.5;
       const essenceBonus = 1 + (draft.essenceLevel * 0.05);
       const estimatedRate = baseRate * essenceBonus;
       
-      // 預估參加人數
       const estimatedAttendees = Math.round(franchise.popularity * franchise.audienceDensity * 50);
       const baseSales = Math.round(estimatedAttendees * estimatedRate);
       
-      // 信心度計算
       let confidence = '低';
-      let variance = 0.5; // 50% 變異
+      let variance = 0.5;
       if (combinedLevel >= 3) { confidence = '中'; variance = 0.35; }
       if (combinedLevel >= 6) { confidence = '高'; variance = 0.20; }
       if (combinedLevel >= 9) { confidence = '極高'; variance = 0.10; }
@@ -2009,15 +2781,28 @@
       const avgAttractionBonus = playerBooth.items.length > 0 ?
         playerBooth.items.reduce((sum, item) => sum + (item.attractionBonus || 0), 0) / playerBooth.items.length : 0;
       
+      // T105: 計算代表性作品供吸引力計算使用
+      const representativeWork = playerBooth.items.length > 0 ? {
+        coverQuality: avgCoverQuality,
+        attractionBonus: avgAttractionBonus
+      } : null;
+      
       for (const attendee of attendees) {
         // 是否有目標在攤位？
         const hasTarget = attendee.targetList.some(id => 
           playerBooth.items.some(item => item.id === id)
         );
         
+        // T105: 根據顧客類型計算吸引力修正
+        let typeAttractionMod = 1.0;
+        if (representativeWork && typeof SalesCalculator !== 'undefined') {
+          const attractionInfo = SalesCalculator.getAttractionModifier(representativeWork, attendee.type);
+          typeAttractionMod = attractionInfo.finalAttraction;
+        }
+        
         // 目標客人一定來，其他隨機（受封面質量影響）
-        // 停留率 = 基礎瀏覽傾向 × 封面吸引力 × (1 + 吸引力加成) × (1 - 疲勞)
-        const stopRate = avgCoverQuality * (1 + avgAttractionBonus) * (1 - attendee.fatigue * 0.5);
+        // 停留率 = 基礎瀏覽傾向 × 封面吸引力 × (1 + 吸引力加成) × 顧客類型修正 × (1 - 疲勞)
+        const stopRate = avgCoverQuality * (1 + avgAttractionBonus) * typeAttractionMod * (1 - attendee.fatigue * 0.5);
         const willVisit = hasTarget || (Math.random() < attendee.browseTendency * stopRate);
         
         if (willVisit) {
@@ -2034,11 +2819,35 @@
       return visits;
     }
     
-    function simulatePurchases(visits, items, franchises) {
+    function simulatePurchases(visits, items, franchises, eventModifiers = {}, triggeredEvents = []) {
       const soldItems = [];
       let totalRevenue = 0;
       const itemSales = {};
       const customerLog = [];
+      
+      // T043: 獲取事件修正器
+      const salesModifier = eventModifiers.sales || 1;
+      
+      // 修復: 分離 revenue 的乘法和加法效果
+      let revenueMultiplier = 1;  // 用於修正每筆交易價格
+      let bonusRevenue = 0;       // 用於最後加到總收益
+      
+      // 從原始事件中分離 revenue 效果
+      if (triggeredEvents && triggeredEvents.length > 0) {
+        for (const event of triggeredEvents) {
+          if (!event.effects) continue;
+          
+          for (const effect of event.effects) {
+            if (effect.target === 'revenue') {
+              if (effect.modifier === 'multiply') {
+                revenueMultiplier *= effect.value;
+              } else if (effect.modifier === 'add') {
+                bonusRevenue += effect.value;
+              }
+            }
+          }
+        }
+      }
       
       // 品質敏感的粉絲類型
       const QUALITY_SENSITIVE_FANS = ['ENTHUSIAST', 'COLLECTOR', 'CRITIC'];
@@ -2145,14 +2954,17 @@
             attendee.purchasedItems.push(item.id);
             attendee.fatigue += 0.1;
             
+            // T043: 套用事件收益修正 (只使用乘法效果)
+            const adjustedRevenue = Math.round(item.retailPrice * revenueMultiplier);
+            
             itemSales[item.id].sold++;
-            itemSales[item.id].revenue += item.retailPrice;
-            totalRevenue += item.retailPrice;
+            itemSales[item.id].revenue += adjustedRevenue;
+            totalRevenue += adjustedRevenue;
             
             soldItems.push({
               itemId: item.id,
               attendeeId: attendee.id,
-              price: item.retailPrice
+              price: adjustedRevenue
             });
             
             // 記錄：購買成功
@@ -2174,11 +2986,15 @@
         }
       }
       
+      // 加上獎勵收益 (如贊助商邵約等 add 效果)
+      totalRevenue += bonusRevenue;
+      
       return {
         soldItems,
         totalRevenue,
         itemSales,
         customerLog,
+        bonusRevenue,  // 傳回獎勵收益供日誌顯示
         unsoldCounts: items.reduce((acc, item) => {
           acc[item.id] = item.remainingCount;
           return acc;
@@ -2235,7 +3051,7 @@
       }
     }
     
-    async function runConventionSimulation(boothItems) {
+    async function runConventionSimulation(boothItems, triggeredEvents = []) {
       const progressEl = document.getElementById('conv-progress');
       const statusEl = document.getElementById('conv-status');
       const attendeesEl = document.getElementById('conv-attendees');
@@ -2243,14 +3059,52 @@
       const soldEl = document.getElementById('conv-sold');
       const liveStatusEl = document.getElementById('conv-live-status');
       
+      // T043: 準備事件效果修正器
+      let eventModifiers = {
+        visitor_count: 1,
+        stay_rate: 1,
+        sales: 1,
+        revenue: 1,
+        session_time: 1,
+        bad_customer_rate: 0,
+        affectedWorks: boothItems.map(item => ({ ...item })) // 複製作品資料供事件影響
+      };
+      
+      // 套用事件效果
+      if (triggeredEvents.length > 0 && typeof EventSystem !== 'undefined') {
+        eventModifiers = EventSystem.applyEventEffects(triggeredEvents, eventModifiers);
+        log('Event modifiers applied:', eventModifiers);
+        devLog('SALES', '場次事件修正器套用', eventModifiers);
+      } else {
+        devLog('SALES', '場次開始 - 無事件觸發');
+      }
+      
       // Phase 1: 生成入場者
       statusEl.textContent = '第一階段：入場中...';
       liveStatusEl.textContent = '會場開門，人潮湧入...';
       progressEl.style.width = '10%';
       await sleep(500);
       
-      const attendees = generateAttendees(boothItems, GameState.franchises);
+      let attendees = generateAttendees(boothItems, GameState.franchises);
+      
+      // 套用來客數修正
+      const visitorModifier = eventModifiers.visitor_count || 1;
+      if (visitorModifier !== 1) {
+        const originalCount = attendees.length;
+        const newCount = Math.round(originalCount * visitorModifier);
+        // 隨機移除或複製
+        if (newCount < originalCount) {
+          attendees = attendees.slice(0, newCount);
+        } else if (newCount > originalCount) {
+          while (attendees.length < newCount) {
+            attendees.push({ ...attendees[Math.floor(Math.random() * originalCount)] });
+          }
+        }
+        log(`Visitor count modified: ${originalCount} -> ${newCount} (x${visitorModifier})`);
+      }
+      
       attendeesEl.textContent = attendees.length;
+      devLog('SALES', '第一階段：入場者生成完畢', { count: attendees.length, modifier: visitorModifier });
       progressEl.style.width = '30%';
       await sleep(300);
       
@@ -2260,9 +3114,13 @@
       progressEl.style.width = '50%';
       await sleep(500);
       
-      const playerBooth = { items: boothItems };
+      const playerBooth = { 
+        items: boothItems,
+        stayRateModifier: eventModifiers.stay_rate || 1
+      };
       const visits = simulateBoothVisits(attendees, playerBooth);
       visitorsEl.textContent = visits.length;
+      devLog('SALES', '第二階段：攤位巡視完畢', { visitors: visits.length, conversionRate: (visits.length / attendees.length * 100).toFixed(1) + '%' });
       progressEl.style.width = '70%';
       await sleep(300);
       
@@ -2272,18 +3130,77 @@
       progressEl.style.width = '85%';
       await sleep(500);
       
-      const salesResults = simulatePurchases(visits, boothItems, GameState.franchises);
-      const totalSold = Object.values(salesResults.itemSales).reduce((sum, s) => sum + s.sold, 0);
+      // 傳遞事件修正器給購買模擬
+      let salesResults = simulatePurchases(visits, boothItems, GameState.franchises, eventModifiers, triggeredEvents);
+      let totalSold = Object.values(salesResults.itemSales).reduce((sum, s) => sum + s.sold, 0);
+      
+      // T049: 檢查銷售上限
+      let maxSalesReached = false;
+      let lostSales = 0;
+      if (typeof SalesCalculator !== 'undefined') {
+        SalesCalculator.init();
+        const helperLevel = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getLevel('helper') : 0;
+        const maxSales = SalesCalculator.getMaxSales(helperLevel);
+        const limitCheck = SalesCalculator.checkSalesLimit(totalSold, maxSales);
+        
+        if (limitCheck.limited) {
+          maxSalesReached = true;
+          lostSales = limitCheck.lostSales;
+          
+          // 調整實際銷量 - 從每個商品按比例扣除
+          const ratio = limitCheck.actualSales / totalSold;
+          let adjustedRevenue = 0;
+          
+          for (const pubId of Object.keys(salesResults.itemSales)) {
+            const originalSold = salesResults.itemSales[pubId].sold;
+            const adjustedSold = Math.floor(originalSold * ratio);
+            const revenuePerItem = originalSold > 0 ? salesResults.itemSales[pubId].revenue / originalSold : 0;
+            
+            salesResults.itemSales[pubId].sold = adjustedSold;
+            salesResults.itemSales[pubId].revenue = Math.round(adjustedSold * revenuePerItem);
+            adjustedRevenue += salesResults.itemSales[pubId].revenue;
+            
+            // 同步更新庫存
+            const item = boothItems.find(b => b.id === pubId);
+            if (item) {
+              item.remainingCount += (originalSold - adjustedSold);
+            }
+          }
+          
+          salesResults.totalRevenue = adjustedRevenue;
+          totalSold = limitCheck.actualSales;
+          
+          log(`Sales limit reached: ${limitCheck.actualSales}/${maxSales}, lost: ${lostSales}`);
+          devLog('CALC', '銷售上限觸發！', { max: maxSales, actual: limitCheck.actualSales, lost: lostSales, helperLevel });
+        }
+      }
+      
+      // T082: 最終銷售數據日誌
+      devLog('SALES', '第三階段：銷售計算完畢', { 
+        totalSold, 
+        totalRevenue: salesResults.totalRevenue,
+        maxSalesReached,
+        lostSales,
+        itemBreakdown: salesResults.itemSales
+      });
+      
+      // T050: 記錄到 sessionState
+      GameState.sessionState.maxSalesReached = maxSalesReached;
+      GameState.sessionState.lostSales = lostSales;
+      
       soldEl.textContent = totalSold;
       
       progressEl.style.width = '100%';
       statusEl.textContent = '場次結束！';
-      liveStatusEl.textContent = '收攤啦～';
+      liveStatusEl.textContent = maxSalesReached ? '忙到翻過去了...' : '收攤啦～';
       await sleep(500);
       
       return {
         totalAttendees: attendees.length,
         boothVisitors: visits.length,
+        eventModifiers: eventModifiers,
+        maxSalesReached: maxSalesReached,
+        lostSales: lostSales,
         ...salesResults
       };
     }
@@ -2293,10 +3210,96 @@
     }
     
     // === 存檔/讀檔 ===
+    
+    // V2 存檔版本
+    const SAVE_VERSION_V2 = 2;
+    
+    // T018: 版本遷移函數
+    function migrateFromV1(saveData) {
+      log('Migrating save from V1 to V2...');
+      
+      const state = saveData.state;
+      
+      // 1. 添加 V2 新欄位
+      if (state.debt === undefined) state.debt = 0;
+      if (state.devMode === undefined) state.devMode = false;
+      
+      // 2. 建立 circle 結構（如果不存在）
+      if (!state.circle) {
+        state.circle = {
+          name: state.circleName || '無名社團',
+          reputation: 0,
+          upgrades: {
+            helper: 0,
+            coser: 0,
+            adobe: 0,
+            storage: 0,
+            friends: 0,
+            social: 0,
+            investor: 0,
+            stock: 0,
+            writing: 0
+          }
+        };
+      }
+      
+      // 3. 建立 sessionState（如果不存在）
+      if (!state.sessionState) {
+        state.sessionState = {
+          isActive: false,
+          activeEvents: [],
+          salesRecords: [],
+          totalVisitors: 0,
+          maxSalesReached: false,
+          lostSales: 0
+        };
+      }
+      
+      // 4. 為現有作品添加 V2 欄位
+      if (state.publications) {
+        state.publications = state.publications.map((pub, index) => {
+          // FR-007/FR-016: 確保所有作品都有標題
+          let title = pub.title;
+          if (!title) {
+            // 嘗試從 franchise 取得名稱
+            const franchise = state.franchises?.find(f => f.id === pub.franchiseId);
+            title = franchise ? `《${franchise.name}》同人本 #${index + 1}` : `同人本 #${index + 1}`;
+          }
+          return {
+            ...pub,
+            title: title,
+            coverLevel: pub.coverLevel || 'basic',
+            paperLevel: pub.paperLevel || 'standard',
+            decayRate: pub.decayRate || 'normal',
+            isRetired: pub.isRetired || false,
+            retiredPopularity: pub.retiredPopularity || null
+          };
+        });
+      }
+      
+      // 5. 為現有庫存添加 V2 欄位
+      if (state.inventory) {
+        state.inventory = state.inventory.map(inv => ({
+          ...inv,
+          coverLevel: inv.coverLevel || 'basic',
+          paperLevel: inv.paperLevel || 'standard',
+          decayRate: inv.decayRate || 'normal',
+          isRetired: inv.isRetired || false,
+          retiredPopularity: inv.retiredPopularity || null
+        }));
+      }
+      
+      // 更新版本號
+      saveData.version = SAVE_VERSION_V2;
+      
+      log('Migration complete', state);
+      return saveData;
+    }
+    
     function saveGame() {
       try {
         const saveData = {
-          version: SAVE_VERSION,
+          version: SAVE_VERSION_V2, // 使用 V2 版本
           timestamp: Date.now(),
           state: {
             round: GameState.round,
@@ -2309,11 +3312,17 @@
             inventory: GameState.inventory,
             history: GameState.history.slice(-20),
             eventLog: GameState.eventLog.slice(-50),
-            seed: GameState.seed
+            seed: GameState.seed,
+            // V2 新增欄位
+            debt: GameState.debt,
+            devMode: GameState.devMode,
+            circle: GameState.circle,
+            sessionState: GameState.sessionState,
+            circleName: GameState.circleName // 保持向後相容
           }
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-        log('Game saved');
+        log('Game saved (V2)');
         return true;
       } catch (e) {
         console.error('Save failed:', e);
@@ -2321,19 +3330,26 @@
       }
     }
     
+    // T019: 更新 loadGame() 檢查版本並自動執行遷移
     function loadGame() {
       try {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return false;
         
-        const saveData = JSON.parse(raw);
-        if (saveData.version !== SAVE_VERSION) {
-          log('Save version mismatch, migration needed');
-          // 未來可以加版本遷移邏輯
+        let saveData = JSON.parse(raw);
+        
+        // 檢查版本並執行遷移
+        if (!saveData.version || saveData.version < SAVE_VERSION_V2) {
+          log('Save version mismatch, migrating from V' + (saveData.version || 1) + ' to V' + SAVE_VERSION_V2);
+          saveData = migrateFromV1(saveData);
+          
+          // 儲存遷移後的版本
+          localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+          log('Migrated save persisted');
         }
         
         Object.assign(GameState, saveData.state);
-        log('Game loaded', GameState);
+        log('Game loaded (V' + saveData.version + ')', GameState);
         return true;
       } catch (e) {
         console.error('Load failed:', e);
@@ -2625,10 +3641,21 @@
                 ${GameState.inventory.filter(inv => inv.remainingCount > 0).map(inv => {
                   const pub = GameState.publications.find(p => p.id === inv.publicationId);
                   if (!pub) return '';
+                  const decayInfo = getDecayInfo(pub);
                   return `
-                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
-                      <span>${pub.title}</span>
-                      <span>${inv.remainingCount} 本 (售價: ${formatCurrency(pub.retailPrice)})</span>
+                    <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 3px solid ${decayInfo.color};">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold;">${pub.title}</span>
+                        <span>${inv.remainingCount} 本 (售價: ${formatCurrency(pub.retailPrice)})</span>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.8rem; color: #888;">
+                        <span>🎨 ${pub.coverLevelName || '基礎'} | 📄 ${pub.paperLevelName || '標準'}</span>
+                        <span>理解度: ${pub.essenceSnapshot || '?'}/10</span>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.85rem; color: #aaa;">
+                        <span title="${decayInfo.prediction}">${decayInfo.label} ${decayInfo.trend}</span>
+                        <span>人氣: ${Math.round(pub.popularity)}%</span>
+                      </div>
                     </div>
                   `;
                 }).join('')}
@@ -2682,7 +3709,7 @@
       
       openHistoryPanel();
     }
-    
+
     function renderAction() {
       updateStats();
       
@@ -2708,9 +3735,12 @@
         if (intel.fanDistribution) {
           fanDistHtml = `
             <div class="fan-distribution" style="margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px;">
-              <div style="font-size: 0.75rem; color: #666; margin-bottom: 6px;">粉絲組成</div>
-              ${intel.fanDistribution.map(f => `
-                <div style="display: flex; align-items: center; margin-bottom: 4px;">
+              <div style="font-size: 0.75rem; color: #666; margin-bottom: 6px;">粉絲組成 <span style="color: #888;">(懸停查看偏好)</span></div>
+              ${intel.fanDistribution.map(f => {
+                const pref = getFanTypeDescription(f.type);
+                const tooltip = `${pref.desc}\n封面: ${pref.coverPref} | 紙質: ${pref.paperPref}\n${pref.tips}`;
+                return `
+                <div style="display: flex; align-items: center; margin-bottom: 4px; cursor: help;" title="${tooltip}">
                   <span style="width: 60px; font-size: 0.8rem;">${f.name}</span>
                   <div style="flex: 1; height: 12px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
                     <div style="width: ${f.percentage}%; height: 100%; background: ${
@@ -2721,7 +3751,7 @@
                   </div>
                   <span style="width: 36px; text-align: right; font-size: 0.75rem; color: #888;">${f.percentage}%</span>
                 </div>
-              `).join('')}
+              `}).join('')}
             </div>
           `;
         }
@@ -2887,11 +3917,11 @@
       const quantity = parseInt(document.getElementById('print-quantity').value) || 0;
       const baseCost = 150; // 每本基礎成本
       
-      // 紙質修正
+      // T109/T111: 紙質修正 - 使用 PAPER_LEVELS config
       const paperQuality = document.getElementById('paper-quality').value;
-      let paperModifier = 1.0;
-      if (paperQuality === 'recycled') paperModifier = 0.8;
-      else if (paperQuality === 'premium') paperModifier = 1.5;
+      const paperConfig = (BalanceConfig.PAPER_LEVELS && BalanceConfig.PAPER_LEVELS[paperQuality]) || 
+                          { costModifier: 0, attractionModifier: 0 };
+      const paperModifier = 1.0 + (paperConfig.costModifier || 0);
       
       // 量產折扣
       let discount = 1.0;
@@ -2903,11 +3933,11 @@
       
       const printCost = Math.round(quantity * baseCost * paperModifier * discount);
       
-      // 封面費用
-      const coverArtist = document.getElementById('cover-artist').value;
-      let coverCost = 0;
-      if (coverArtist === 'friend') coverCost = 500;
-      else if (coverArtist === 'pro') coverCost = 2000;
+      // T108/T110: 封面費用 - 使用 COVER_LEVELS config
+      const coverLevel = document.getElementById('cover-artist').value;
+      const coverConfig = (BalanceConfig.COVER_LEVELS && BalanceConfig.COVER_LEVELS[coverLevel]) ||
+                          { cost: 500, attractionModifier: 0 };
+      const coverCost = coverConfig.cost || 0;
       
       const totalCost = printCost + coverCost;
       const perUnitCost = quantity > 0 ? Math.ceil(totalCost / quantity) : 0;
@@ -2959,7 +3989,165 @@
       `;
     }
     
-    function renderResults(results) {
+    // T087-T093: 詳細場次結算報告
+    let salesSortMode = 'revenue'; // 'revenue' | 'sold' | 'name'
+    
+    function renderDetailedSalesReport(results, triggeredEvents = []) {
+      const breakdownEl = document.getElementById('result-breakdown');
+      if (!breakdownEl) return;
+      
+      // 準備作品銷售數據
+      const salesData = [];
+      const eventAffectedWorks = new Set();
+      
+      // 收集受事件影響的作品 ID
+      triggeredEvents.forEach(event => {
+        if (event._affectedWork) {
+          // 找出對應的 publication ID
+          const pub = GameState.publications.find(p => 
+            p.title === event._affectedWork.title || 
+            p.franchiseId === event._affectedWork.franchiseId
+          );
+          if (pub) eventAffectedWorks.add(pub.id);
+        }
+      });
+      
+      for (const [pubId, sales] of Object.entries(results.itemSales)) {
+        const pub = GameState.publications.find(p => p.id === pubId);
+        if (!pub) continue;
+        
+        const costPerBook = pub.productionCost / pub.printQuantity;
+        const itemExpenses = Math.round(costPerBook * sales.sold);
+        const itemProfit = sales.revenue - itemExpenses;
+        
+        // T098: 取得預估比較結果
+        let predictionComparison = null;
+        if (pub.salesPrediction && typeof SalesCalculator !== 'undefined') {
+          const estimatedMid = Math.round((pub.salesPrediction.min + pub.salesPrediction.max) / 2);
+          // 傳入參數判斷是否完售
+          predictionComparison = SalesCalculator.compareEstimateToActual(estimatedMid, sales.sold, sales.sold === pub.printQuantity);
+          predictionComparison.predicted = estimatedMid;
+          predictionComparison.range = `${pub.salesPrediction.min}-${pub.salesPrediction.max}`;
+        }
+        
+        salesData.push({
+          id: pubId,
+          title: pub.title,
+          sold: sales.sold,
+          revenue: sales.revenue,
+          price: pub.retailPrice,
+          expenses: itemExpenses,
+          profit: itemProfit,
+          eventAffected: eventAffectedWorks.has(pubId),
+          prediction: predictionComparison
+        });
+      }
+      
+      // 排序
+      salesData.sort((a, b) => {
+        if (salesSortMode === 'revenue') return b.revenue - a.revenue;
+        if (salesSortMode === 'sold') return b.sold - a.sold;
+        if (salesSortMode === 'name') return a.title.localeCompare(b.title);
+        return 0;
+      });
+      
+      // 計算總計
+      const totals = {
+        sold: salesData.reduce((sum, d) => sum + d.sold, 0),
+        revenue: salesData.reduce((sum, d) => sum + d.revenue, 0),
+        profit: salesData.reduce((sum, d) => sum + d.profit, 0)
+      };
+      
+      // 渲染HTML
+      if (salesData.length === 0) {
+        breakdownEl.innerHTML = `
+          <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px; text-align: center; color: #888;">
+            沒有銷售記錄
+          </div>
+        `;
+        return;
+      }
+      
+      breakdownEl.innerHTML = `
+        <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 16px; margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h4 style="margin: 0; color: #fff;">📋 各作品銷售明細</h4>
+            <div style="display: flex; gap: 6px;">
+              <button class="sales-sort-btn ${salesSortMode === 'revenue' ? 'active' : ''}" data-sort="revenue" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; ${salesSortMode === 'revenue' ? 'background: #4ade80;' : 'background: rgba(255,255,255,0.1);'}">按收益</button>
+              <button class="sales-sort-btn ${salesSortMode === 'sold' ? 'active' : ''}" data-sort="sold" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; ${salesSortMode === 'sold' ? 'background: #4ade80;' : 'background: rgba(255,255,255,0.1);'}">按銷量</button>
+              <button class="sales-sort-btn ${salesSortMode === 'name' ? 'active' : ''}" data-sort="name" style="padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; ${salesSortMode === 'name' ? 'background: #4ade80;' : 'background: rgba(255,255,255,0.1);'}">按名稱</button>
+            </div>
+          </div>
+          <div style="display: grid; gap: 10px;">
+            ${salesData.map(item => {
+              const profitColor = item.profit >= 0 ? '#4ade80' : '#ef4444';
+              const eventBadge = item.eventAffected 
+                ? '<span style="background: #fbbf24; color: #000; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">⚡事件影響</span>' 
+                : '';
+              const soldPercent = totals.sold > 0 ? Math.round(item.sold / totals.sold * 100) : 0;
+              
+              // T098: 預估比較顯示
+              let predictionHtml = '';
+              if (item.prediction) {
+                const predColor = item.prediction.diff >= 0 ? '#4ade80' : '#ef4444';
+                const predIcon = item.prediction.diff >= 0 ? '↑' : '↓';
+                predictionHtml = `
+                  <div style="font-size: 0.75rem; color: ${predColor}; margin-top: 4px;">
+                    ${item.prediction.message} (預估 ${item.prediction.range} 本, 差異 ${item.prediction.diff >= 0 ? '+' : ''}${item.prediction.diffPercent}%)
+                  </div>
+                `;
+              }
+              
+              return `
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; ${item.eventAffected ? 'border-left: 3px solid #fbbf24;' : ''}">
+                  <div>
+                    <div style="font-weight: bold; margin-bottom: 4px;">
+                      ${item.title}${eventBadge}
+                    </div>
+                    <div style="font-size: 0.85rem; color: #888;">
+                      單價 ${formatCurrency(item.price)} × ${item.sold} 本
+                    </div>
+                    ${predictionHtml}
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-weight: bold; color: ${profitColor};">
+                      ${item.profit >= 0 ? '+' : ''}${formatCurrency(item.profit)}
+                    </div>
+                    <div style="font-size: 0.75rem; color: #888;">
+                      收入 ${formatCurrency(item.revenue)}
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
+            <div>
+              <div style="font-size: 0.75rem; color: #888;">總銷量</div>
+              <div style="font-size: 1.2rem; font-weight: bold;">${totals.sold} 本</div>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; color: #888;">總收入</div>
+              <div style="font-size: 1.2rem; font-weight: bold; color: #60a5fa;">${formatCurrency(totals.revenue)}</div>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; color: #888;">總利潤</div>
+              <div style="font-size: 1.2rem; font-weight: bold; color: ${totals.profit >= 0 ? '#4ade80' : '#ef4444'};">${totals.profit >= 0 ? '+' : ''}${formatCurrency(totals.profit)}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // 綁定排序按鈕事件
+      breakdownEl.querySelectorAll('.sales-sort-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          salesSortMode = e.target.dataset.sort;
+          renderDetailedSalesReport(results, triggeredEvents);
+        });
+      });
+    }
+    
+    function renderResults(results, triggeredEvents = []) {
       const revenueEl = document.getElementById('result-revenue');
       const expensesEl = document.getElementById('result-expenses');
       const soldEl = document.getElementById('result-sold');
@@ -2996,12 +4184,95 @@
       // 更新玩家金錢
       GameState.money += results.totalRevenue;
       
+      // T087-T093: 渲染詳細場次結算報告
+      renderDetailedSalesReport(results, triggeredEvents);
+      
       // 檢查完售狀態
       const totalRemaining = GameState.inventory.reduce((sum, inv) => sum + inv.remainingCount, 0);
       if (totalRemaining === 0) {
         selloutBannerEl.classList.remove('hidden');
       } else {
         selloutBannerEl.classList.add('hidden');
+      }
+      
+      // T044: 顯示觸發的事件
+      const eventsContainerId = 'results-events';
+      let eventsContainerEl = document.getElementById(eventsContainerId);
+      if (!eventsContainerEl) {
+        eventsContainerEl = document.createElement('div');
+        eventsContainerEl.id = eventsContainerId;
+        eventsContainerEl.style.cssText = 'margin-bottom: 20px;';
+        customerLogEl.parentNode.insertBefore(eventsContainerEl, customerLogEl);
+      }
+      
+      if (triggeredEvents.length > 0) {
+        eventsContainerEl.innerHTML = `
+          <div style="background: rgba(96, 165, 250, 0.15); border: 1px solid rgba(96, 165, 250, 0.4); border-radius: 8px; padding: 16px;">
+            <h4 style="margin-bottom: 12px; color: #60a5fa;">🎲 本場次發生的事件</h4>
+            <div style="display: grid; gap: 8px;">
+              ${triggeredEvents.map(event => {
+                const bgColor = event.type === 'positive' ? 'rgba(34, 197, 94, 0.2)' 
+                              : event.type === 'negative' ? 'rgba(239, 68, 68, 0.2)' 
+                              : 'rgba(251, 191, 36, 0.2)';
+                const borderColor = event.type === 'positive' ? 'rgba(34, 197, 94, 0.4)' 
+                                  : event.type === 'negative' ? 'rgba(239, 68, 68, 0.4)' 
+                                  : 'rgba(251, 191, 36, 0.4)';
+                
+                // T044: 如果有受影響的作品，顯示作品名稱
+                let message = event.notification?.message || event.description;
+                if (event._affectedWork) {
+                  message = message.replace(/\{workTitle\}/g, event._affectedWork.title);
+                }
+                
+                return `
+                  <div style="display: flex; gap: 12px; padding: 12px; background: ${bgColor}; border: 1px solid ${borderColor}; border-radius: 6px;">
+                    <span style="font-size: 1.5rem;">${event.notification?.title?.split(' ')[0] || '🎲'}</span>
+                    <div>
+                      <div style="font-weight: bold; margin-bottom: 4px;">${event.name}</div>
+                      <div style="font-size: 0.9rem; color: #ccc;">${message}</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        eventsContainerEl.innerHTML = `
+          <div style="background: rgba(75, 85, 99, 0.3); border: 1px solid rgba(75, 85, 99, 0.5); border-radius: 8px; padding: 16px; text-align: center;">
+            <span style="color: #9ca3af;">☀️ 今天風和日麗，沒有特別事件發生</span>
+          </div>
+        `;
+      }
+      
+      // T051-T052: 顯示分身乏術警告（如果達到銷售上限）
+      const salesLimitContainerId = 'results-sales-limit';
+      let salesLimitEl = document.getElementById(salesLimitContainerId);
+      if (!salesLimitEl) {
+        salesLimitEl = document.createElement('div');
+        salesLimitEl.id = salesLimitContainerId;
+        salesLimitEl.style.cssText = 'margin-bottom: 20px;';
+        eventsContainerEl.parentNode.insertBefore(salesLimitEl, eventsContainerEl.nextSibling);
+      }
+      
+      if (results.maxSalesReached && results.lostSales > 0) {
+        const helperLevel = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getLevel('helper') : 0;
+        const suggestion = typeof SalesCalculator !== 'undefined' 
+          ? SalesCalculator.getUpgradeSuggestion(results.lostSales, helperLevel)
+          : '提示：升級小幫手可以處理更多顧客！';
+        
+        salesLimitEl.innerHTML = `
+          <div style="background: rgba(251, 191, 36, 0.2); border: 2px solid rgba(251, 191, 36, 0.6); border-radius: 8px; padding: 16px; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 8px;">😵</div>
+            <h4 style="color: #fbbf24; margin-bottom: 8px;">分身乏術！</h4>
+            <p style="color: #fde68a; margin-bottom: 12px;">
+              錯失了 <strong style="color: #ef4444;">${results.lostSales}</strong> 位想購買的顧客
+            </p>
+            <p style="font-size: 0.85rem; color: #9ca3af;">${suggestion}</p>
+          </div>
+        `;
+      } else {
+        salesLimitEl.innerHTML = '';
       }
       
       // 顯示顧客互動紀錄
@@ -3026,26 +4297,47 @@
         customerLogEl.innerHTML = '';
       }
       
-      // 顯示剩餘庫存
+      // 顯示剩餘庫存 (T062: 包含倉儲成本明細)
       if (totalRemaining > 0) {
         const remainingItems = GameState.inventory.filter(inv => inv.remainingCount > 0).map(inv => {
           const pub = GameState.publications.find(p => p.id === inv.publicationId);
           return { inv, pub };
         }).filter(item => item.pub);
         
+        // T062: 計算倉儲成本
+        let storageCostInfo = { totalCost: totalRemaining * 2, costPerBook: 2 };
+        if (typeof InventoryManager !== 'undefined') {
+          InventoryManager.init();
+          storageCostInfo = InventoryManager.getStorageCost(
+            GameState.inventory, 
+            typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getLevel('storage') : 0
+          );
+        }
+        
         remainingInvEl.innerHTML = `
           <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); border-radius: 8px; padding: 16px;">
             <h4 style="margin-bottom: 12px; color: #ef4444;">📦 剩餘庫存（${totalRemaining} 本）</h4>
             <div style="display: grid; gap: 8px;">
-              ${remainingItems.map(({ inv, pub }) => `
-                <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
-                  <span>${pub.title}</span>
-                  <span style="color: #f59e0b;">${inv.remainingCount} 本</span>
-                </div>
-              `).join('')}
+              ${remainingItems.map(({ inv, pub }) => {
+                const itemStorageCost = Math.round(inv.remainingCount * storageCostInfo.costPerBook);
+                const isRetired = pub.isRetired ? '<span style="color: #f59e0b; font-size: 0.75rem; margin-left: 8px;">[停產]</span>' : '';
+                return `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+                    <span>${pub.title}${isRetired}</span>
+                    <div style="text-align: right;">
+                      <span style="color: #f59e0b;">${inv.remainingCount} 本</span>
+                      <span style="color: #aaa; font-size: 0.8rem; margin-left: 8px;">倉儲: ${formatCurrency(itemStorageCost)}/回合</span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(239, 68, 68, 0.3); display: flex; justify-content: space-between;">
+              <span style="color: #ef4444; font-weight: bold;">下回合倉儲總成本</span>
+              <span style="color: #ef4444; font-weight: bold;">${formatCurrency(storageCostInfo.totalCost)}</span>
             </div>
             <div style="margin-top: 8px; font-size: 0.85rem; color: #aaa;">
-              ⚠️ 每本每回合倉儲費 $2
+              💡 提示：升級「倉庫管理」可降低倉儲成本
             </div>
           </div>
         `;
@@ -3053,14 +4345,14 @@
         remainingInvEl.innerHTML = '';
       }
       
-      // 記錄歷史
+      // 記錄歷史（包含觸發的事件名稱）
       GameState.history.push({
         round: GameState.round,
         totalRevenue: results.totalRevenue,
         unitsSold: totalSold,
         expenses,
         profit,
-        notableEvents: []
+        notableEvents: triggeredEvents.map(e => e.name)
       });
       
       // 檢查是否達成目標
@@ -3277,14 +4569,32 @@
       const event = selectEvent(GameState.franchises, GameState.eventCooldowns || {});
       if (!event) return;
       
-      applyEvent(event);
-      showEventAlert([event]);
+      const franchiseId = applyEvent(event);
+      showEventAlert([event], franchiseId);
     }
     
-    function showEventAlert(events) {
+    function showEventAlert(events, franchiseId) {
+      // BUG FIX 5: 確保顯示真實作品名稱而非「某作品」
       const messages = events.map(e => {
-        const targetFranchise = GameState.franchises.find(f => f.id === e.targetFranchiseId);
-        const desc = e.description.replace('【franchise】', targetFranchise?.name || '某作品');
+        const targetFranchise = GameState.franchises.find(f => f.id === franchiseId[0]);
+        let desc = e.description;
+        
+        // 如果找到目標作品，替換占位符
+        if (targetFranchise) {
+          desc = desc.replace('【franchise】', targetFranchise.name);
+        } else {
+          // 如果找不到目標作品，使用第一個可用的作品名稱
+          const fallbackFranchise = GameState.franchises[0];
+          if (fallbackFranchise) {
+            desc = desc.replace('【franchise】', fallbackFranchise.name);
+            console.warn('[Event] Target franchise not found, using fallback:', fallbackFranchise.name);
+          } else {
+            // 實在沒有作品時才使用通用描述（但這種情況不應該發生）
+            desc = desc.replace('【franchise】', '一部作品');
+            console.error('[Event] No franchises available for event description');
+          }
+        }
+        
         return `📢 ${e.name}\n${desc}`;
       }).join('\n\n');
       
@@ -3357,14 +4667,11 @@
       // 計算成本
       const baseCost = 150;
       
-      // 紙質修正
-      let paperModifier = 1.0;
-      let paperBonus = 0; // 吸引力加成
-      if (paperQuality === 'recycled') paperModifier = 0.8;
-      else if (paperQuality === 'premium') {
-        paperModifier = 1.5;
-        paperBonus = 0.1;
-      }
+      // T109/T111: 紙質修正 - 使用 PAPER_LEVELS config
+      const paperConfig = (BalanceConfig.PAPER_LEVELS && BalanceConfig.PAPER_LEVELS[paperQuality]) ||
+                          { costModifier: 0, attractionModifier: 0 };
+      const paperModifier = 1.0 + (paperConfig.costModifier || 0);
+      const paperBonus = paperConfig.attractionModifier || 0; // 吸引力加成
       
       // 量產折扣
       let discount = 1.0;
@@ -3376,16 +4683,12 @@
       
       const printCost = Math.round(quantity * baseCost * paperModifier * discount);
       
-      // 封面費用與停留率
-      let coverCost = 0;
-      let coverStopRate = 0.2; // AI繪圖
-      if (coverArtist === 'friend') {
-        coverCost = 500;
-        coverStopRate = 0.4;
-      } else if (coverArtist === 'pro') {
-        coverCost = 2000;
-        coverStopRate = 0.8;
-      }
+      // T108/T110: 封面費用與吸引力 - 使用 COVER_LEVELS config
+      const coverConfig = (BalanceConfig.COVER_LEVELS && BalanceConfig.COVER_LEVELS[coverArtist]) ||
+                          { cost: 500, attractionModifier: 0 };
+      const coverCost = coverConfig.cost || 0;
+      // T112: 封面吸引力 = 基礎 0.4 + 封面修正
+      const coverStopRate = 0.4 + (coverConfig.attractionModifier || 0);
       
       const totalCost = printCost + coverCost;
       
@@ -3405,6 +4708,19 @@
       const isR18 = contentType === 'r18';
       const defaultTitle = isR18 ? `${franchise.name} R18本` : `${franchise.name} 同人誌`;
       
+      // T098: 儲存銷量預估（用於結算時比較）
+      const prediction = getSalesPrediction(draft);
+      
+      // T099: 根據作品題材設定衰退度
+      let decayRate = 'normal';
+      if (franchise.tags) {
+        if (franchise.tags.includes('當季新番') || franchise.tags.includes('時事熱門')) {
+          decayRate = 'trending';
+        } else if (franchise.tags.includes('經典') || franchise.tags.includes('長青')) {
+          decayRate = 'evergreen';
+        }
+      }
+      
       const publication = {
         id: 'pub_' + generateId(),
         franchiseId,
@@ -3417,9 +4733,20 @@
         coverArtist,
         coverQuality: coverStopRate,
         attractionBonus: paperBonus,
+        // T113: 儲存等級名稱供 UI 顯示
+        coverLevelName: coverConfig.name || coverArtist,
+        paperLevelName: paperConfig.name || paperQuality,
         essenceSnapshot: draft.essenceLevel,
         createdRound: GameState.round,
-        remainingCount: quantity
+        remainingCount: quantity,
+        popularity: franchise.popularity, // T099: 初始人氣等於 franchise 人氣
+        decayRate: decayRate, // T099: 衰退度
+        // T098: 銷量預估資料
+        salesPrediction: prediction ? {
+          min: prediction.minSales,
+          max: prediction.maxSales,
+          confidence: prediction.confidence
+        } : null
       };
       
       GameState.publications.push(publication);
@@ -3481,6 +4808,7 @@
     }
     
     async function startConvention() {
+      console.log('[Convention] Starting convention, round:', GameState.round);
       GameState.phase = PHASES.CONVENTION;
       renderPhase(PHASES.CONVENTION);
       
@@ -3496,6 +4824,8 @@
         };
       });
       
+      console.log('[Convention] Booth items prepared:', boothItems.length, 'items');
+      
       if (boothItems.length === 0) {
         alert('沒有商品可以販售！');
         GameState.phase = PHASES.PREP;
@@ -3503,8 +4833,72 @@
         return;
       }
       
-      // 執行場次模擬
-      const results = await runConventionSimulation(boothItems);
+      // T041: 投擲場次隨機事件
+      let triggeredEvents = [];
+      
+      // BUG FIX 1: 確保 sessionState 已初始化
+      if (!GameState.sessionState) {
+        GameState.sessionState = {
+          isActive: false,
+          activeEvents: [],
+          salesRecords: [],
+          totalVisitors: 0,
+          maxSalesReached: false,
+          lostSales: 0
+        };
+      }
+      
+      if (typeof EventSystem !== 'undefined') {
+        console.log('[Convention] EventSystem found, initializing...');
+        EventSystem.init();
+        triggeredEvents = EventSystem.rollSessionEvents(GameState.round);
+        console.log('[Convention] Triggered events:', triggeredEvents.length, 'events', triggeredEvents);
+        GameState.sessionState.activeEvents = triggeredEvents;
+        
+        // T042: 顯示事件通知（依序）
+        console.log('[Convention] Showing event notifications for', triggeredEvents.length, 'events');
+        for (const event of triggeredEvents) {
+          console.log('[Convention] Processing event:', event.id, event.name);
+          // T044: 如果事件影響特定作品，選擇一個作品
+          let affectedWork = null;
+          let affectedWorkTitle = null;
+          
+          // 檢查是否有 random_work scope 的效果
+          const hasRandomWorkEffect = event.effects?.some(e => e.scope === 'random_work');
+          if (hasRandomWorkEffect && boothItems.length > 0) {
+            affectedWork = EventSystem.selectRandomWork(boothItems, 'random_work');
+            // FR-007/FR-016: MUST 顯示完整作品名稱，不能使用「某作品」
+            // 防禦性檢查：確保有有效的作品名稱
+            if (affectedWork && affectedWork.title) {
+              affectedWorkTitle = affectedWork.title;
+            } else {
+              // 如果選中的作品沒有標題，使用第一個有標題的作品
+              const fallbackWork = boothItems.find(w => w.title);
+              affectedWorkTitle = fallbackWork?.title || null;
+              if (!affectedWorkTitle) {
+                console.warn('[Event] 無法取得作品名稱，boothItems:', boothItems);
+              }
+              affectedWork = fallbackWork || affectedWork;
+            }
+            
+            // 記錄受影響的作品
+            event._affectedWork = affectedWork;
+          }
+          
+          // 顯示事件通知
+          const notification = EventSystem.getEventNotification(event, affectedWorkTitle);
+          console.log('[Convention] Showing event popup:', notification.title, notification.message);
+          await showEventPopup(notification, event.type);
+          console.log('[Convention] Event popup closed');
+        }
+      } else {
+        console.log('[Convention] No events triggered or EventSystem not available');
+      }
+      
+      // 執行場次模擬（傳入觸發的事件）
+      console.log('[Convention] Starting simulation with', triggeredEvents.length, 'events');
+      const results = await runConventionSimulation(boothItems, triggeredEvents);
+      console.log('[Convention] Simulation complete, results:', results);
       
       // 更新庫存
       for (const item of boothItems) {
@@ -3517,7 +4911,7 @@
       // 切換到結算畫面
       GameState.phase = PHASES.RESULTS;
       renderPhase(PHASES.RESULTS);
-      renderResults(results);
+      renderResults(results, triggeredEvents);
       saveGame();
     }
     
@@ -3548,8 +4942,8 @@
       GameState.phase = PHASES.OBSERVATION;
       GameState.currentPosts = []; // 重新生成社群貼文
       
-      // 套用存儲費用 ($2/本/回合)
-      const STORAGE_COST_PER_BOOK = 2;
+      // 套用存儲費用 ($10/本/回合)
+      const STORAGE_COST_PER_BOOK = 10;
       for (const inv of GameState.inventory) {
         if (inv.remainingCount > 0) {
           const fee = inv.remainingCount * STORAGE_COST_PER_BOOK;
@@ -3708,28 +5102,9 @@
       
       // 設置冷卻
       GameState.eventCooldowns[eventTemplate.id] = GameState.round + eventTemplate.cooldown;
-      
-      // 觸發連鎖事件（10% 機率，最多深度 2）
-      if (Math.random() < 0.1 && eventTemplate.chainable !== false) {
-        processEventChains(eventTemplate, 1);
-      }
-    }
-    
-    function processEventChains(triggerEvent, depth) {
-      if (depth >= 2) return; // 最大深度
-      
-      // 根據觸發事件類型選擇可能的連鎖事件
-      const relatedEvents = EVENT_POOL.filter(evt => 
-        evt.category === triggerEvent.category && 
-        evt.id !== triggerEvent.id &&
-        !(GameState.eventCooldowns[evt.id] > GameState.round)
-      );
-      
-      if (relatedEvents.length > 0 && Math.random() < 0.3) {
-        const chainEvent = relatedEvents[Math.floor(Math.random() * relatedEvents.length)];
-        applyEvent(chainEvent);
-        processEventChains(chainEvent, depth + 1);
-      }
+
+      // 回傳受影響的作品ID（供通知使用）
+      return targets.map(t => t.id);
     }
     
     function updateFranchisePool() {
@@ -3876,6 +5251,520 @@
       }
     }
     
+    // === V2: 社團管理系統 (T029-T032) ===
+    
+    // T029: 實作社團管理介面的動態渲染
+    function renderClubManagement() {
+      // 初始化升級系統
+      if (typeof UpgradeSystem !== 'undefined') {
+        UpgradeSystem.init();
+      }
+      
+      // 更新統計數據
+      document.getElementById('club-money').textContent = formatCurrency(GameState.money);
+      document.getElementById('club-debt').textContent = formatCurrency(GameState.debt || 0);
+      
+      // 渲染升級列表
+      renderUpgradeList();
+      
+      // 渲染庫存列表
+      renderInventoryList();
+      
+      // 渲染財務資訊
+      renderFinanceInfo();
+    }
+    
+    function renderUpgradeList() {
+      const container = document.getElementById('upgrade-list');
+      if (!container || typeof UpgradeSystem === 'undefined') return;
+      
+      const definitions = UpgradeSystem.getDefinitions();
+      
+      container.innerHTML = definitions.map(def => {
+        const currentLevel = UpgradeSystem.getLevel(def.id);
+        const cost = UpgradeSystem.getCost(def.id);
+        const canUpgrade = UpgradeSystem.canUpgrade(def.id);
+        const effect = UpgradeSystem.getEffect(def.id);
+        const isMaxLevel = def.maxLevel !== null && currentLevel >= def.maxLevel;
+        
+        // 組裝效果說明
+        let effectText = def.description;
+        if (currentLevel > 0 && Object.keys(effect).length > 0) {
+          const effectValue = Object.values(effect)[0];
+          if (typeof effectValue === 'number') {
+            if (effectValue < 1 && effectValue > 0) {
+              effectText = def.description + ` 目前效果: ${(effectValue * 100).toFixed(0)}%`;
+            } else if (effectValue > 1 && effectValue < 2) {
+              effectText = def.description + ` 目前效果: x${effectValue.toFixed(2)}`;
+            } else {
+              effectText = def.description + ` 目前效果: +${effectValue}`;
+            }
+          }
+        }
+        
+        const levelDisplay = def.maxLevel !== null 
+          ? `Lv.${currentLevel} / ${def.maxLevel}` 
+          : `Lv.${currentLevel}`;
+        
+        return `
+          <div class="upgrade-item ${isMaxLevel ? 'max-level' : ''} ${!canUpgrade && !isMaxLevel ? 'cannot-afford' : ''}" data-upgrade-id="${def.id}">
+            <div class="upgrade-info">
+              <div class="upgrade-name">${def.name}</div>
+              <div class="upgrade-level">${levelDisplay}</div>
+              <div class="upgrade-description">${def.subDescription}</div>
+              <div class="upgrade-effect">${effectText}</div>
+            </div>
+            <div class="upgrade-actions">
+              ${isMaxLevel ? `
+                <span style="color: #22c55e;">✓ 已滿級</span>
+              ` : `
+                <div class="upgrade-cost">${formatCurrency(cost)}</div>
+                <button class="upgrade-btn" ${!canUpgrade ? 'disabled' : ''} onclick="handleUpgradeClick('${def.id}')">
+                  ${canUpgrade ? '升級' : '資金不足'}
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function renderInventoryList() {
+      const container = document.getElementById('inventory-list');
+      if (!container) return;
+      
+      const totalInventory = GameState.inventory.reduce((sum, inv) => sum + inv.remainingCount, 0);
+      const storageCostMultiplier = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getStorageCostMultiplier() : 1;
+      const storageCostPerBook = BalanceConfig.STORAGE_COST_PER_BOOK || 2;
+      const totalStorageCost = Math.round(totalInventory * storageCostPerBook * storageCostMultiplier);
+      
+      document.getElementById('total-storage-cost').textContent = `${formatCurrency(totalStorageCost)}/回合`;
+      
+      if (GameState.inventory.length === 0) {
+        container.innerHTML = '<p style="color: #aaa; text-align: center;">目前沒有庫存</p>';
+        return;
+      }
+      
+      container.innerHTML = GameState.inventory.map(inv => {
+        const pub = GameState.publications.find(p => p.id === inv.publicationId);
+        if (!pub) return '';
+        if (inv.remainingCount === 0) return '';
+        
+        const itemStorageCost = Math.round(inv.remainingCount * storageCostPerBook * storageCostMultiplier);
+        
+        return `
+          <div class="inventory-item" data-pub-id="${pub.id}">
+            <div class="inventory-info">
+              <h4>${pub.title}</h4>
+              <div class="inventory-stock">庫存: ${inv.remainingCount} 本</div>
+              <div class="inventory-cost">倉儲成本: ${formatCurrency(itemStorageCost)}/回合</div>
+            </div>
+            <div class="inventory-actions">
+              <button class="retire-btn" onclick="handleRetireWork('${pub.id}')">銷毀庫存</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function renderFinanceInfo() {
+      // 舉債功能
+      const loanSection = document.getElementById('loan-status');
+      const investorLevel = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getLevel('investor') : 0;
+      const debtLimit = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getDebtLimit() : 0;
+      const currentDebt = GameState.debt || 0;
+      const availableDebt = Math.max(0, debtLimit - currentDebt);
+      
+      if (investorLevel > 0) {
+        loanSection.innerHTML = `
+          <p>舉債額度: ${formatCurrency(debtLimit)}</p>
+          <p>目前負債: <span style="color: #ef4444;">${formatCurrency(currentDebt)}</span></p>
+          <p>可用額度: <span style="color: #22c55e;">${formatCurrency(availableDebt)}</span></p>
+          ${availableDebt > 0 ? `
+            <div class="loan-input-group">
+              <input type="number" id="loan-amount" min="0" max="${availableDebt}" placeholder="輸入金額" style="flex: 1; padding: 8px;">
+              <button onclick="handleTakeLoan()">舉債</button>
+            </div>
+          ` : '<p style="color: #aaa;">已達舉債上限</p>'}
+        `;
+      } else {
+        loanSection.innerHTML = '<p style="color: #aaa;">需要先升級「天使投資人」才能舉債</p>';
+      }
+      
+      // 投資收益
+      const investmentSection = document.getElementById('investment-status');
+      const stockLevel = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getLevel('stock') : 0;
+      const interestRate = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getInterestRate() : 0;
+      
+      if (stockLevel > 0) {
+        const potentialInterest = Math.round(GameState.money * interestRate);
+        investmentSection.innerHTML = `
+          <p>利率: ${(interestRate * 100).toFixed(0)}% / 回合</p>
+          <p>目前資金: ${formatCurrency(GameState.money)}</p>
+          <p>預期收益: <span style="color: #22c55e;">+${formatCurrency(potentialInterest)}</span> / 回合</p>
+        `;
+      } else {
+        investmentSection.innerHTML = '<p style="color: #aaa;">需要先升級「股市投資」才能獲得利息</p>';
+      }
+    }
+    
+    // T030: 實作升級按鈕點擊事件處理器
+    function handleUpgradeClick(upgradeId) {
+      if (typeof UpgradeSystem === 'undefined') {
+        console.error('UpgradeSystem not loaded');
+        return;
+      }
+      
+      const result = UpgradeSystem.purchase(upgradeId);
+      
+      // T031: 實作升級成功/失敗的 UI 提示
+      if (result.success) {
+        showUpgradeNotification(result.message, 'success');
+      } else {
+        showUpgradeNotification(result.message, 'error');
+      }
+      
+      // 重新渲染
+      renderClubManagement();
+      saveGame();
+    }
+    
+    function showUpgradeNotification(message, type) {
+      // 簡單的通知提示
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        border-radius: 8px;
+        background: ${type === 'success' ? 'rgba(34, 197, 94, 0.9)' : 'rgba(239, 68, 68, 0.9)'};
+        color: white;
+        font-weight: bold;
+        z-index: 3000;
+        animation: fadeInDown 0.3s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.animation = 'fadeOutUp 0.3s ease-out forwards';
+        setTimeout(() => notification.remove(), 300);
+      }, 2000);
+    }
+    
+    // T042: 事件通知彈窗
+    function showEventPopup(notification, eventType) {
+      return new Promise((resolve) => {
+        const popup = document.getElementById('event-popup');
+        const overlay = document.getElementById('event-popup-overlay');
+        const iconEl = document.getElementById('event-popup-icon');
+        const titleEl = document.getElementById('event-popup-title');
+        const messageEl = document.getElementById('event-popup-message');
+        const effectEl = document.getElementById('event-popup-effect');
+        
+        // 設置內容
+        titleEl.textContent = notification.title;
+        messageEl.textContent = notification.message;
+        
+        // 設置類型顏色
+        popup.classList.remove('positive', 'negative', 'mixed');
+        popup.classList.add(eventType || 'mixed');
+        
+        // 設置圖示和效果說明
+        switch (eventType) {
+          case 'positive':
+            iconEl.textContent = '🎉';
+            effectEl.style.background = 'rgba(34, 197, 94, 0.2)';
+            effectEl.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+            effectEl.textContent = '💚 這是好消息！';
+            break;
+          case 'negative':
+            iconEl.textContent = '😰';
+            effectEl.style.background = 'rgba(239, 68, 68, 0.2)';
+            effectEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            effectEl.textContent = '⚠️ 這會影響你的銷售...';
+            break;
+          default:
+            iconEl.textContent = '🎲';
+            effectEl.style.background = 'rgba(96, 165, 250, 0.2)';
+            effectEl.style.borderColor = 'rgba(96, 165, 250, 0.4)';
+            effectEl.textContent = '🔄 會有一些變化...';
+        }
+        
+        // 顯示彈窗
+        popup.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+        
+        // 設置自動關閉
+        const duration = notification.duration || 2500;
+        setTimeout(() => {
+          popup.classList.add('hidden');
+          overlay.classList.add('hidden');
+          resolve();
+        }, duration);
+      });
+    }
+    
+    function handleRetireWork(pubId) {
+      // BUG FIX 3: 銷毀庫存只是移除該刊物的庫存，不影響作品本身
+      if (!confirm('確定要銷毀此刊物的庫存嗎？銷毀後將無法再販售這批刊物。')) {
+        return;
+      }
+      
+      const pub = GameState.publications.find(p => p.id === pubId);
+      const inv = GameState.inventory.find(i => i.publicationId === pubId);
+      
+      if (pub && inv) {
+        const removedCount = inv.remainingCount;
+        
+        // 從庫存陣列中完全移除
+        const invIndex = GameState.inventory.indexOf(inv);
+        if (invIndex > -1) {
+          GameState.inventory.splice(invIndex, 1);
+        }
+        
+        showUpgradeNotification(`已銷毀 ${removedCount} 本《${pub.title}》的庫存`, 'success');
+        renderClubManagement();
+        saveGame();
+      }
+    }
+    
+    function handleTakeLoan() {
+      const input = document.getElementById('loan-amount');
+      const amount = parseInt(input.value) || 0;
+      
+      if (amount <= 0) {
+        showUpgradeNotification('請輸入有效金額', 'error');
+        return;
+      }
+      
+      const debtLimit = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getDebtLimit() : 0;
+      const currentDebt = GameState.debt || 0;
+      const availableDebt = debtLimit - currentDebt;
+      
+      if (amount > availableDebt) {
+        showUpgradeNotification('超過可用額度', 'error');
+        return;
+      }
+      
+      GameState.money += amount;
+      GameState.debt = (GameState.debt || 0) + amount;
+      
+      showUpgradeNotification(`成功借款 ${formatCurrency(amount)}`, 'success');
+      renderClubManagement();
+      saveGame();
+    }
+    
+    // T032: 在場次結算後顯示社團管理介面入口
+    function showClubManagement() {
+      document.querySelectorAll('.phase').forEach(el => el.classList.add('hidden'));
+      document.getElementById('club-management').classList.remove('hidden');
+      renderClubManagement();
+    }
+    
+    function closeClubManagement() {
+      console.log('[ClubManagement] Closing club management, proceeding to next round');
+      document.getElementById('club-management').classList.add('hidden');
+      proceedToNextRound();
+    }
+    
+    function proceedToNextRound() {
+      // T061: 計算並扣除倉儲成本（使用 InventoryManager）
+      let storageCost = 0;
+      if (typeof InventoryManager !== 'undefined') {
+        InventoryManager.init();
+        const storageInfo = InventoryManager.getStorageCost(
+          GameState.inventory,
+          typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getLevel('storage') : 0
+        );
+        storageCost = storageInfo.totalCost;
+      } else {
+        // 備用計算
+        const totalInventory = GameState.inventory.reduce((sum, inv) => sum + inv.remainingCount, 0);
+        const storageCostMultiplier = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getStorageCostMultiplier() : 1;
+        const storageCostPerBook = BalanceConfig.STORAGE_COST_PER_BOOK || 2;
+        storageCost = Math.round(totalInventory * storageCostPerBook * storageCostMultiplier);
+      }
+      
+      GameState.money -= storageCost;
+      log(`Storage cost deducted: -${storageCost}`);
+      
+      // 計算投資利息收益
+      const interestRate = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getInterestRate() : 0;
+      if (interestRate > 0 && GameState.money > 0) {
+        const interest = Math.round(GameState.money * interestRate);
+        GameState.money += interest;
+        log(`Investment interest: +${interest}`);
+      }
+      
+      // 檢查遊戲結束條件
+      if (GameState.money < 0) {
+        if (GameState.debt > 0) {
+          showGameOver('負債累累，無力償還');
+          return;
+        }
+        // 如果有天使投資人，可以舉債
+        const debtLimit = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getDebtLimit() : 0;
+        if (debtLimit > 0 && Math.abs(GameState.money) <= debtLimit - (GameState.debt || 0)) {
+          const neededLoan = Math.abs(GameState.money);
+          GameState.debt = (GameState.debt || 0) + neededLoan;
+          GameState.money = 0;
+          alert(`資金不足！自動向天使投資人借款 ${formatCurrency(neededLoan)}`);
+        } else {
+          showGameOver('資金耗盡，社團被迫解散');
+          return;
+        }
+      }
+      
+      // 繼續到下一回合
+      GameState.round++;
+      GameState.ap = GameState.maxAp;
+      GameState.phase = PHASES.OBSERVATION;
+      console.log('[ProceedToNextRound] Starting round', GameState.round);
+      
+      // 重置場次狀態
+      GameState.sessionState = {
+        isActive: false,
+        activeEvents: [],
+        salesRecords: [],
+        totalVisitors: 0,
+        maxSalesReached: false,
+        lostSales: 0
+      };
+      
+      // 套用人氣衰退
+      applyPopularityDecay();
+      
+      // BUG FIX 4: 確保作品更新功能正常運作
+      // 在每回合結束時更新作品池（新增/退場）
+      const rotationReport = updateFranchisePool();
+      if (rotationReport) {
+        showFranchiseRotationReport(rotationReport);
+      }
+      
+      saveGame();
+      console.log('[ProceedToNextRound] Rendering OBSERVATION phase');
+      renderPhase(PHASES.OBSERVATION);
+      console.log('[ProceedToNextRound] Phase rendered, current phase:', GameState.phase);
+    }
+    
+    function applyPopularityDecay() {
+      const decayRates = BalanceConfig.DECAY_RATES || {};
+      
+      GameState.publications.forEach(pub => {
+        if (pub.isRetired) return; // 已停產的作品不衰退
+        
+        const decayRate = pub.decayRate || 'normal';
+        const rates = decayRates[decayRate] || { minDecay: 0.05, maxDecay: 0.10 };
+        
+        const decay = rates.minDecay + Math.random() * (rates.maxDecay - rates.minDecay);
+        pub.popularity = Math.max(0, pub.popularity * (1 - decay));
+      });
+    }
+    
+    // T069: 遊戲結束畫面動態渲染
+    function showGameOver(reason) {
+      // 使用 GameOverManager 獲取統計
+      let stats = {
+        survivalRounds: GameState.round,
+        workCount: GameState.publications.length,
+        totalSales: GameState.history.reduce((sum, h) => sum + (h.unitsSold || 0), 0),
+        peakMoney: Math.max(...GameState.history.map(h => h.round_money || GameState.money), GameState.money),
+        finalDebt: GameState.debt || 0
+      };
+      
+      if (typeof GameOverManager !== 'undefined') {
+        GameOverManager.init();
+        GameOverManager.triggerGameOver(reason, GameState);
+        stats = GameOverManager.getGameOverStats(GameState);
+      }
+      
+      document.querySelectorAll('.phase').forEach(el => el.classList.add('hidden'));
+      const gameOverScreen = document.getElementById('game-over-screen');
+      gameOverScreen.classList.remove('hidden');
+      
+      document.getElementById('game-over-reason').textContent = reason;
+      document.getElementById('game-over-rounds').textContent = stats.survivalRounds;
+      document.getElementById('game-over-works').textContent = stats.workCount;
+      document.getElementById('game-over-sales').textContent = stats.totalSales;
+      document.getElementById('game-over-peak-money').textContent = formatCurrency(stats.peakMoney);
+      document.getElementById('game-over-final-debt').textContent = formatCurrency(stats.finalDebt);
+      
+      // 清除存檔
+      localStorage.removeItem(SAVE_KEY);
+    }
+    
+    // T085-T086: 渲染開發者日誌面板
+    function renderDevLogPanel(filter = 'ALL') {
+      if (typeof DevLogger === 'undefined') return;
+      
+      const logs = filter === 'ALL' ? DevLogger.getDevLogs() : DevLogger.getDevLogs(filter);
+      const content = document.getElementById('dev-log-content');
+      const stats = document.getElementById('dev-log-stats');
+      
+      // 渲染日誌內容
+      if (logs.length === 0) {
+        content.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">暫無日誌記錄</div>';
+      } else {
+        content.innerHTML = logs.map(log => {
+          const time = new Date(log.timestamp).toLocaleTimeString('zh-TW');
+          const dataStr = log.data ? `<div class="log-data">${JSON.stringify(log.data)}</div>` : '';
+          return `
+            <div class="dev-log-entry ${log.category}">
+              <span class="log-time">${time}</span>
+              <span class="log-category">[${log.category}]</span>
+              <span class="log-message">${log.message}</span>
+              ${dataStr}
+            </div>
+          `;
+        }).join('');
+        
+        // 自動捲動到底部
+        content.scrollTop = content.scrollHeight;
+      }
+      
+      // 渲染統計資訊
+      const logStats = DevLogger.getLogStats();
+      stats.innerHTML = `總計: ${logStats.total} | SALES: ${logStats.SALES || 0} | EVENT: ${logStats.EVENT || 0} | UPGRADE: ${logStats.UPGRADE || 0} | CALC: ${logStats.CALC || 0}`;
+    }
+    
+    // 重置遊戲狀態（用於 Game Over 返回主選單）
+    function resetGameState() {
+      Object.assign(GameState, {
+        round: 1,
+        money: 10000,
+        ap: 3,
+        maxAp: 3,
+        phase: PHASES.MENU,
+        seed: Date.now(),
+        franchises: [],
+        drafts: [],
+        publications: [],
+        inventory: [],
+        history: [],
+        eventLog: [],
+        currentPosts: [],
+        goalReached: false,
+        circleName: '',
+        debt: 0,
+        devMode: false,
+        circle: {
+          name: '',
+          reputation: 0,
+          upgrades: {
+            helper: 0, coser: 0, adobe: 0, storage: 0,
+            friends: 0, social: 0, investor: 0, stock: 0, writing: 0
+          }
+        },
+        sessionState: {
+          isActive: false, activeEvents: [], salesRecords: [],
+          totalVisitors: 0, maxSalesReached: false, lostSales: 0
+        }
+      });
+    }
+    
     // === 事件處理器 ===
     function bindEventHandlers() {
       // 主選單
@@ -3926,6 +5815,8 @@
       });
       document.getElementById('btn-action-history').addEventListener('click', openActionStatusPanel);
       
+
+      
       // 準備階段
       document.getElementById('draft-select').addEventListener('change', updateCostPreview);
       document.getElementById('print-quantity').addEventListener('input', updateCostPreview);
@@ -3936,13 +5827,169 @@
       document.getElementById('btn-start-convention').addEventListener('click', startConvention);
       document.getElementById('btn-skip-round').addEventListener('click', skipRound);
       
-      // 結算階段
-      document.getElementById('btn-next-round').addEventListener('click', nextRound);
+      // 結算階段 (T032: 改為顯示社團管理介面)
+      document.getElementById('btn-next-round').addEventListener('click', showClubManagement);
+      
+      // 社團管理介面事件
+      document.querySelectorAll('.club-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          const targetTab = e.target.dataset.tab;
+          console.log('[ClubManagement] Switching to tab:', targetTab);
+          document.querySelectorAll('.club-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.club-tab-content').forEach(c => c.classList.add('hidden'));
+          e.target.classList.add('active');
+          const targetPanel = document.getElementById(`club-tab-${targetTab}`);
+          if (targetPanel) {
+            targetPanel.classList.remove('hidden');
+            console.log('[ClubManagement] Tab panel shown:', `club-tab-${targetTab}`);
+          } else {
+            console.error('[ClubManagement] Tab panel not found:', `club-tab-${targetTab}`);
+          }
+        });
+      });
+      document.getElementById('btn-close-club-management').addEventListener('click', closeClubManagement);
       
       // 歷史面板
       document.getElementById('btn-view-history').addEventListener('click', openHistoryPanel);
       document.getElementById('btn-close-history').addEventListener('click', closeHistoryPanel);
       document.getElementById('history-overlay').addEventListener('click', closeHistoryPanel);
+      
+      // T070: 遊戲結束畫面按鈕
+      document.getElementById('btn-game-over-restart').addEventListener('click', () => {
+        // 重置 GameOverManager
+        if (typeof GameOverManager !== 'undefined') {
+          GameOverManager.reset();
+        }
+        // 刪除存檔並開始新遊戲
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+      });
+      document.getElementById('btn-game-over-menu').addEventListener('click', () => {
+        // 重置 GameOverManager
+        if (typeof GameOverManager !== 'undefined') {
+          GameOverManager.reset();
+        }
+        // 刪除存檔並返回主選單
+        localStorage.removeItem(SAVE_KEY);
+        document.querySelectorAll('.phase').forEach(el => el.classList.add('hidden'));
+        resetGameState();
+        renderPhase(PHASES.MENU);
+      });
+      
+      // T081: 開發者模式事件處理
+      let devModeClickCount = 0;
+      let devModeClickTimer = null;
+      
+      // 點擊版本文字 5 次啟用開發者模式
+      document.querySelector('#main-menu > div:nth-last-child(2)').addEventListener('click', () => {
+        devModeClickCount++;
+        clearTimeout(devModeClickTimer);
+        devModeClickTimer = setTimeout(() => devModeClickCount = 0, 2000);
+        
+        if (devModeClickCount >= 5) {
+          devModeClickCount = 0;
+          const panel = document.getElementById('dev-mode-panel');
+          const hint = document.getElementById('dev-mode-hint');
+          panel.classList.toggle('hidden');
+          if (!panel.classList.contains('hidden')) {
+            hint.classList.remove('hidden');
+          }
+        }
+      });
+      
+      // 開發者模式開關
+      document.getElementById('dev-mode-toggle').addEventListener('change', (e) => {
+        if (typeof DevLogger !== 'undefined') {
+          DevLogger.setDevMode(e.target.checked);
+          const showLogsBtn = document.getElementById('btn-show-dev-logs');
+          if (e.target.checked) {
+            showLogsBtn.classList.remove('hidden');
+            DevLogger.init();
+          } else {
+            showLogsBtn.classList.add('hidden');
+          }
+        }
+      });
+      
+      // 顯示開發者日誌面板
+      document.getElementById('btn-show-dev-logs').addEventListener('click', () => {
+        document.getElementById('dev-log-panel').classList.remove('hidden');
+        renderDevLogPanel();
+      });
+      
+      // 關閉開發者日誌面板
+      document.getElementById('btn-close-dev-logs').addEventListener('click', () => {
+        document.getElementById('dev-log-panel').classList.add('hidden');
+      });
+      
+      // 日誌分類篩選
+      document.querySelectorAll('.dev-log-filter').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.dev-log-filter').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          renderDevLogPanel(e.target.dataset.filter);
+        });
+      });
+      
+      // 清除日誌
+      document.getElementById('btn-clear-dev-logs').addEventListener('click', () => {
+        if (typeof DevLogger !== 'undefined') {
+          DevLogger.clearDevLogs();
+          renderDevLogPanel();
+        }
+      });
+      
+      // 匯出日誌
+      document.getElementById('btn-export-dev-logs').addEventListener('click', () => {
+        if (typeof DevLogger !== 'undefined') {
+          const data = DevLogger.exportLogs();
+          const blob = new Blob([data], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `dev-logs-${new Date().toISOString().slice(0, 10)}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      });
+      
+      // 開發者模式: 增加金錢
+      document.getElementById('btn-add-money').addEventListener('click', () => {
+        if (typeof GameState !== 'undefined') {
+          GameState.money += 100000;
+          saveGame();
+          alert('已增加 $100,000');
+          if (typeof DevLogger !== 'undefined' && DevLogger.isDevMode()) {
+            devLog('STATE', '開發者指令: 增加金錢', { amount: 100000, newBalance: GameState.money });
+          }
+        }
+      });
+      
+      // T124: ESC 鍵關閉彈窗
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          // 關閉開發者日誌面板
+          const devLogPanel = document.getElementById('dev-log-panel');
+          if (devLogPanel && !devLogPanel.classList.contains('hidden')) {
+            devLogPanel.classList.add('hidden');
+            return;
+          }
+          
+          // 關閉歷史面板
+          const historyPanel = document.getElementById('history-panel');
+          if (historyPanel && historyPanel.classList.contains('open')) {
+            closeHistoryPanel();
+            return;
+          }
+          
+          // 關閉社團管理介面
+          const clubManagement = document.getElementById('club-management');
+          if (clubManagement && !clubManagement.classList.contains('hidden')) {
+            closeClubManagement();
+            return;
+          }
+        }
+      });
     }
     
     // === 初始化 ===

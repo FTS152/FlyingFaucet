@@ -282,7 +282,7 @@ if 作品含 R18 標籤:
 | 參數 | 預設值 | 說明 |
 |------|--------|------|
 | `GOAL_AMOUNT` | 1,815,000 | 勝利所需金額 |
-| `STORAGE_COST_PER_BOOK` | 2 | 每本倉儲費 |
+| `STORAGE_COST_PER_BOOK` | 10 | 每本倉儲費 |
 | `ABSOLUTE_PRICE_CEILING` | 5,000 | 最高可接受定價 |
 
 ### 印刷限制
