@@ -1,8 +1,10 @@
-# Flying Faucet (飛行水龍頭) Development Guidelines
+﻿# Flying Faucet (飛行水龍頭) Development Guidelines
 
 Auto-generated from feature plans. Last updated: 2026-02-09
 
 ## Active Technologies
+- HTML5 + CSS3 + JavaScript ES6+ (Modern browsers 2024+) + 無外部依賴（Vanilla JS only） (002-v2-major-update)
+- localStorage（瀏覽器本地儲存） (002-v2-major-update)
 
 | Category | Technology |
 |----------|------------|
@@ -76,13 +78,11 @@ Per `.specify/memory/constitution.md`:
 3. **Code Organization**: HTML → CSS → JS order, clear section comments
 
 ## Recent Changes
+- 002-v2-major-update: Added HTML5 + CSS3 + JavaScript ES6+ (Modern browsers 2024+) + 無外部依賴（Vanilla JS only）
 
 ### 1-doujin-sim (Current)
 - P×D×B economic model with 8 archetypes
 - Dynamic event system (4 categories)
-- Three-phase convention simulation
-- Template + dictionary content generation
-- Browser localStorage persistence
 
 <!-- MANUAL ADDITIONS START -->
 <!-- Add any manual project-specific instructions below this line -->
