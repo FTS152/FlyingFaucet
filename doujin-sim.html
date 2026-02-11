@@ -1147,7 +1147,7 @@
       <!-- 遊戲目標說明 -->
       <div class="goal-explanation" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 12px; padding: 20px; margin: 20px auto; max-width: 500px; text-align: left;">
         <h3 style="margin-bottom: 12px; color: #ffd700;">🎯 遊戲目標</h3>
-        <p style="margin-bottom: 8px;">累積 <strong style="color: #22c55e;">$1,815,000</strong>（一張台積電股票的價格）</p>
+        <p style="margin-bottom: 8px;">累積 <strong style="color: #22c55e;">$1,915,000</strong>（一張台積電股票的價格）</p>
         <p style="font-size: 0.85rem; color: #aaa;">觀察市場趨勢、創作同人誌、參加場次販售，成為傳說中的同人大手！</p>
       </div>
       
@@ -1168,7 +1168,7 @@
       
       <!-- 版本與製作資訊 -->
       <div style="margin-top: 32px; text-align: center; font-size: 0.75rem; color: #666;">
-        <p>Version 1.0 | Made with 💜</p>
+        <p>Version 2.0 | Made with 💜</p>
         <!-- 開發者模式切換（隱藏按鈕，多次點擊版本文字啟用） -->
         <p id="dev-mode-hint" class="hidden" style="color: #ff9800; margin-top: 8px;">🔧 開發者模式已啟用</p>
       </div>
@@ -1337,9 +1337,9 @@
         </div>
         <div class="form-group">
           <label>售價 (每本)</label>
-          <input type="number" id="retail-price" min="100" max="5000" value="400">
+          <input type="number" id="retail-price" min="100" max="5000" value="300">
           <div class="hint" style="font-size: 0.8rem; color: #888; margin-top: 4px;">
-            提示: 普通粉絲 $400以上不太買，課金大佬最多 $3000，超過 $5000 沒人會買
+            提示: 普通粉絲 $300以上不太買，課金大佬最多 $1500，超過 $3000 沒人會買
           </div>
         </div>
         <div class="cost-preview">
@@ -2501,8 +2501,13 @@
         playerBooth.items.reduce((sum, item) => sum + (item.coverQuality || 0.5), 0) / playerBooth.items.length : 0.5;
       
       // 計算攤位的平均吸引力加成（高級紙等）
-      const avgAttractionBonus = playerBooth.items.length > 0 ?
+      let avgAttractionBonus = playerBooth.items.length > 0 ?
         playerBooth.items.reduce((sum, item) => sum + (item.attractionBonus || 0), 0) / playerBooth.items.length : 0;
+      
+      // T027: 攤位吸引力加成（Coser小幫手升級）
+      if (typeof UpgradeSystem !== 'undefined') {
+        avgAttractionBonus += UpgradeSystem.getBoothAttractionBonus();
+      }
       
       // T105: 計算代表性作品供吸引力計算使用
       const representativeWork = playerBooth.items.length > 0 ? {
@@ -2662,6 +2667,11 @@
             prob *= r18Mod;
           }
           
+          // T027: 社群經營升級的銷量乘數
+          if (typeof UpgradeSystem !== 'undefined') {
+            prob *= UpgradeSystem.getSalesMultiplier();
+          }
+          
           prob = clamp(prob, 0, 0.9);
           
           if (Math.random() < prob) {
@@ -2698,6 +2708,44 @@
               fanType: attendee.fanType,
               itemId: item.id
             });
+          }
+        }
+      }
+      
+      // T027: 親友團保底銷量（在正常銷售之後添加）
+      if (typeof UpgradeSystem !== 'undefined') {
+        const guaranteedSales = UpgradeSystem.getGuaranteedSales();
+        if (guaranteedSales > 0) {
+          // 雖然親友團友情贊助，但有數量上限，只會買一定數量種類的刊物
+          // 最多買m種商品
+          let count = 0;
+          for (const item of items) {
+            // 雖然親友團友情贊助，但有價格上限，親友團不買超過一定價格的商品
+            if (item.retailPrice > BalanceConfig.MAX_SALES.FRIENDS_MAX_PRICE) {
+              continue;
+            }
+            if (count >= BalanceConfig.MAX_SALES.FRIENDS_MAX_TYPES) break;
+            if (item.remainingCount > 0) {
+              count++;
+            }
+            // 每個商品獲得保底銷量，但不超過剩餘庫存
+            const canAdd = Math.min(guaranteedSales, item.remainingCount);
+            if (canAdd > 0) {
+              item.remainingCount -= canAdd;
+              const guaranteedRevenue = Math.round(item.retailPrice * revenueMultiplier * canAdd);
+              
+              itemSales[item.id].sold += canAdd;
+              itemSales[item.id].revenue += guaranteedRevenue;
+              totalRevenue += guaranteedRevenue;
+              
+              // 記錄保底銷量
+              customerLog.push({
+                type: 'guaranteed',
+                itemId: item.id,
+                copies: canAdd,
+                price: item.retailPrice
+              });
+            }
           }
         }
       }
@@ -3601,8 +3649,8 @@
         const pub = GameState.publications.find(p => p.id === pubId);
         if (!pub) continue;
         
-        const costPerBook = pub.productionCost / pub.printQuantity;
-        const itemExpenses = Math.round(costPerBook * sales.sold);
+        // 本回合印刷的刊物計算全部成本，舊庫存不計算成本
+        const itemExpenses = (pub.createdRound === GameState.round) ? pub.productionCost : 0;
         const itemProfit = sales.revenue - itemExpenses;
         
         // T098: 取得預估比較結果
@@ -3613,6 +3661,7 @@
           predictionComparison = SalesCalculator.compareEstimateToActual(estimatedMid, sales.sold, sales.sold === pub.printQuantity);
           predictionComparison.predicted = estimatedMid;
           predictionComparison.range = `${pub.salesPrediction.min}-${pub.salesPrediction.max}`;
+          pub.salesPrediction = null // 清除預估數據，避免重複顯示
         }
         
         salesData.push({
@@ -3743,20 +3792,24 @@
       
       const totalSold = Object.values(results.itemSales).reduce((sum, s) => sum + s.sold, 0);
       
-      // 計算支出：只計算本次場次銷售商品的成本（按比例）
-      // 例如：印了100本花了$15000，賣了50本，則支出為$7500
+      // 計算支出：本回合印刷的刊物計算全部成本，舊庫存不計算成本
+      // 例如：本回合印了100本花了$15000，無論賣多少本，支出都是$15000
+      // 如果是賣掉上回合的庫存，則不計入本次支出（成本已在印刷時扣除）
       let expenses = 0;
+      const processedPubs = new Set(); // 追蹤已處理的出版物，避免重複計算
       for (const [pubId, sales] of Object.entries(results.itemSales)) {
         if (sales.sold > 0) {
           const pub = GameState.publications.find(p => p.id === pubId);
-          if (pub) {
-            // 每本的成本 = 總成本 / 印刷數量
-            const costPerBook = pub.productionCost / pub.printQuantity;
-            expenses += costPerBook * sales.sold;
+          if (pub && !processedPubs.has(pubId)) {
+            // 如果是本回合印刷的刊物，計算全部生產成本
+            if (pub.createdRound === GameState.round) {
+              expenses += pub.productionCost;
+              processedPubs.add(pubId);
+            }
+            // 舊庫存不計算成本（已在之前回合計算過）
           }
         }
       }
-      expenses = Math.round(expenses);
       
       const profit = results.totalRevenue - expenses;
       
@@ -4115,8 +4168,11 @@
         case 'study':
           // 研究作品：提升理解度（最高10）
           if (draft.essenceLevel < 10) {
-            draft.essenceLevel = Math.min(10, draft.essenceLevel + 1 + Math.floor(Math.random() * 2));
-            log(`研究作品：理解度提升至 ${draft.essenceLevel}`);
+            // T027: 基礎品質加成（提升文筆升級）
+            const baseQualityBonus = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getBaseQualityBonus() : 0;
+            const increment = 1 + Math.floor(Math.random() * 2) + baseQualityBonus;
+            draft.essenceLevel = Math.min(10, draft.essenceLevel + increment);
+            log(`研究作品：理解度提升至 ${draft.essenceLevel}${baseQualityBonus > 0 ? ` (+${baseQualityBonus} 文筆加成)` : ''}`);
           } else {
             alert('理解度已達上限！');
             return;
@@ -4291,6 +4347,10 @@
       // T098: 儲存銷量預估（用於結算時比較）
       const prediction = getSalesPrediction(draft);
       
+      // T027: 品質加成（Adobe排版課程）
+      const qualityBonus = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getQualityBonus() : 0;
+      const finalEssence = Math.min(10, draft.essenceLevel * (1 + qualityBonus));
+      
       const publication = {
         id: 'pub_' + generateId(),
         franchiseId,
@@ -4306,7 +4366,7 @@
         // T113: 儲存等級名稱供 UI 顯示
         coverLevelName: coverConfig.name || coverArtist,
         paperLevelName: paperConfig.name || paperQuality,
-        essenceSnapshot: draft.essenceLevel,
+        essenceSnapshot: finalEssence,
         createdRound: GameState.round,
         remainingCount: quantity,
         popularity: franchise.popularity, // 初始人氣等於 franchise 人氣

@@ -17,7 +17,7 @@ const BalanceConfig = {
   // ═══════════════════════════════════════════════════════════════
   
   /** 遊戲勝利目標金額（達成此金額觸發勝利畫面） */
-  GOAL_AMOUNT: 1815000,  // $1,815,000 = 一張台積電
+  GOAL_AMOUNT: 1915000,  // $1,915,000 = 一張台積電
   
   /** 玩家起始資金 */
   STARTING_MONEY: 10000,
@@ -45,18 +45,18 @@ const BalanceConfig = {
   
   /** 各粉絲類型的價格心理閾值 (超過會大幅降低購買意願) */
   PRICE_THRESHOLDS: {
-    CASUAL: 400,      // 普通粉絲
-    LURKER: 300,      // 潛水者
-    MEMER: 500,       // 迷因人
-    ENTHUSIAST: 1000, // 狂熱粉絲
-    COLLECTOR: 1500,  // 收藏家
-    WHALE: 3000,      // 課金大佬
-    CRITIC: 600,      // 評論家
-    HATER: 200        // 黑子
+    CASUAL: 300,      // 普通粉絲
+    LURKER: 200,      // 潛水者
+    MEMER: 400,       // 迷因人
+    ENTHUSIAST: 600, // 狂熱粉絲
+    COLLECTOR: 800,  // 收藏家
+    WHALE: 1500,      // 課金大佬
+    CRITIC: 400,      // 評論家
+    HATER: 150        // 黑子
   },
   
   /** 絕對價格上限 - 超過此價格無人購買 */
-  ABSOLUTE_PRICE_CEILING: 5000,
+  ABSOLUTE_PRICE_CEILING: 3000,
   
   /** 價格超過閾值時的意願衰減速率 (每超過1000元降低的意願比例) */
   PRICE_RELUCTANCE_RATE: 0.8,
@@ -82,7 +82,7 @@ const BalanceConfig = {
   // ═══════════════════════════════════════════════════════════════
   
   /** 每本書每回合的倉儲費 */
-  STORAGE_COST_PER_BOOK: 20,
+  STORAGE_COST_PER_BOOK: 50,
   
   /** 印刷基礎成本 (每本) */
   PRINT_BASE_COST: 150,
@@ -96,7 +96,7 @@ const BalanceConfig = {
   /** 售價限制 */
   PRICE_LIMITS: {
     MIN: 100,
-    MAX: 5000
+    MAX: 3000
   },
   
   /** 量產折扣階梯 */
@@ -327,7 +327,9 @@ const BalanceConfig = {
   /** 最大銷售量基礎設定 */
   MAX_SALES: {
     BASE: 100,           // 基礎最大銷售量
-    PER_HELPER_LEVEL: 100 // 每級小幫手增加的銷售量
+    PER_HELPER_LEVEL: 100, // 每級小幫手增加的銷售量
+    FRIENDS_MAX_TYPES: 3, // 親友團最多買幾種商品
+    FRIENDS_MAX_PRICE: 500 // 親友團購買價格上限
   },
   
   // ═══════════════════════════════════════════════════════════════
