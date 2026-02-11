@@ -5,6 +5,10 @@
  * 根據 data-model.md 和 contracts/upgrade-system.md 規範實作
  */
 
+const BalanceConfig = (typeof window !== 'undefined' && window.BalanceConfig)
+  ? window.BalanceConfig
+  : require("../balance-config");
+
 const SalesCalculator = (function() {
   'use strict';
   
@@ -153,10 +157,11 @@ const SalesCalculator = (function() {
     
     // 基礎預估銷量
     let baseEstimate;
-    
+    const attendeeMultiplier = BalanceConfig?.CONVENTION?.ATTENDEE_MULTIPLIER ?? 15;
+    const multiplier = Number.isFinite(attendeeMultiplier) ? attendeeMultiplier : 15;
     if (isSimple || marketUnderstanding < 0.3) {
       // 簡化公式：只看人氣
-      baseEstimate = Math.round(work.popularity * 0.5);
+      baseEstimate = Math.round(work.popularity * 0.5 * 0.5 * multiplier);
     } else {
       // 完整公式：P × D × B
       const popularity = work.popularity || 50;
@@ -164,7 +169,7 @@ const SalesCalculator = (function() {
       const purchasingPower = work.purchasingPower || 1.0;
       
       // 基礎公式
-      baseEstimate = Math.round(popularity * density * purchasingPower * 0.8);
+      baseEstimate = Math.round(popularity * density * purchasingPower * 0.8 * 0.5 * multiplier);
     }
     
     // 獲取誤差範圍

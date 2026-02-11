@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>同人圈經營模擬器 v1.0</title>
+  <title>同人圈經營模擬器 v2.0</title>
   <style>
     /* === 基本樣式 === */
     * {
@@ -499,17 +499,6 @@
       from { transform: translateX(-20px); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
-    
-    /* === 趨勢指示器 === */
-    .trend-indicator {
-      display: inline-block;
-      margin-left: 8px;
-      font-size: 0.75rem;
-    }
-    
-    .trend-indicator.UP { color: #4ade80; }
-    .trend-indicator.DOWN { color: #ef4444; }
-    .trend-indicator.STABLE { color: #888; }
     
     .new-badge {
       background: #f59e0b;
@@ -1324,10 +1313,10 @@
         <div class="form-group">
           <label>紙質選擇</label>
           <select id="paper-quality">
-            <option value="economy">再生紙 (-30% 成本, 吸引力-20%)</option>
+            <option value="economy">再生紙 (-20% 成本, 吸引力-20%)</option>
             <option value="standard" selected>標準 (基準成本)</option>
-            <option value="quality">高級紙 (+40% 成本, 吸引力+20%)</option>
-            <option value="luxury">豪華紙 (+100% 成本, 吸引力+50%)</option>
+            <option value="quality">高級紙 (+20% 成本, 吸引力+20%)</option>
+            <option value="luxury">豪華紙 (+50% 成本, 吸引力+50%)</option>
           </select>
         </div>
         <div class="form-group">
@@ -1598,7 +1587,7 @@
   <script>
     /*
     ╔═══════════════════════════════════════════════════════════════════════╗
-    ║                    同人圈經營模擬器 v1.0                                ║
+    ║                    同人圈經營模擬器 v2.0                                ║
     ║                                                                       ║
     ║  📋 程式碼結構導覽：                                                    ║
     ║  ├─ 第 950-1003 行: 遊戲常數與設定                                      ║
@@ -1620,9 +1609,12 @@
     const DEBUG = true;
     
     // P×D×B 門檻常數
-    const HIGH_P = 60, LOW_P = 40;
-    const HIGH_D = 0.6, LOW_D = 0.4;
-    const HIGH_B = 1.3, LOW_B = 0.8;
+    const HIGH_P = BalanceConfig.PDB_THRESHOLD.HIGH_P;
+    const LOW_P = BalanceConfig.PDB_THRESHOLD.LOW_P;
+    const HIGH_D = BalanceConfig.PDB_THRESHOLD.HIGH_D;
+    const LOW_D = BalanceConfig.PDB_THRESHOLD.LOW_D;
+    const HIGH_B = BalanceConfig.PDB_THRESHOLD.HIGH_B;
+    const LOW_B = BalanceConfig.PDB_THRESHOLD.LOW_B;
     
     // Archetype 列舉
     const ARCHETYPES = {
@@ -1823,282 +1815,11 @@
     ═══════════════════════════════════════════════════════════════════════════
     */
     
-    // 從外部檔案載入模板（如果可用），否則使用備份
-    const Dictionary = (typeof ContentTemplates !== 'undefined') ? ContentTemplates.Dictionary : {
-      place: ['異世界', '學園', '魔王城', '迷宮', '咖啡廳', '宇宙船', '孤島', '地下城', 
-              '王國', '帝國', '村莊', '都市', '神殿', '遺跡', '深淵', '天界', '冥界', 
-              '海底', '雲端', '廢墟'],
-      role: ['勇者', '魔王', '廚師', '偵探', '學生會長', '妹妹', '女僕', '騎士', 
-             '魔法師', '刺客', '商人', '公主', '龍', '機器人', '精靈', '惡魔', 
-             '天使', '吸血鬼', '狼人', '史萊姆'],
-      event: ['冒險', '戀愛', '復仇', '料理對決', '學園祭', '轉生', '穿越', '覺醒',
-              '戰爭', '逃亡', '尋寶', '救援', '背叛', '結婚', '畢業', '比賽',
-              '旅行', '修行', '革命', '宴會'],
-      adj: ['最強', '無敵', '悲劇的', '爆笑', '甜蜜', '殘酷', '神秘', '傳說',
-            '平凡', '孤獨', '瘋狂', '溫柔', '冷酷', '熱血', '純情', '腹黑',
-            '天然', '病嬌', '傲嬌', '無口'],
-      noun: ['劍', '魔法', '戀情', '友情', '背叛', '命運', '記憶', '夢想',
-             '誓言', '約定', '秘密', '真相', '奇蹟', '詛咒', '祝福', '羈絆',
-             '淚水', '笑容', '勇氣', '希望'],
-      verb: ['戰鬥', '告白', '逃跑', '覺醒', '轉生', '重生', '守護', '毀滅',
-             '拯救', '征服', '探索', '創造', '破壞', '愛上', '背叛', '原諒',
-             '相信', '懷疑', '追尋', '放棄'],
-      exclaim: ['震驚', '感動', '絕望', '希望', '憤怒', '喜悅', '悲傷', '驚喜'],
-      meme: ['草', 'www', '神回', '爛到好笑', '這什麼', '太香了', '破防了', '繃不住',
-             '絕絕子', '太可了', '直接封神', '笑死', '淚目', '頂不住', '會玩',
-             '離譜', '麻了', '有被笑到', 'respect', '好傢伙'],
-      highlight: ['神展開', '震撼場面', '告白場景', '戰鬥場面', '反轉劇情', '感人結局',
-                  '搞笑橋段', '名場面', '高能預警', '刀子', '糖', '玻璃渣裡找糖'],
-      character: ['主角', '女主', '男二', '女二', '反派', '配角', '路人', '隱藏角色',
-                  '最終Boss', '吉祥物', '導師', '青梅竹馬', '天降系', '學妹', '學姐']
-    };
-    
-    const TitleTemplates = (typeof ContentTemplates !== 'undefined') ? ContentTemplates.TitleTemplates : {
-      japanese: {
-        A: [
-          '【place】の【role】【event】記',
-          '【adj】【noun】は【verb】ない',
-          'Re:【event】から始める【noun】生活',
-          '【role】は【adj】【noun】の夢を見るか？'
-        ],
-        B: [
-          '【noun】【verb】！',
-          '【exclaim】！【adj】【noun】',
-          '【role】と【role】',
-          '【adj】！【role】ちゃん'
-        ],
-        C: [
-          '俺の【role】が【adj】すぎる',
-          '【place】で【role】始めました',
-          '【role】ですが、【event】してみた'
-        ],
-        D: [
-          '【noun】の【place】',
-          '【adj】【place】の【role】',
-          '【event】のあと【noun】'
-        ]
-      },
-      chinese: {
-        A: [
-          '【place】的【role】【event】錄',
-          '關於【role】【verb】這件事',
-          '當【role】決定【event】時',
-          '在【place】尋找【noun】的日子'
-        ],
-        B: [
-          '【adj】的【role】',
-          '【role】的【noun】之路',
-          '【event】吧！【role】',
-          '【noun】與【noun】'
-        ],
-        C: [
-          '我的【role】不可能這麼【adj】',
-          '在【place】當【role】的那些事',
-          '【role】的日常'
-        ],
-        D: [
-          '【noun】之【place】',
-          '【adj】【place】傳說',
-          '【event】之後'
-        ]
-      }
-    };
-    
-    const DescriptionTemplates = (typeof ContentTemplates !== 'undefined') ? ContentTemplates.DescriptionTemplates : {
-      setting: [
-        '在【place】，【noun】被視為日常。',
-        '這是一個【adj】的【place】，【role】們在此生活。',
-        '【place】是個特殊的地方，這裡的【noun】有著不同的意義。',
-        '在這個【adj】的世界裡，【role】們追尋著【noun】。',
-        '【place】——傳說中，這裡曾經發生過【adj】的【event】。',
-        '自古以來，【place】就流傳著關於【noun】的傳說。',
-        '【noun】統治的時代，【place】陷入了【adj】的混亂。',
-        '在【role】與【role】共存的【place】，平衡十分脆弱。',
-        '沒有【noun】的世界是什麼樣子？【place】給出了答案。',
-        '歡迎來到【place】，一個被【noun】主宰的地方。',
-        '【place】的天空下，【adj】的故事正在上演。',
-        '這是【role】們夢寐以求的【place】，也是他們的牢籠。',
-        '當【noun】不再【adj】，【place】的命運也隨之改變。',
-        '【place】的深處，隱藏著無人知曉的【noun】。'
-      ],
-      lead: [
-        '【role】原本只想【verb】，卻意外捲入【event】。',
-        '平凡的【role】某天得到了【adj】的【noun】。',
-        '作為【place】唯一的【role】，主角的日常並不平靜。',
-        '【role】從未想過，自己會成為【noun】的關鍵。',
-        '一覺醒來，【role】發現自己擁有了【adj】的能力。',
-        '【role】的願望很簡單，就是想要【verb】。',
-        '被認為是廢物的【role】，其實隱藏著【adj】的【noun】。',
-        '在所有人都放棄的時候，【role】選擇站出來。',
-        '【role】不相信命運——直到遇見了那個【adj】的【role】。',
-        '為什麼偏偏是我？【role】無數次問自己。',
-        '【role】原本以為【noun】只是傳說，直到那一天。',
-        '成為【noun】的【role】，從此踏上了不歸路。',
-        '人人都說【role】瘋了，但只有ta知道真相。',
-        '【role】的記憶是空白的，唯一記得的只有【noun】。'
-      ],
-      conflict: [
-        '為了【noun】，必須面對【adj】的【event】。',
-        '然而，【role】的出現打破了一切平衡。',
-        '在【noun】與【noun】之間，該如何抉擇？',
-        '當【noun】的真相浮出水面，一切都變得【adj】。',
-        '友情、愛情、使命——【role】只能選擇一個。',
-        '【event】的倒數已經開始，時間所剩無幾。',
-        '原來最大的敵人不是別人，而是【adj】的自己。',
-        '【role】們的同盟岌岌可危，背叛者就在其中。',
-        '每前進一步，就離【noun】的深淵更近一分。',
-        '是要守護【noun】，還是毀滅一切重新開始？',
-        '【adj】的過去浮現，【role】不得不面對。',
-        '當【noun】與【noun】相撞，誰會最先崩潰？',
-        '失去【noun】的代價，是【role】無法承受的。'
-      ],
-      hook: [
-        '然而，真正的【event】才正要開始。',
-        '這個【noun】的背後，隱藏著【adj】的真相。',
-        '當一切結束時，【noun】的意義將被改寫。',
-        '而這一切，不過是【adj】計劃的開端。',
-        '直到最後一刻，沒有人知道【noun】的去向。',
-        '傳說還在繼續——這只是故事的第一章。',
-        '問題是：【role】真的做好準備了嗎？',
-        '在【noun】揭曉之前，一切皆有可能。',
-        '或許，【adj】的結局才是最好的結局。',
-        '然而【role】不知道的是，ta早已被選中。',
-        '當黎明到來，【noun】將迎來最終的審判。',
-        '這不是結束，而是【adj】篇章的開始。'
-      ]
-    };
-    
-    const PostTemplates = (typeof ContentTemplates !== 'undefined') ? ContentTemplates.PostTemplates : {
-      ENTHUSIAST: [
-        '【franchise】的【highlight】真的太神了！【character】的演出讓我哭了...',
-        '天啊【franchise】也太好看了吧！！！【character】我老婆（老公）！！',
-        '剛看完【franchise】，心情久久不能平復QQ 【highlight】那段真的絕了',
-        '【franchise】永遠滴神！！！每集都有驚喜',
-        '強推【franchise】！！看了三遍還是感動',
-        '【franchise】這週的【highlight】我直接跪了 神作認證',
-        '求求你們去看【franchise】！！【character】真的太完美了',
-        '【franchise】新一集出了嗎？好想看啊啊啊',
-        '【franchise】的OP我已經單曲循環一整天了',
-        '看到【character】出場我直接尖叫 【franchise】太會了',
-        '【franchise】這集的【highlight】我重看了五遍 還是感動',
-        '無法接受【franchise】下週要完結...要坑了',
-        '【franchise】的Staff真的用心 每一幀都是愛',
-        '【franchise】是今年最被低估的神作！',
-        '等【franchise】出BD我一定全收 太值得了'
-      ],
-      CASUAL: [
-        '看了一下【franchise】，還行吧。',
-        '【franchise】好像很紅？有空來補一下',
-        '朋友一直推【franchise】，看了幾集覺得普普',
-        '【franchise】的畫風不錯，但劇情有點慢',
-        '聽說【franchise】很好看？先加入待看清單',
-        '【franchise】看到第三集了 還沒get到點',
-        '大家都在聊【franchise】 我是不是應該補一下',
-        '【franchise】感覺沒有想像中那麼好看耶',
-        '坐車的時候隨便點開【franchise】 打發時間還行',
-        '【franchise】我棄了 有更好看的推薦嗎',
-        '有人跟我一樣覺得【franchise】節奏太慢嗎',
-        '【franchise】的OP還不錯 但劇情無感',
-        '我朋友狂推【franchise】 但我看不太下去',
-        '【franchise】應該是那種看完就忘的番吧'
-      ],
-      CRITIC: [
-        '【franchise】的【highlight】有問題，這種處理方式很明顯啊。',
-        '說真的【franchise】被過譽了，【criticism】',
-        '【franchise】看到後面開始崩了吧？說好的伏筆呢',
-        '【franchise】的作畫這季也太敷衍',
-        '【character】的人設邏輯不通，編劇在想什麼',
-        '【franchise】的世界觀設定有不少漏洞 沒人發現嗎',
-        '從專業角度來說【franchise】的分鏡有待加強',
-        '【franchise】的OST跟畫面完全不搭 誰選的曲',
-        '【franchise】第5集的演出是實習生做的吧',
-        '【franchise】前期還好 後面完全是趕工',
-        '身為原作黨 【franchise】動畫改得太差了',
-        '【franchise】的【character】根本毀原作 不能忍',
-        '客觀來說【franchise】也就6分水平 7分都勉強',
-        '【franchise】的劇情邏輯鏈完全斷裂 沒救了',
-        '看完【franchise】只想說：期待越高失望越大'
-      ],
-      MEMER: [
-        '【franchise】：【character】做這個→ 觀眾：？？？ www',
-        '【franchise】的【highlight】已經變成梗圖了wwww',
-        '每次看【franchise】都在笑 草',
-        '【franchise】【meme】',
-        '這集【franchise】的迷惑操作太好笑了www',
-        '【franchise】又貢獻新梗了 我的表情包有救了',
-        '【character】：我是認真的 觀眾：【meme】',
-        '看【franchise】不如說是來截圖做梗的 www',
-        '【franchise】的官方自己都在玩梗了吧',
-        '今日份的【franchise】梗圖已存檔 【meme】',
-        '【franchise】這段配上bgm太好笑了 誰做的',
-        '我已經分不清【franchise】是番還是搞笑節目了',
-        '【franchise】讓我笑到缺氧 官方別這樣',
-        '這什麼神展開 【franchise】是認真的嗎 草草草'
-      ],
-      LURKER: [
-        '...',
-        '【franchise】',
-        '看完了',
-        '嗯',
-        '。',
-        '(轉推)',
-        '【franchise】👍',
-        '+1',
-        '我也看了',
-        '不錯',
-        '有',
-        '看了',
-        '是嗎',
-        '好'
-      ],
-      WHALE: [
-        '【franchise】的週邊我全都要！！剛下單了整套',
-        '這次【franchise】的限定版開箱，錢包君安息',
-        '為了【character】，這點錢算什麼',
-        '【franchise】的BD全卷購入，等不及了',
-        '搶到【franchise】的簽名版了！！爽',
-        '【franchise】animate特典我搶到了！！通宵排隊值得',
-        '【franchise】新出的figma手辦 預購完成 💳💨',
-        '為了【franchise】的SSR我課了三萬 值得',
-        '【franchise】聯名咖啡廳的周邊 我全包了',
-        '【franchise】的抱枕+掛毯+立牌 一次收齊',
-        '錢算什麼 【franchise】的快樂是無價的',
-        '【franchise】的一番賞我抽到A賞了！！再抽十抽',
-        '聽說【franchise】要出新周邊？錢包在顫抖',
-        '【franchise】演唱會門票搶到了 機票飯店已訂'
-      ],
-      COLLECTOR: [
-        '【franchise】的設定集終於入手了，收藏完整',
-        '這版【franchise】的封面比較好看，兩版都收',
-        '【franchise】的周邊出太多了...但還是想要',
-        '整理收藏發現【franchise】的東西最多',
-        '【franchise】的稀有版本找了好久終於收到',
-        '【franchise】日版港版台版我都收了 有什麼問題嗎',
-        '終於集齊【franchise】全部的特典卡了 用了三個月',
-        '【franchise】的同人場限定本 成功入手✓',
-        '買到【franchise】的絕版畫冊了 品相完美',
-        '【franchise】的收藏展示架又滿了 要換大的',
-        '收藏這種事 只有零和無限的區別 【franchise】萬歲',
-        '【franchise】的周邊我按系列分類 已經佔滿一面牆',
-        '在二手市場挖到【franchise】的隱藏版 這運氣'
-      ],
-      HATER: [
-        '【franchise】到底紅什麼啊，根本看不下去',
-        '又是【franchise】？可以停止造神了嗎',
-        '【franchise】的粉絲真的很吵',
-        '【franchise】不過就是老梗新包裝',
-        '為什麼【franchise】能這麼紅，我真的不懂',
-        '【franchise】完全是靠營銷堆出來的吧',
-        '說實話【franchise】就是無腦爽番 不知道吹什麼',
-        '【franchise】的粉絲可以不要到處安利嗎 煩死了',
-        '每次看到【franchise】霸榜就想翻白眼',
-        '【franchise】憑什麼評分這麼高 水軍太多了吧',
-        '【franchise】只是贏在時機好而已 換個季度早涼了',
-        '又有人在吹【franchise】了 審美是這樣嗎',
-        '拜託【franchise】粉絲冷靜一點 沒那麼神',
-        '我倒要看看【franchise】還能紅多久'
-      ]
-    };
+    // 從外部檔案載入模板
+    const Dictionary = ContentTemplates.Dictionary;
+    const TitleTemplates = ContentTemplates.TitleTemplates;
+    const DescriptionTemplates = ContentTemplates.DescriptionTemplates;
+    const PostTemplates = ContentTemplates.PostTemplates;
     
     // === 遊戲狀態 ===
     let GameState = {
@@ -2181,30 +1902,6 @@
       return '$' + Math.round(amount).toLocaleString();
     }
     
-    // T102: 衰退度標示與 T103: 趨勢預測
-    function getDecayInfo(publication) {
-      const decayRates = BalanceConfig.DECAY_RATES || {};
-      const decayRate = publication.decayRate || 'normal';
-      const rates = decayRates[decayRate] || { minDecay: 0.05, maxDecay: 0.10 };
-      
-      const labels = {
-        trending: { label: '🔥 熱門', color: '#f97316', trend: '⬇️ 快速衰退' },
-        normal: { label: '📊 普通', color: '#60a5fa', trend: '➡️ 穩定衰退' },
-        evergreen: { label: '🌲 長青', color: '#22c55e', trend: '✨ 緩慢衰退' }
-      };
-      
-      const info = labels[decayRate] || labels.normal;
-      const avgDecay = (rates.minDecay + rates.maxDecay) / 2;
-      const roundsUntilHalf = Math.ceil(Math.log(0.5) / Math.log(1 - avgDecay));
-      
-      return {
-        ...info,
-        avgDecay: Math.round(avgDecay * 100),
-        roundsUntilHalf,
-        prediction: `約 ${roundsUntilHalf} 回合後人氣減半`
-      };
-    }
-
     function pickRandom(array, rng = Math.random) {
       return array[Math.floor(rng() * array.length)];
     }
@@ -2245,6 +1942,12 @@
       return ARCHETYPES.DEAD_ZONE;
     }
     
+    function getFranchiseDecayRate(tags = []) {
+      if (tags.includes('當季新番') || tags.includes('時事熱門')) return 'trending';
+      if (tags.includes('經典') || tags.includes('長青')) return 'evergreen';
+      return 'normal';
+    }
+
     function generateFranchise(options = {}) {
       const rng = seededRandom(options.seed || Math.floor(Math.random() * 1000000));
       
@@ -2292,6 +1995,8 @@
         if (!tags.includes(tag)) tags.push(tag);
       }
       
+      const decayRate = getFranchiseDecayRate(tags);
+
       return {
         id: 'franchise_' + generateId(),
         seed: options.seed || Math.floor(Math.random() * 1000000),
@@ -2304,7 +2009,8 @@
         audienceActivity,
         contentPreference,
         seasonal: rng() > 0.7,
-        archetype
+        archetype,
+        decayRate
       };
     }
     
@@ -2536,8 +2242,7 @@
         purchasingPowerText: '???',
         archetypeText: '???',
         marketSize: '???',
-        fanDistribution: null,
-        trendPrediction: '???'
+        fanDistribution: null
       };
       
       if (audienceLevel >= 1) {
@@ -2587,12 +2292,6 @@
           name: FAN_TYPE_NAMES[type],
           percentage: Math.round(pct * 100)
         }));
-      }
-      
-      if (audienceLevel >= 7) {
-        // 趨勢預測
-        const trend = franchise.trend || 'STABLE';
-        result.trendPrediction = trend === 'UP' ? '看漲' : trend === 'DOWN' ? '看跌' : '持平';
       }
       
       return result;
@@ -2697,6 +2396,30 @@
     }
     
     // === 場次模擬函數 ===
+    function createFallbackFranchise(item) {
+      const popularity = Math.round(5 + Math.random() * 10);
+      const audienceDensity = clamp(0.1 + Math.random() * 0.15, 0.1, 0.3);
+      const purchasingPower = clamp(0.5 + Math.random() * 0.3, 0.5, 0.9);
+      return {
+        id: item.franchiseId,
+        name: item.title || '下架作品',
+        popularity,
+        audienceDensity,
+        purchasingPower,
+        archetype: classifyArchetype(popularity, audienceDensity, purchasingPower)
+      };
+    }
+
+    function buildSalesFranchises(boothItems, allFranchises) {
+      const franchiseMap = new Map(allFranchises.map(franchise => [franchise.id, franchise]));
+      for (const item of boothItems) {
+        if (!franchiseMap.has(item.franchiseId)) {
+          franchiseMap.set(item.franchiseId, createFallbackFranchise(item));
+        }
+      }
+      return Array.from(franchiseMap.values());
+    }
+
     function generateAttendees(boothItems, allFranchises) {
       // 計算總 P
       const boothFranchiseIds = boothItems.map(item => item.franchiseId);
@@ -2704,7 +2427,7 @@
       const totalP = boothFranchises.reduce((sum, f) => sum + f.popularity, 0);
       
       // 入場人數基於 P
-      const baseCount = totalP * 15;
+      const baseCount = totalP * BalanceConfig.CONVENTION.ATTENDEE_MULTIPLIER;
       const variance = normalRandom(0, 50);
       const attendeeCount = Math.max(100, Math.floor(baseCount + variance));
       
@@ -2800,10 +2523,9 @@
           typeAttractionMod = attractionInfo.finalAttraction;
         }
         
-        // 目標客人一定來，其他隨機（受封面質量影響）
-        // 停留率 = 基礎瀏覽傾向 × 封面吸引力 × (1 + 吸引力加成) × 顧客類型修正 × (1 - 疲勞)
+        // 目標客人才會來，停留率 = 基礎瀏覽傾向 × 封面吸引力 × (1 + 吸引力加成) × 顧客類型修正 × (1 - 疲勞)
         const stopRate = avgCoverQuality * (1 + avgAttractionBonus) * typeAttractionMod * (1 - attendee.fatigue * 0.5);
-        const willVisit = hasTarget || (Math.random() < attendee.browseTendency * stopRate);
+        const willVisit = hasTarget && (Math.random() < attendee.browseTendency * stopRate);
         
         if (willVisit) {
           visits.push({
@@ -2853,35 +2575,27 @@
       const QUALITY_SENSITIVE_FANS = ['ENTHUSIAST', 'COLLECTOR', 'CRITIC'];
       
       // R18 內容偏好
-      const R18_PREFERENCE = {
-        CASUAL: 0.5,      // 普通粉絲：較少買 R18
-        LURKER: 1.2,      // 潛水者：喜歡 R18
-        MEMER: 0.8,       // 迷因人：中等
-        ENTHUSIAST: 1.3,  // 狂熱粉絲：喜歡
-        COLLECTOR: 1.5,   // 收藏家：很喜歡
-        WHALE: 1.8,       // 課金大佬：非常喜歡
-        CRITIC: 0.7,      // 評論家：不太買
-        HATER: 0.3        // 黑子：幾乎不買
-      };
+      const R18_PREFERENCE = BalanceConfig.R18_PREFERENCE;
       
+      const fallbackFranchises = new Map();
+      const getSalesFranchise = (item) => {
+        const existing = franchises.find(f => f.id === item.franchiseId);
+        if (existing) return existing;
+        if (!fallbackFranchises.has(item.franchiseId)) {
+          fallbackFranchises.set(item.franchiseId, createFallbackFranchise(item));
+        }
+        return fallbackFranchises.get(item.franchiseId);
+      };
+
       for (const item of items) {
         itemSales[item.id] = { sold: 0, revenue: 0 };
       }
       
       // 各粉絲類型的價格閾值
-      const PRICE_THRESHOLDS = {
-        CASUAL: 400,      // 普通粉絲不太願意買超過 $400
-        LURKER: 300,      // 潛水者更保守
-        MEMER: 500,       // 迷因愛好者願意付一點
-        ENTHUSIAST: 1000, // 狂熱粉絲願意付更多
-        COLLECTOR: 1500,  // 收藏家預算更高
-        WHALE: 3000,      // 課金大佬預算最高
-        CRITIC: 600,      // 評論家中等
-        HATER: 200        // 黑子基本不買
-      };
+      const PRICE_THRESHOLDS = BalanceConfig.PRICE_THRESHOLDS;
       
       // 絕對價格上限：超過此價格無人購買
-      const ABSOLUTE_PRICE_CEILING = 5000;
+      const ABSOLUTE_PRICE_CEILING = BalanceConfig.ABSOLUTE_PRICE_CEILING;
       
       for (const visit of visits) {
         const attendee = visit.attendee;
@@ -2889,6 +2603,8 @@
         for (const item of items) {
           if (item.remainingCount <= 0) continue;
           if (attendee.budget < item.retailPrice) continue;
+          // 僅購買在target list中的商品，增加購買意願
+          if (!attendee.targetList.includes(item.id)) continue;
           
           // 絕對價格上限檢查：超過5000元沒人會買
           if (item.retailPrice > ABSOLUTE_PRICE_CEILING) {
@@ -2906,7 +2622,8 @@
           if (item.retailPrice > priceThreshold) {
             // 超過閾值越多，購買意願越低
             const overThreshold = item.retailPrice - priceThreshold;
-            const reluctance = 1 - Math.min(0.8, overThreshold / 1000);
+            const reluctanceCap = BalanceConfig.PRICE_RELUCTANCE_RATE ?? 0.8;
+            const reluctance = 1 - Math.min(reluctanceCap, overThreshold / 1000);
             if (Math.random() > reluctance) {
               // 記錄：因為價格放棄
               customerLog.push({
@@ -2919,8 +2636,7 @@
             }
           }
           
-          const franchise = franchises.find(f => f.id === item.franchiseId);
-          if (!franchise) continue;
+          const franchise = getSalesFranchise(item);
           
           // 購買機率 = D × B × 價格因素 × 疲勞因素
           let prob = franchise.audienceDensity;
@@ -3079,13 +2795,15 @@
         devLog('SALES', '場次開始 - 無事件觸發');
       }
       
+      const salesFranchises = buildSalesFranchises(boothItems, GameState.franchises);
+
       // Phase 1: 生成入場者
       statusEl.textContent = '第一階段：入場中...';
       liveStatusEl.textContent = '會場開門，人潮湧入...';
       progressEl.style.width = '10%';
       await sleep(500);
       
-      let attendees = generateAttendees(boothItems, GameState.franchises);
+      let attendees = generateAttendees(boothItems, salesFranchises);
       
       // 套用來客數修正
       const visitorModifier = eventModifiers.visitor_count || 1;
@@ -3131,7 +2849,7 @@
       await sleep(500);
       
       // 傳遞事件修正器給購買模擬
-      let salesResults = simulatePurchases(visits, boothItems, GameState.franchises, eventModifiers, triggeredEvents);
+      let salesResults = simulatePurchases(visits, boothItems, salesFranchises, eventModifiers, triggeredEvents);
       let totalSold = Object.values(salesResults.itemSales).reduce((sum, s) => sum + s.sold, 0);
       
       // T049: 檢查銷售上限
@@ -3211,95 +2929,9 @@
     
     // === 存檔/讀檔 ===
     
-    // V2 存檔版本
-    const SAVE_VERSION_V2 = 2;
-    
-    // T018: 版本遷移函數
-    function migrateFromV1(saveData) {
-      log('Migrating save from V1 to V2...');
-      
-      const state = saveData.state;
-      
-      // 1. 添加 V2 新欄位
-      if (state.debt === undefined) state.debt = 0;
-      if (state.devMode === undefined) state.devMode = false;
-      
-      // 2. 建立 circle 結構（如果不存在）
-      if (!state.circle) {
-        state.circle = {
-          name: state.circleName || '無名社團',
-          reputation: 0,
-          upgrades: {
-            helper: 0,
-            coser: 0,
-            adobe: 0,
-            storage: 0,
-            friends: 0,
-            social: 0,
-            investor: 0,
-            stock: 0,
-            writing: 0
-          }
-        };
-      }
-      
-      // 3. 建立 sessionState（如果不存在）
-      if (!state.sessionState) {
-        state.sessionState = {
-          isActive: false,
-          activeEvents: [],
-          salesRecords: [],
-          totalVisitors: 0,
-          maxSalesReached: false,
-          lostSales: 0
-        };
-      }
-      
-      // 4. 為現有作品添加 V2 欄位
-      if (state.publications) {
-        state.publications = state.publications.map((pub, index) => {
-          // FR-007/FR-016: 確保所有作品都有標題
-          let title = pub.title;
-          if (!title) {
-            // 嘗試從 franchise 取得名稱
-            const franchise = state.franchises?.find(f => f.id === pub.franchiseId);
-            title = franchise ? `《${franchise.name}》同人本 #${index + 1}` : `同人本 #${index + 1}`;
-          }
-          return {
-            ...pub,
-            title: title,
-            coverLevel: pub.coverLevel || 'basic',
-            paperLevel: pub.paperLevel || 'standard',
-            decayRate: pub.decayRate || 'normal',
-            isRetired: pub.isRetired || false,
-            retiredPopularity: pub.retiredPopularity || null
-          };
-        });
-      }
-      
-      // 5. 為現有庫存添加 V2 欄位
-      if (state.inventory) {
-        state.inventory = state.inventory.map(inv => ({
-          ...inv,
-          coverLevel: inv.coverLevel || 'basic',
-          paperLevel: inv.paperLevel || 'standard',
-          decayRate: inv.decayRate || 'normal',
-          isRetired: inv.isRetired || false,
-          retiredPopularity: inv.retiredPopularity || null
-        }));
-      }
-      
-      // 更新版本號
-      saveData.version = SAVE_VERSION_V2;
-      
-      log('Migration complete', state);
-      return saveData;
-    }
-    
     function saveGame() {
       try {
         const saveData = {
-          version: SAVE_VERSION_V2, // 使用 V2 版本
           timestamp: Date.now(),
           state: {
             round: GameState.round,
@@ -3318,11 +2950,11 @@
             devMode: GameState.devMode,
             circle: GameState.circle,
             sessionState: GameState.sessionState,
-            circleName: GameState.circleName // 保持向後相容
+            circleName: GameState.circleName
           }
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-        log('Game saved (V2)');
+        log('Game saved');
         return true;
       } catch (e) {
         console.error('Save failed:', e);
@@ -3330,26 +2962,14 @@
       }
     }
     
-    // T019: 更新 loadGame() 檢查版本並自動執行遷移
     function loadGame() {
       try {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return false;
         
-        let saveData = JSON.parse(raw);
-        
-        // 檢查版本並執行遷移
-        if (!saveData.version || saveData.version < SAVE_VERSION_V2) {
-          log('Save version mismatch, migrating from V' + (saveData.version || 1) + ' to V' + SAVE_VERSION_V2);
-          saveData = migrateFromV1(saveData);
-          
-          // 儲存遷移後的版本
-          localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-          log('Migrated save persisted');
-        }
-        
+        const saveData = JSON.parse(raw);
         Object.assign(GameState, saveData.state);
-        log('Game loaded (V' + saveData.version + ')', GameState);
+        log('Game loaded', GameState);
         return true;
       } catch (e) {
         console.error('Load failed:', e);
@@ -3641,9 +3261,8 @@
                 ${GameState.inventory.filter(inv => inv.remainingCount > 0).map(inv => {
                   const pub = GameState.publications.find(p => p.id === inv.publicationId);
                   if (!pub) return '';
-                  const decayInfo = getDecayInfo(pub);
                   return `
-                    <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 3px solid ${decayInfo.color};">
+                    <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;">
                       <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: bold;">${pub.title}</span>
                         <span>${inv.remainingCount} 本 (售價: ${formatCurrency(pub.retailPrice)})</span>
@@ -3651,10 +3270,6 @@
                       <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.8rem; color: #888;">
                         <span>🎨 ${pub.coverLevelName || '基礎'} | 📄 ${pub.paperLevelName || '標準'}</span>
                         <span>理解度: ${pub.essenceSnapshot || '?'}/10</span>
-                      </div>
-                      <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 0.85rem; color: #aaa;">
-                        <span title="${decayInfo.prediction}">${decayInfo.label} ${decayInfo.trend}</span>
-                        <span>人氣: ${Math.round(pub.popularity)}%</span>
                       </div>
                     </div>
                   `;
@@ -3720,10 +3335,6 @@
         const essenceLevel = draft ? draft.essenceLevel : 0;
         const audienceLevel = draft ? draft.audienceLevel : 0;
         
-        // 趨勢指示
-        const trendDirection = franchise.trend || 'STABLE';
-        const trendIcon = trendDirection === 'UP' ? '📈' : trendDirection === 'DOWN' ? '📉' : '➡️';
-        
         // 新作品標記 (只有當季新增的作品顯示NEW，且只顯示1回合)
         const isNew = franchise.addedRound > 1 && GameState.round === franchise.addedRound;
         
@@ -3761,7 +3372,6 @@
             <div class="franchise-name">
               ${isNew ? '<span class="new-badge">NEW</span>' : ''}
               ${franchise.name}
-              <span class="trend-indicator ${trendDirection}" title="趨勢: ${trendDirection}">${trendIcon}</span>
               ${audienceLevel >= 5 ? `<span class="archetype-badge ${franchise.archetype}">${intel.archetypeText}</span>` : ''}
             </div>
             <div class="franchise-description" style="font-size: 0.85rem; color: #aaa; margin: 8px 0; line-height: 1.5;">
@@ -3775,7 +3385,6 @@
               <span>密度: ${intel.densityText}</span>
               <span>購買力: ${intel.purchasingPowerText}</span>
               ${audienceLevel >= 3 ? `<span>市場: ${intel.marketSize}</span>` : ''}
-              ${audienceLevel >= 7 ? `<span>預測: ${intel.trendPrediction}</span>` : ''}
             </div>
             ${fanDistHtml}
             <div class="draft-info" style="margin: 8px 0; font-size: 0.85rem; color: #aaa;">
@@ -3829,7 +3438,7 @@
       
       // 顯示/隱藏按鈕：有草稿可以出版，有庫存可以開始場次
       const hasDrafts = draftsWithStock.length > 0;
-      const hasInventory = GameState.inventory.some(inv => inv.remainingCount > 0 && !inv.isObsolete);
+      const hasInventory = GameState.inventory.some(inv => inv.remainingCount > 0);
       
       document.getElementById('btn-publish').classList.toggle('hidden', !hasDrafts);
       document.getElementById('btn-start-convention').classList.toggle('hidden', !hasInventory);
@@ -3856,66 +3465,47 @@
         return;
       }
       
-      // 分開可銷售和已報廢的庫存
-      const sellableItems = GameState.inventory.filter(inv => inv.remainingCount > 0 && !inv.isObsolete).map(inv => {
+      const sellableItems = GameState.inventory.filter(inv => inv.remainingCount > 0).map(inv => {
         const pub = GameState.publications.find(p => p.id === inv.publicationId);
         if (!pub) return null;
         const franchise = GameState.franchises.find(f => f.id === pub.franchiseId);
         return { inv, pub, franchise };
       }).filter(Boolean);
-      
-      const obsoleteItems = GameState.inventory.filter(inv => inv.remainingCount > 0 && inv.isObsolete).map(inv => {
-        const pub = GameState.publications.find(p => p.id === inv.publicationId);
-        if (!pub) return null;
-        return { inv, pub };
-      }).filter(Boolean);
-      
-      if (sellableItems.length === 0 && obsoleteItems.length === 0) {
+
+      if (sellableItems.length === 0) {
         inventoryEl.innerHTML = '';
         return;
       }
       
       let html = '';
       
-      if (sellableItems.length > 0) {
-        html += `
-          <h3 style="margin-bottom: 12px;">📚 可銷售庫存</h3>
-          <div class="inventory-grid" style="display: grid; gap: 12px;">
-            ${sellableItems.map(({ inv, pub, franchise }) => `
-              <div class="inventory-item" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-                <div style="font-weight: bold;">${pub.title}</div>
-                <div style="font-size: 0.85rem; color: #aaa;">
-                  剩餘: ${inv.remainingCount}本 | 售價: ${formatCurrency(pub.retailPrice)} | 
-                  累計倉儲費: ${formatCurrency(inv.accumulatedStorageCost)}
-                </div>
+      html += `
+        <h3 style="margin-bottom: 12px;">📚 可銷售庫存</h3>
+        <div class="inventory-grid" style="display: grid; gap: 12px;">
+          ${sellableItems.map(({ inv, pub, franchise }) => `
+            <div class="inventory-item" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+              <div style="font-weight: bold;">${pub.title}</div>
+              <div style="font-size: 0.85rem; color: #aaa;">
+                剩餘: ${inv.remainingCount}本 | 售價: ${formatCurrency(pub.retailPrice)} | 
+                累計倉儲費: ${formatCurrency(inv.accumulatedStorageCost)}
               </div>
-            `).join('')}
-          </div>
-        `;
-      }
-      
-      if (obsoleteItems.length > 0) {
-        html += `
-          <h3 style="margin: 20px 0 12px; color: #ef4444;">🗑️ 已報廢庫存（無法銷售）</h3>
-          <div class="inventory-grid" style="display: grid; gap: 12px;">
-            ${obsoleteItems.map(({ inv, pub }) => `
-              <div class="inventory-item" style="background: rgba(239, 68, 68, 0.1); padding: 12px; border-radius: 8px; border: 1px dashed #ef4444;">
-                <div style="font-weight: bold; text-decoration: line-through; color: #888;">${pub.title}</div>
-                <div style="font-size: 0.85rem; color: #666;">
-                  剩餘: ${inv.remainingCount}本（作品已退場，無法銷售）
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      }
+            </div>
+          `).join('')}
+        </div>
+      `;
       
       inventoryEl.innerHTML = html;
     }
     
+    function getVolumeDiscount(quantity) {
+      const discounts = BalanceConfig.VOLUME_DISCOUNTS || [];
+      const match = discounts.find(d => quantity >= d.threshold);
+      return match ? match.discount : 1.0;
+    }
+
     function updateCostPreview() {
       const quantity = parseInt(document.getElementById('print-quantity').value) || 0;
-      const baseCost = 150; // 每本基礎成本
+      const baseCost = BalanceConfig.PRINT_BASE_COST || 150; // 每本基礎成本
       
       // T109/T111: 紙質修正 - 使用 PAPER_LEVELS config
       const paperQuality = document.getElementById('paper-quality').value;
@@ -3924,12 +3514,7 @@
       const paperModifier = 1.0 + (paperConfig.costModifier || 0);
       
       // 量產折扣
-      let discount = 1.0;
-      if (quantity >= 2000) discount = 0.5;
-      else if (quantity >= 1000) discount = 0.6;
-      else if (quantity >= 500) discount = 0.7;
-      else if (quantity >= 200) discount = 0.8;
-      else if (quantity >= 100) discount = 0.9;
+      const discount = getVolumeDiscount(quantity);
       
       const printCost = Math.round(quantity * baseCost * paperModifier * discount);
       
@@ -4452,7 +4037,7 @@
     }
     
     // 遊戲目標金額
-    const GOAL_AMOUNT = 1815000; // 一張台積電
+    const GOAL_AMOUNT = BalanceConfig.GOAL_AMOUNT;
     
     // === 遊戲邏輯函數 ===
     function initGame(options = {}) {
@@ -4460,9 +4045,9 @@
         // 重置狀態
         GameState = {
           round: 1,
-          money: 10000,
-          ap: 5,
-          maxAp: 5,
+          money: BalanceConfig.STARTING_MONEY,
+          ap: BalanceConfig.ACTION_POINTS_PER_ROUND,
+          maxAp: BalanceConfig.ACTION_POINTS_PER_ROUND,
           phase: PHASES.OBSERVATION,
           franchises: [],
           drafts: [],
@@ -4478,7 +4063,8 @@
         };
         
         // 生成 10-15 個作品
-        const franchiseCount = 10 + Math.floor(Math.random() * 6);
+        const franchiseCountConfig = BalanceConfig.FRANCHISE_ROTATION?.STARTING_FRANCHISE_COUNT || { MIN: 10, MAX: 15 };
+        const franchiseCount = franchiseCountConfig.MIN + Math.floor(Math.random() * (franchiseCountConfig.MAX - franchiseCountConfig.MIN + 1));
         for (let i = 0; i < franchiseCount; i++) {
           const franchise = generateFranchise({ seed: GameState.seed + i });
           franchise.addedRound = 1;
@@ -4491,6 +4077,7 @@
         for (let i = 0; i < halfCount; i++) {
           if (!shuffled[i].tags.includes('當季新番')) {
             shuffled[i].tags.unshift('當季新番');
+            shuffled[i].decayRate = getFranchiseDecayRate(shuffled[i].tags);
           }
         }
         
@@ -4524,11 +4111,6 @@
         case 'write':
           // 創作：增加草稿數量，理解度提升效果
           draft.stockCount++;
-          // 理解度越高，創作效率越好（每5點理解度給予額外草稿概率）
-          if (draft.essenceLevel >= 5 && Math.random() < 0.3) {
-            draft.stockCount++;
-            log('理解度加成：額外獲得 1 草稿');
-          }
           break;
         case 'study':
           // 研究作品：提升理解度（最高10）
@@ -4645,13 +4227,16 @@
       const customName = document.getElementById('publication-name').value.trim();
       const contentType = document.getElementById('content-type').value;
       
+      const printLimits = BalanceConfig.PRINT_LIMITS || { MIN: 10, MAX: 2000 };
+      const priceLimits = BalanceConfig.PRICE_LIMITS || { MIN: 100, MAX: 5000 };
+
       // 驗證輸入
       const errors = [];
       if (!franchiseId) errors.push('請選擇要出版的草稿');
-      if (quantity < 10) errors.push('印刷數量至少 10 本');
-      if (quantity > 2000) errors.push('印刷數量最多 2000 本');
-      if (price < 100) errors.push('售價不能低於 $100');
-      if (price > 5000) errors.push('售價不能超過 $5000');
+      if (quantity < printLimits.MIN) errors.push(`印刷數量至少 ${printLimits.MIN} 本`);
+      if (quantity > printLimits.MAX) errors.push(`印刷數量最多 ${printLimits.MAX} 本`);
+      if (price < priceLimits.MIN) errors.push(`售價不能低於 $${priceLimits.MIN}`);
+      if (price > priceLimits.MAX) errors.push(`售價不能超過 $${priceLimits.MAX}`);
       
       if (errors.length > 0) {
         alert('❌ 輸入錯誤：\n' + errors.join('\n'));
@@ -4665,7 +4250,7 @@
       }
       
       // 計算成本
-      const baseCost = 150;
+      const baseCost = BalanceConfig.PRINT_BASE_COST || 150;
       
       // T109/T111: 紙質修正 - 使用 PAPER_LEVELS config
       const paperConfig = (BalanceConfig.PAPER_LEVELS && BalanceConfig.PAPER_LEVELS[paperQuality]) ||
@@ -4674,12 +4259,7 @@
       const paperBonus = paperConfig.attractionModifier || 0; // 吸引力加成
       
       // 量產折扣
-      let discount = 1.0;
-      if (quantity >= 2000) discount = 0.5;
-      else if (quantity >= 1000) discount = 0.6;
-      else if (quantity >= 500) discount = 0.7;
-      else if (quantity >= 200) discount = 0.8;
-      else if (quantity >= 100) discount = 0.9;
+      const discount = getVolumeDiscount(quantity);
       
       const printCost = Math.round(quantity * baseCost * paperModifier * discount);
       
@@ -4711,16 +4291,6 @@
       // T098: 儲存銷量預估（用於結算時比較）
       const prediction = getSalesPrediction(draft);
       
-      // T099: 根據作品題材設定衰退度
-      let decayRate = 'normal';
-      if (franchise.tags) {
-        if (franchise.tags.includes('當季新番') || franchise.tags.includes('時事熱門')) {
-          decayRate = 'trending';
-        } else if (franchise.tags.includes('經典') || franchise.tags.includes('長青')) {
-          decayRate = 'evergreen';
-        }
-      }
-      
       const publication = {
         id: 'pub_' + generateId(),
         franchiseId,
@@ -4739,8 +4309,7 @@
         essenceSnapshot: draft.essenceLevel,
         createdRound: GameState.round,
         remainingCount: quantity,
-        popularity: franchise.popularity, // T099: 初始人氣等於 franchise 人氣
-        decayRate: decayRate, // T099: 衰退度
+        popularity: franchise.popularity, // 初始人氣等於 franchise 人氣
         // T098: 銷量預估資料
         salesPrediction: prediction ? {
           min: prediction.minSales,
@@ -4770,7 +4339,7 @@
       const inventoryDisplayEl = document.getElementById('inventory-display');
       
       // 渲染庫存（排除已報廢的）
-      const items = GameState.inventory.filter(inv => inv.remainingCount > 0 && !inv.isObsolete).map(inv => {
+      const items = GameState.inventory.filter(inv => inv.remainingCount > 0).map(inv => {
         const pub = GameState.publications.find(p => p.id === inv.publicationId);
         if (!pub) return null;
         const franchise = GameState.franchises.find(f => f.id === pub.franchiseId);
@@ -4815,7 +4384,7 @@
       // 準備攤位商品（排除已報廢的庫存）
       const boothItems = GameState.publications.filter(pub => {
         const inv = GameState.inventory.find(i => i.publicationId === pub.id);
-        return inv && inv.remainingCount > 0 && !inv.isObsolete;
+        return inv && inv.remainingCount > 0;
       }).map(pub => {
         const inv = GameState.inventory.find(i => i.publicationId === pub.id);
         return {
@@ -4933,76 +4502,37 @@
       });
       
       // 進入下一回合
-      nextRound();
-    }
-    
-    function nextRound() {
-      GameState.round++;
-      GameState.ap = GameState.maxAp;
-      GameState.phase = PHASES.OBSERVATION;
-      GameState.currentPosts = []; // 重新生成社群貼文
-      
-      // 套用存儲費用 ($10/本/回合)
-      const STORAGE_COST_PER_BOOK = 10;
-      for (const inv of GameState.inventory) {
-        if (inv.remainingCount > 0) {
-          const fee = inv.remainingCount * STORAGE_COST_PER_BOOK;
-          inv.accumulatedStorageCost += fee;
-          GameState.money -= fee;
-        }
-      }
-      
-      // 應用趨勢變化（含屬性衰減）
-      applyTrendShifts();
-      
-      // 滾動事件
-      const events = rollForEvents();
-      for (const event of events) {
-        applyEvent(event);
-      }
-      
-      // 作品更新（新增/退場）
-      const rotationReport = updateFranchisePool();
-      if (rotationReport) {
-        showFranchiseRotationReport(rotationReport);
-      }
-      
-      saveGame();
-      renderPhase(GameState.phase);
+      proceedToNextRound();
     }
     
     // === 趨勢系統 ===
+    function applyFranchiseDecay() {
+      const decayRates = BalanceConfig.DECAY_RATES;
+      for (const franchise of GameState.franchises) {
+        if (!franchise.decayRate) {
+          franchise.decayRate = getFranchiseDecayRate(franchise.tags || []);
+        }
+        const rates = decayRates[franchise.decayRate] || decayRates.normal;
+        const decayPercent = rates.minDecay + Math.random() * (rates.maxDecay - rates.minDecay);
+        const decayFactor = clamp(decayPercent / 100, 0, 1);
+        franchise.popularity = clamp(franchise.popularity * (1 - decayFactor), 1, 100);
+
+        const densityDelta = normalRandom(-0.05, 0.03);
+        franchise.audienceDensity = clamp(franchise.audienceDensity + densityDelta, 0.1, 1.0);
+
+        const purchasingDelta = normalRandom(-0.05, 0.03);
+        franchise.purchasingPower = clamp(franchise.purchasingPower + purchasingDelta, 0.5, 2.0);
+
+        franchise.archetype = classifyArchetype(
+          franchise.popularity,
+          franchise.audienceDensity,
+          franchise.purchasingPower
+        );
+      }
+    }
+
     function applyTrendShifts() {
       for (const franchise of GameState.franchises) {
-        // === 人氣衰減（較快） ===
-        // 高人氣作品衰減更快，當季新番衰減較慢
-        let popularityDecay = franchise.popularity > HIGH_P ? -5 : -2;
-        if (franchise.tags.includes('當季新番')) popularityDecay *= 0.5; // 當季新番衰減減半
-        
-        // 季節性波動
-        const popularityVariance = (Math.random() - 0.5) * 6;
-        
-        // === 受眾密度衰減（較慢） ===
-        // 密度衰減較慢，但會波動
-        const densityDecay = -0.02;
-        const densityVariance = (Math.random() - 0.5) * 0.08;
-        
-        // === 購買力衰減（較慢且波動） ===
-        // 購買力受市場影響波動
-        const purchasingDecay = -0.03;
-        const purchasingVariance = (Math.random() - 0.5) * 0.15;
-        
-        // 套用變化
-        applyAttributeChange(franchise, {
-          popularity: popularityDecay + popularityVariance,
-          audienceDensity: densityDecay + densityVariance,
-          purchasingPower: purchasingDecay + purchasingVariance
-        });
-        
-        // 更新趨勢標記
-        franchise.trendDirection = popularityVariance > 2 ? 'UP' : 
-                                    popularityVariance < -2 ? 'DOWN' : 'STABLE';
-        
         // 移除當季新番標籤（只維持1回合）
         if (franchise.addedRound && GameState.round > franchise.addedRound) {
           const tagIndex = franchise.tags.indexOf('當季新番');
@@ -5010,6 +4540,7 @@
             franchise.tags.splice(tagIndex, 1);
           }
         }
+        franchise.decayRate = getFranchiseDecayRate(franchise.tags || []);
       }
     }
     
@@ -5108,23 +4639,23 @@
     }
     
     function updateFranchisePool() {
+      const rotationConfig = BalanceConfig.FRANCHISE_ROTATION || { REMOVE_MIN: 3, REMOVE_MAX: 5, ADD_MIN: 3, ADD_MAX: 5, MIN_FRANCHISE_COUNT: 8 };
       const report = {
         removed: [],
-        added: [],
-        lostInventory: []
+        added: []
       };
       
       // === 移除作品（3-5個） ===
       // 計算移除分數：P + D*100 + B*50 越低越容易被移除
       const removalCandidates = GameState.franchises
-        .filter(f => GameState.franchises.length > 8) // 保持最少8個作品
+        .filter(() => GameState.franchises.length > rotationConfig.MIN_FRANCHISE_COUNT)
         .map(f => ({
           franchise: f,
           score: f.popularity + (f.audienceDensity * 100) + (f.purchasingPower * 50)
         }))
         .sort((a, b) => a.score - b.score); // 分數低的排前面
       
-      const removeCount = 3 + Math.floor(Math.random() * 3); // 3-5個
+      const removeCount = rotationConfig.REMOVE_MIN + Math.floor(Math.random() * (rotationConfig.REMOVE_MAX - rotationConfig.REMOVE_MIN + 1));
       const toRemove = removalCandidates.slice(0, Math.min(removeCount, removalCandidates.length));
       
       for (const { franchise } of toRemove) {
@@ -5137,21 +4668,6 @@
           { name: '被遺忘', desc: `還記得《${franchise.name}》嗎？已經沒人在討論了` }
         ];
         const reason = removalReasons[Math.floor(Math.random() * removalReasons.length)];
-        
-        // 檢查玩家是否有該作品的庫存
-        const playerPublications = GameState.publications.filter(p => p.franchiseId === franchise.id);
-        for (const pub of playerPublications) {
-          const inv = GameState.inventory.find(i => i.publicationId === pub.id);
-          if (inv && inv.remainingCount > 0) {
-            report.lostInventory.push({
-              title: pub.title,
-              count: inv.remainingCount,
-              franchiseName: franchise.name
-            });
-            // 庫存變成廢紙（保留紀錄但無法銷售）
-            inv.isObsolete = true;
-          }
-        }
         
         // 從列表移除
         const idx = GameState.franchises.indexOf(franchise);
@@ -5177,7 +4693,7 @@
       }
       
       // === 新增作品（3-5個） ===
-      const addCount = 3 + Math.floor(Math.random() * 3); // 3-5個
+      const addCount = rotationConfig.ADD_MIN + Math.floor(Math.random() * (rotationConfig.ADD_MAX - rotationConfig.ADD_MIN + 1));
       for (let i = 0; i < addCount; i++) {
         if (GameState.franchises.length >= 20) break; // 最多20個作品
         
@@ -5188,6 +4704,9 @@
         if (!newFranchise.tags.includes('當季新番')) {
           newFranchise.tags.unshift('當季新番');
         }
+        newFranchise.decayRate = getFranchiseDecayRate(newFranchise.tags);
+        // 當季作品初始給予人氣加成
+        newFranchise.popularity = Math.min(100, newFranchise.popularity + 20);
         
         GameState.franchises.push(newFranchise);
         report.added.push({
@@ -5217,14 +4736,6 @@
         message += '📉 退場作品：\n';
         for (const item of report.removed) {
           message += `• ${item.name}（${item.reason}）\n`;
-        }
-        message += '\n';
-      }
-      
-      if (report.lostInventory.length > 0) {
-        message += '⚠️ 庫存報廢：\n';
-        for (const item of report.lostInventory) {
-          message += `• ${item.title} × ${item.count} 本已無法銷售！\n`;
         }
         message += '\n';
       }
@@ -5622,6 +5133,7 @@
       GameState.round++;
       GameState.ap = GameState.maxAp;
       GameState.phase = PHASES.OBSERVATION;
+      GameState.currentPosts = []; // 重新生成社群貼文
       console.log('[ProceedToNextRound] Starting round', GameState.round);
       
       // 重置場次狀態
@@ -5633,11 +5145,11 @@
         maxSalesReached: false,
         lostSales: 0
       };
+
+      // 更新作品趨勢
+      applyTrendShifts();
+      applyFranchiseDecay();
       
-      // 套用人氣衰退
-      applyPopularityDecay();
-      
-      // BUG FIX 4: 確保作品更新功能正常運作
       // 在每回合結束時更新作品池（新增/退場）
       const rotationReport = updateFranchisePool();
       if (rotationReport) {
@@ -5648,20 +5160,6 @@
       console.log('[ProceedToNextRound] Rendering OBSERVATION phase');
       renderPhase(PHASES.OBSERVATION);
       console.log('[ProceedToNextRound] Phase rendered, current phase:', GameState.phase);
-    }
-    
-    function applyPopularityDecay() {
-      const decayRates = BalanceConfig.DECAY_RATES || {};
-      
-      GameState.publications.forEach(pub => {
-        if (pub.isRetired) return; // 已停產的作品不衰退
-        
-        const decayRate = pub.decayRate || 'normal';
-        const rates = decayRates[decayRate] || { minDecay: 0.05, maxDecay: 0.10 };
-        
-        const decay = rates.minDecay + Math.random() * (rates.maxDecay - rates.minDecay);
-        pub.popularity = Math.max(0, pub.popularity * (1 - decay));
-      });
     }
     
     // T069: 遊戲結束畫面動態渲染
@@ -5734,9 +5232,9 @@
     function resetGameState() {
       Object.assign(GameState, {
         round: 1,
-        money: 10000,
-        ap: 3,
-        maxAp: 3,
+        money: BalanceConfig.STARTING_MONEY,
+        ap: BalanceConfig.ACTION_POINTS_PER_ROUND,
+        maxAp: BalanceConfig.ACTION_POINTS_PER_ROUND,
         phase: PHASES.MENU,
         seed: Date.now(),
         franchises: [],

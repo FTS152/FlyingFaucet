@@ -82,7 +82,7 @@ const BalanceConfig = {
   // ═══════════════════════════════════════════════════════════════
   
   /** 每本書每回合的倉儲費 */
-  STORAGE_COST_PER_BOOK: 10,
+  STORAGE_COST_PER_BOOK: 20,
   
   /** 印刷基礎成本 (每本) */
   PRINT_BASE_COST: 150,
@@ -108,57 +108,24 @@ const BalanceConfig = {
     { threshold: 100, discount: 0.9 }    // 100本以上 -10%
   ],
   
-  /** 紙質成本倍率 */
+  /* UNUSED (V2 未使用)
   PAPER_QUALITY: {
     recycled: { costModifier: 0.8, attractionBonus: 0 },
     normal: { costModifier: 1.0, attractionBonus: 0 },
     premium: { costModifier: 1.5, attractionBonus: 0.1 }
   },
   
-  /** 封面繪師設定 */
   COVER_ARTIST: {
     ai: { cost: 0, stopRate: 0.2 },
     friend: { cost: 500, stopRate: 0.4 },
     pro: { cost: 2000, stopRate: 0.8 }
   },
   
-  // ═══════════════════════════════════════════════════════════════
-  // 📈 屬性衰減系統 (每回合自動變化)
-  // ═══════════════════════════════════════════════════════════════
-  
-  DECAY: {
-    /** 人氣衰減 */
-    POPULARITY: {
-      HIGH_DECAY: -5,       // 高人氣作品衰減較快
-      LOW_DECAY: -2,        // 普通作品衰減
-      SEASONAL_MULTIPLIER: 0.5,  // 當季新番衰減減半
-      VARIANCE: 6           // 隨機波動範圍 (±3)
-    },
-    
-    /** 密度衰減 */
-    DENSITY: {
-      BASE_DECAY: -0.02,
-      VARIANCE: 0.08        // 隨機波動範圍
-    },
-    
-    /** 購買力衰減 */
-    PURCHASING_POWER: {
-      BASE_DECAY: -0.03,
-      VARIANCE: 0.15        // 隨機波動範圍
-    }
-  },
-  
-  // ═══════════════════════════════════════════════════════════════
-  // 🎲 事件系統
-  // ═══════════════════════════════════════════════════════════════
-  
   EVENT: {
-    /** 每回合觸發事件的機率 */
-    TRIGGER_CHANCE: 0.5,  // 50% 機率觸發事件
-    
-    /** 事件連鎖最大深度 */
+    TRIGGER_CHANCE: 0.5,
     MAX_CHAIN_DEPTH: 3
   },
+  */
   
   // ═══════════════════════════════════════════════════════════════
   // 🔄 作品輪替系統
@@ -188,23 +155,11 @@ const BalanceConfig = {
   // ═══════════════════════════════════════════════════════════════
   
   CONVENTION: {
-    /** 基礎入場人數 */
-    BASE_ATTENDANCE: 500,
-    
-    /** 入場人數隨機範圍倍率 */
-    ATTENDANCE_VARIANCE: 0.3,
-    
-    /** 模擬批次大小（影響效能與動畫） */
-    SIMULATION_BATCH_SIZE: 50,
-    
-    /** 模擬間隔（毫秒） */
-    SIMULATION_INTERVAL: 100
+    /** 入場人數倍率 */
+    ATTENDEE_MULTIPLIER: 15
   },
   
-  // ═══════════════════════════════════════════════════════════════
-  // 📊 粉絲類型基礎分布權重
-  // ═══════════════════════════════════════════════════════════════
-  
+  /* UNUSED (V2 未使用)
   FAN_TYPE_BASE_DISTRIBUTION: {
     ENTHUSIAST: 0.15,
     CASUAL: 0.25,
@@ -216,38 +171,19 @@ const BalanceConfig = {
     HATER: 0.10
   },
   
-  // ═══════════════════════════════════════════════════════════════
-  // 🎓 理解度與市場調研系統
-  // ═══════════════════════════════════════════════════════════════
-  
   RESEARCH: {
-    /** 理解度上限 */
     MAX_ESSENCE_LEVEL: 10,
-    
-    /** 市場調研等級上限 */
     MAX_AUDIENCE_LEVEL: 10,
-    
-    /** 理解度達到5級時額外獲得草稿的機率 */
     ESSENCE_BONUS_CHANCE: 0.3,
-    
-    /** 研究作品每次提升的理解度範圍 */
     STUDY_GAIN: { MIN: 1, MAX: 2 },
-    
-    /** 研究市場每次提升的調研等級範圍 */
     RESEARCH_GAIN: { MIN: 1, MAX: 2 }
   },
   
-  // ═══════════════════════════════════════════════════════════════
-  // 🏷️ 標籤系統
-  // ═══════════════════════════════════════════════════════════════
-  
   TAGS: {
-    /** 當季新番維持的回合數 */
     SEASONAL_DURATION: 1,
-    
-    /** 起始回合當季新番比例 */
     STARTING_SEASONAL_RATIO: 0.5
   },
+  */
   
   // ═══════════════════════════════════════════════════════════════
   // 🆙 V2: 社團升級系統 (T008)
@@ -506,20 +442,20 @@ const BalanceConfig = {
   DECAY_RATES: {
     trending: {
       name: '時事熱門',
-      minDecay: 0.15,
-      maxDecay: 0.20,
+      minDecay: 50,
+      maxDecay: 80,
       description: '熱度來得快去得也快'
     },
     normal: {
       name: '一般作品',
-      minDecay: 0.05,
-      maxDecay: 0.10,
+      minDecay: 20,
+      maxDecay: 50,
       description: '穩定的人氣衰減'
     },
     evergreen: {
       name: '經典長青',
-      minDecay: 0.01,
-      maxDecay: 0.03,
+      minDecay: 10,
+      maxDecay: 20,
       description: '歷久不衰的經典題材'
     }
   }
