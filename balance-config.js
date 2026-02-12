@@ -20,7 +20,7 @@ const BalanceConfig = {
   GOAL_AMOUNT: 1915000,  // $1,915,000 = 一張台積電
   
   /** 玩家起始資金 */
-  STARTING_MONEY: 10000,
+  STARTING_MONEY: 1000000,
   
   /** 每回合行動點數 */
   ACTION_POINTS_PER_ROUND: 5,
@@ -210,12 +210,14 @@ const BalanceConfig = {
       name: '僱傭Coser小幫手',
       subDescription: '說真的，能當coser還需要當文字寫手嗎',
       description: '增加攤位吸引力',
-      maxLevel: 3,
-      costs: [3000, 8000, 20000],
+      maxLevel: 5,
+      costs: [3000, 8000, 20000, 40000, 80000],
       effects: [
         { boothAttractionBonus: 0.10 },
         { boothAttractionBonus: 0.20 },
-        { boothAttractionBonus: 0.35 }
+        { boothAttractionBonus: 0.35 },
+        { boothAttractionBonus: 0.50 },
+        { boothAttractionBonus: 0.75 }
       ]
     },
     {
@@ -223,12 +225,14 @@ const BalanceConfig = {
       name: 'Adobe排版網課',
       subDescription: '學會了這個，就能繼續壓榨自己了',
       description: '提升作品品質加成',
-      maxLevel: 3,
-      costs: [2000, 5000, 12000],
+      maxLevel: 5,
+      costs: [2000, 5000, 12000, 25000, 50000],
       effects: [
         { qualityBonus: 0.05 },
         { qualityBonus: 0.10 },
-        { qualityBonus: 0.18 }
+        { qualityBonus: 0.18 },
+        { qualityBonus: 0.30 },
+        { qualityBonus: 0.50 }
       ]
     },
     {
@@ -250,12 +254,14 @@ const BalanceConfig = {
       id: 'friends',
       name: '親友團',
       subDescription: '親友的支持是最溫暖的力量',
-      description: '場次開始時獲得保底銷量',
-      maxLevel: 3,
-      costs: [2000, 5000, 15000],
+      description: '場次開始時獲得保底銷量(僅對500元以下刊物有效)',
+      maxLevel: 5,
+      costs: [5000, 10000, 15000, 30000, 50000],
       effects: [
         { guaranteedSales: 10 },
-        { guaranteedSales: 25 },
+        { guaranteedSales: 20 },
+        { guaranteedSales: 30 },
+        { guaranteedSales: 40 },
         { guaranteedSales: 50 }
       ]
     },
@@ -265,13 +271,58 @@ const BalanceConfig = {
       subDescription: '當網紅接業配，走上人生巔峰',
       description: '提升整體銷量倍率',
       maxLevel: 5,
-      costs: [1000, 3000, 7000, 15000, 30000],
+      costs: [1500, 5000, 10000, 25000, 60000],
       effects: [
         { salesMultiplier: 1.05 },
         { salesMultiplier: 1.08 },
         { salesMultiplier: 1.12 },
         { salesMultiplier: 1.18 },
         { salesMultiplier: 1.25 }
+      ]
+    },
+    {
+      id: 'typewriter',
+      name: '超級打字機',
+      subDescription: '寫稿速度等於截止時間的倒數',
+      description: '創作時有機率獲得2份草稿',
+      maxLevel: 5,
+      costs: [1500, 5000, 10000, 25000, 50000],
+      effects: [
+        { typewriterBonus: 0.20 }, // 20% 機率
+        { typewriterBonus: 0.40 }, // 40% 機率
+        { typewriterBonus: 0.60 }, // 60% 機率
+        { typewriterBonus: 0.80 }, // 80% 機率
+        { typewriterBonus: 1.00 }  // 100% 機率
+      ]
+    },
+    {
+      id: 'sage',
+      name: '聖德太子',
+      subDescription: '一心多用的傳說境界',
+      description: '研究作品時有機率獲得2級理解度',
+      maxLevel: 5,
+      costs: [1500, 5000, 10000, 25000, 50000],
+      effects: [
+        { sageBonus: 0.20 }, // 20% 機率
+        { sageBonus: 0.40 }, // 40% 機率
+        { sageBonus: 0.60 }, // 60% 機率
+        { sageBonus: 0.80 }, // 80% 機率
+        { sageBonus: 1.00 }  // 100% 機率
+      ]
+    },
+    {
+      id: 'analyst',
+      name: '市場分析達人',
+      subDescription: '如果把這個能力拿去炒股該有多好',
+      description: '研究市場時有機率獲得2級調研等級',
+      maxLevel: 5,
+      costs: [1500, 5000, 10000, 25000, 50000],
+      effects: [
+        { analystBonus: 0.20 }, // 20% 機率
+        { analystBonus: 0.40 }, // 40% 機率
+        { analystBonus: 0.60 }, // 60% 機率
+        { analystBonus: 0.80 }, // 80% 機率
+        { analystBonus: 1.00 }  // 100% 機率
       ]
     },
     {
@@ -309,18 +360,18 @@ const BalanceConfig = {
       costs: [500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 256000],
       costFormula: (level) => 500 * Math.pow(2, level), // 超過預設陣列時使用公式
       effects: [
-        { baseQualityBonus: 1 },
-        { baseQualityBonus: 2 },
-        { baseQualityBonus: 3 },
-        { baseQualityBonus: 4 },
-        { baseQualityBonus: 5 },
-        { baseQualityBonus: 6 },
-        { baseQualityBonus: 7 },
-        { baseQualityBonus: 8 },
-        { baseQualityBonus: 9 },
-        { baseQualityBonus: 10 }
+        { baseQualityBonus: 0 }, // 已移除實際效果
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 }
       ],
-      effectFormula: (level) => ({ baseQualityBonus: level }) // 超過預設陣列時使用公式
+      effectFormula: (level) => ({ baseQualityBonus: 0 }) // 超過預設陣列時使用公式
     }
   ],
   

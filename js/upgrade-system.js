@@ -299,6 +299,24 @@ const UpgradeSystem = (function() {
     return writingEffect.baseQualityBonus || 0;
   }
   
+  // 計算超級打字機加成（創作時獲得2份草稿的機率）
+  function getTypewriterBonus() {
+    const typewriterEffect = getUpgradeEffect('typewriter');
+    return typewriterEffect.typewriterBonus || 0;
+  }
+  
+  // 計算聖德太子加成（研究作品時獲得2級理解度的機率）
+  function getSageBonus() {
+    const sageEffect = getUpgradeEffect('sage');
+    return sageEffect.sageBonus || 0;
+  }
+  
+  // 計算市場分析達人加成（研究市場時獲得2級調研的機率）
+  function getAnalystBonus() {
+    const analystEffect = getUpgradeEffect('analyst');
+    return analystEffect.analystBonus || 0;
+  }
+  
   // 公開 API
   return {
     init: initUpgradeSystem,
@@ -320,7 +338,10 @@ const UpgradeSystem = (function() {
     getGuaranteedSales,
     getBoothAttractionBonus,
     getQualityBonus,
-    getBaseQualityBonus
+    getBaseQualityBonus,
+    getTypewriterBonus,
+    getSageBonus,
+    getAnalystBonus
   };
 })();
 
