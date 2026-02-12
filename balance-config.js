@@ -20,7 +20,7 @@ const BalanceConfig = {
   GOAL_AMOUNT: 1915000,  // $1,915,000 = 一張台積電
   
   /** 玩家起始資金 */
-  STARTING_MONEY: 1000000,
+  STARTING_MONEY: 10000,
   
   /** 每回合行動點數 */
   ACTION_POINTS_PER_ROUND: 5,
