@@ -2627,7 +2627,7 @@
           if (item.retailPrice > priceThreshold) {
             // 超過閾值越多，購買意願越低
             const overThreshold = item.retailPrice - priceThreshold;
-            const reluctanceCap = BalanceConfig.PRICE_RELUCTANCE_RATE ?? 0.8;
+            const reluctanceCap = BalanceConfig.PRICE_RELUCTANCE_RATE ?? 0.98;
             const reluctance = 1 - Math.min(reluctanceCap, overThreshold / 1000);
             if (Math.random() > reluctance) {
               // 記錄：因為價格放棄
