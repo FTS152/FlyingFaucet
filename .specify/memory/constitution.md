@@ -1,42 +1,62 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: [TEMPLATE] → 1.0.0
-Constitution Type: Minimized HTML Frontend Application
+Version Change: 1.0.0 → 1.1.0
+Constitution Type: Modular HTML Frontend Application
 
 Modified Principles:
-- NEW: I. Single-File Architecture
-- NEW: II. Vanilla Standards (No Build Tools)
-- NEW: III. Code Organization & Clarity
+- UPDATED: I. Modular Architecture (was Single-File Architecture)
+- RETAINED: II. Vanilla Standards (No Build Tools)
+- RETAINED: III. Code Organization & Clarity
 
-Added Sections:
-- Browser Compatibility Requirements
-- Development Workflow
+New Module Structure:
+- balance-config.js: Game balance and configuration values
+- content-templates.js: Content generation templates
+- js/dev-logger.js: Development logging system
+- js/upgrade-system.js: Social upgrade management
+- js/event-system.js: Random event system
+- js/sales-calculator.js: Sales calculation logic
+- js/inventory-manager.js: Inventory management
+- js/game-over.js: Game over conditions
 
-Templates Status:
-- ✅ plan-template.md: Reviewed - compatible with frontend principles
-- ✅ spec-template.md: Reviewed - user story format applies to features
-- ✅ tasks-template.md: Reviewed - task organization applies to HTML updates
-
-Follow-up TODOs: None - all placeholders resolved
+Follow-up TODOs: None
 -->
 
 # 飛行水龍頭 (Flying Faucet) Constitution
 
-**專案類型**: Pure Frontend HTML Application (純前端 HTML 應用)
+**專案類型**: Modular Frontend HTML Application (模組化前端 HTML 應用)
 
 ## Core Principles
 
-### I. Single-File Architecture
-**MUST** maintain application as a single self-contained HTML file.
+### I. Modular Architecture
+**MUST** maintain a clean modular structure with the main HTML file and supporting JavaScript modules.
 
-- All styling MUST be contained in `<style>` block within the HTML file
-- All JavaScript MUST be contained in `<script>` block within the HTML file
-- No external dependencies, libraries, or frameworks
-- File MUST be directly openable in any modern browser without a web server
-- Maximum portability: one file = complete application
+**Entry Point**: `doujin-sim.html`
+- All HTML structure contained here
+- All CSS styling in `<style>` block within the HTML file
+- Main game logic and UI handlers in `<script>` block
+- No external CSS files
 
-**Rationale**: Ensures zero-dependency deployment, maximum portability, and ease of sharing. Users can download one file and run it immediately without setup.
+**Module Files** (load order matters):
+1. `balance-config.js` - Game balance configuration (BalanceConfig object)
+2. `content-templates.js` - Content generation templates (ContentTemplates object)
+3. `js/dev-logger.js` - Development logging (DevLogger module)
+4. `js/upgrade-system.js` - Social upgrade management (UpgradeSystem module)
+5. `js/event-system.js` - Random event system (EventSystem module)
+6. `js/sales-calculator.js` - Sales calculation (SalesCalculator module)
+7. `js/inventory-manager.js` - Inventory management (InventoryManager module)
+8. `js/game-over.js` - Game over conditions (GameOverManager module)
+
+**Module Pattern**: Each module uses IIFE pattern:
+```javascript
+const ModuleName = (function() {
+  'use strict';
+  // private state and functions
+  return { /* public API */ };
+})();
+```
+
+**Rationale**: Separates concerns for maintainability while keeping the application easy to deploy. No build step required - just serve the files.
 
 ### II. Vanilla Standards (No Build Tools)
 **MUST** use only vanilla HTML5, CSS3, and modern JavaScript (ES6+).
@@ -50,20 +70,26 @@ Follow-up TODOs: None - all placeholders resolved
 **Rationale**: Eliminates build complexity, reduces maintenance burden, and ensures direct browser compatibility. Anyone can edit the file in a text editor without specialized tooling.
 
 ### III. Code Organization & Clarity
-**MUST** maintain clear separation of concerns within the single file.
+**MUST** maintain clear separation of concerns within each file.
 
-Structure MUST follow this order:
+**Main HTML** Structure:
 1. HTML structure (`<body>` content)
 2. CSS styling (`<style>` block in `<head>`)
-3. JavaScript logic (`<script>` block before `</body>`)
+3. Module script includes (external .js files)
+4. JavaScript logic (`<script>` block before `</body>`)
 
-Within JavaScript section:
+**Within JavaScript sections**:
 - Use clear variable names in Chinese or English
-- Group related functions together with comments
+- Group related functions together with section comments
 - Separate game state, UI logic, and event handlers
 - Add section comments (e.g., `// === 遊戲狀態 ===`, `// === UI 更新 ===`)
 
-**Rationale**: Maintains readability and navigability even as the single file grows. Clear organization enables quick understanding and modification.
+**LocalStorage Persistence**:
+- Save version: `SAVE_VERSION_V2 = 2`
+- Key: `doujinSimSaveV2`
+- Format: JSON serialized GameState
+
+**Rationale**: Maintains readability and navigability. Clear organization enables quick understanding and modification.
 
 ## Browser Compatibility Requirements
 
@@ -108,4 +134,4 @@ This constitution defines the non-negotiable constraints for this project:
 - Version bumps: MAJOR (principle changes), MINOR (new principles), PATCH (clarifications)
 - Document all amendments with date and reasoning
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-09 | **Last Amended**: 2026-02-09
+**Version**: 1.1.0 | **Ratified**: 2026-02-09 | **Last Amended**: 2026-02-10

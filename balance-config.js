@@ -17,10 +17,10 @@ const BalanceConfig = {
   // ═══════════════════════════════════════════════════════════════
   
   /** 遊戲勝利目標金額（達成此金額觸發勝利畫面） */
-  GOAL_AMOUNT: 1815000,  // $1,815,000 = 一張台積電
+  GOAL_AMOUNT: 1915000,  // $1,915,000 = 一張台積電
   
   /** 玩家起始資金 */
-  STARTING_MONEY: 10000,
+  STARTING_MONEY: 1000000,
   
   /** 每回合行動點數 */
   ACTION_POINTS_PER_ROUND: 5,
@@ -45,18 +45,18 @@ const BalanceConfig = {
   
   /** 各粉絲類型的價格心理閾值 (超過會大幅降低購買意願) */
   PRICE_THRESHOLDS: {
-    CASUAL: 400,      // 普通粉絲
-    LURKER: 300,      // 潛水者
-    MEMER: 500,       // 迷因人
-    ENTHUSIAST: 1000, // 狂熱粉絲
-    COLLECTOR: 1500,  // 收藏家
-    WHALE: 3000,      // 課金大佬
-    CRITIC: 600,      // 評論家
-    HATER: 200        // 黑子
+    CASUAL: 300,      // 普通粉絲
+    LURKER: 200,      // 潛水者
+    MEMER: 400,       // 迷因人
+    ENTHUSIAST: 600, // 狂熱粉絲
+    COLLECTOR: 800,  // 收藏家
+    WHALE: 1500,      // 課金大佬
+    CRITIC: 400,      // 評論家
+    HATER: 150        // 黑子
   },
   
   /** 絕對價格上限 - 超過此價格無人購買 */
-  ABSOLUTE_PRICE_CEILING: 5000,
+  ABSOLUTE_PRICE_CEILING: 3000,
   
   /** 價格超過閾值時的意願衰減速率 (每超過1000元降低的意願比例) */
   PRICE_RELUCTANCE_RATE: 0.8,
@@ -82,7 +82,7 @@ const BalanceConfig = {
   // ═══════════════════════════════════════════════════════════════
   
   /** 每本書每回合的倉儲費 */
-  STORAGE_COST_PER_BOOK: 2,
+  STORAGE_COST_PER_BOOK: 50,
   
   /** 印刷基礎成本 (每本) */
   PRINT_BASE_COST: 150,
@@ -96,7 +96,7 @@ const BalanceConfig = {
   /** 售價限制 */
   PRICE_LIMITS: {
     MIN: 100,
-    MAX: 5000
+    MAX: 3000
   },
   
   /** 量產折扣階梯 */
@@ -108,57 +108,24 @@ const BalanceConfig = {
     { threshold: 100, discount: 0.9 }    // 100本以上 -10%
   ],
   
-  /** 紙質成本倍率 */
+  /* UNUSED (V2 未使用)
   PAPER_QUALITY: {
     recycled: { costModifier: 0.8, attractionBonus: 0 },
     normal: { costModifier: 1.0, attractionBonus: 0 },
     premium: { costModifier: 1.5, attractionBonus: 0.1 }
   },
   
-  /** 封面繪師設定 */
   COVER_ARTIST: {
     ai: { cost: 0, stopRate: 0.2 },
     friend: { cost: 500, stopRate: 0.4 },
     pro: { cost: 2000, stopRate: 0.8 }
   },
   
-  // ═══════════════════════════════════════════════════════════════
-  // 📈 屬性衰減系統 (每回合自動變化)
-  // ═══════════════════════════════════════════════════════════════
-  
-  DECAY: {
-    /** 人氣衰減 */
-    POPULARITY: {
-      HIGH_DECAY: -5,       // 高人氣作品衰減較快
-      LOW_DECAY: -2,        // 普通作品衰減
-      SEASONAL_MULTIPLIER: 0.5,  // 當季新番衰減減半
-      VARIANCE: 6           // 隨機波動範圍 (±3)
-    },
-    
-    /** 密度衰減 */
-    DENSITY: {
-      BASE_DECAY: -0.02,
-      VARIANCE: 0.08        // 隨機波動範圍
-    },
-    
-    /** 購買力衰減 */
-    PURCHASING_POWER: {
-      BASE_DECAY: -0.03,
-      VARIANCE: 0.15        // 隨機波動範圍
-    }
-  },
-  
-  // ═══════════════════════════════════════════════════════════════
-  // 🎲 事件系統
-  // ═══════════════════════════════════════════════════════════════
-  
   EVENT: {
-    /** 每回合觸發事件的機率 */
-    TRIGGER_CHANCE: 0.5,  // 50% 機率觸發事件
-    
-    /** 事件連鎖最大深度 */
+    TRIGGER_CHANCE: 0.5,
     MAX_CHAIN_DEPTH: 3
   },
+  */
   
   // ═══════════════════════════════════════════════════════════════
   // 🔄 作品輪替系統
@@ -188,23 +155,11 @@ const BalanceConfig = {
   // ═══════════════════════════════════════════════════════════════
   
   CONVENTION: {
-    /** 基礎入場人數 */
-    BASE_ATTENDANCE: 500,
-    
-    /** 入場人數隨機範圍倍率 */
-    ATTENDANCE_VARIANCE: 0.3,
-    
-    /** 模擬批次大小（影響效能與動畫） */
-    SIMULATION_BATCH_SIZE: 50,
-    
-    /** 模擬間隔（毫秒） */
-    SIMULATION_INTERVAL: 100
+    /** 入場人數倍率 */
+    ATTENDEE_MULTIPLIER: 15
   },
   
-  // ═══════════════════════════════════════════════════════════════
-  // 📊 粉絲類型基礎分布權重
-  // ═══════════════════════════════════════════════════════════════
-  
+  /* UNUSED (V2 未使用)
   FAN_TYPE_BASE_DISTRIBUTION: {
     ENTHUSIAST: 0.15,
     CASUAL: 0.25,
@@ -216,37 +171,346 @@ const BalanceConfig = {
     HATER: 0.10
   },
   
-  // ═══════════════════════════════════════════════════════════════
-  // 🎓 理解度與市場調研系統
-  // ═══════════════════════════════════════════════════════════════
-  
   RESEARCH: {
-    /** 理解度上限 */
     MAX_ESSENCE_LEVEL: 10,
-    
-    /** 市場調研等級上限 */
     MAX_AUDIENCE_LEVEL: 10,
-    
-    /** 理解度達到5級時額外獲得草稿的機率 */
     ESSENCE_BONUS_CHANCE: 0.3,
-    
-    /** 研究作品每次提升的理解度範圍 */
     STUDY_GAIN: { MIN: 1, MAX: 2 },
-    
-    /** 研究市場每次提升的調研等級範圍 */
     RESEARCH_GAIN: { MIN: 1, MAX: 2 }
   },
   
+  TAGS: {
+    SEASONAL_DURATION: 1,
+    STARTING_SEASONAL_RATIO: 0.5
+  },
+  */
+  
   // ═══════════════════════════════════════════════════════════════
-  // 🏷️ 標籤系統
+  // 🆙 V2: 社團升級系統 (T008)
   // ═══════════════════════════════════════════════════════════════
   
-  TAGS: {
-    /** 當季新番維持的回合數 */
-    SEASONAL_DURATION: 1,
-    
-    /** 起始回合當季新番比例 */
-    STARTING_SEASONAL_RATIO: 0.5
+  UPGRADE_DEFINITIONS: [
+    {
+      id: 'helper',
+      name: '培訓小幫手',
+      subDescription: '手腳俐落的小幫手千年一遇',
+      description: '提升單場最大銷售量',
+      maxLevel: 5,
+      costs: [1000, 2500, 5000, 10000, 20000],
+      effects: [
+        { maxSalesBonus: 100 },
+        { maxSalesBonus: 200 },
+        { maxSalesBonus: 500 },
+        { maxSalesBonus: 1000 },
+        { maxSalesBonus: 2000 }
+      ]
+    },
+    {
+      id: 'coser',
+      name: '僱傭Coser小幫手',
+      subDescription: '說真的，能當coser還需要當文字寫手嗎',
+      description: '增加攤位吸引力',
+      maxLevel: 5,
+      costs: [3000, 8000, 20000, 40000, 80000],
+      effects: [
+        { boothAttractionBonus: 0.10 },
+        { boothAttractionBonus: 0.20 },
+        { boothAttractionBonus: 0.35 },
+        { boothAttractionBonus: 0.50 },
+        { boothAttractionBonus: 0.75 }
+      ]
+    },
+    {
+      id: 'adobe',
+      name: 'Adobe排版網課',
+      subDescription: '學會了這個，就能繼續壓榨自己了',
+      description: '提升作品品質加成',
+      maxLevel: 5,
+      costs: [2000, 5000, 12000, 25000, 50000],
+      effects: [
+        { qualityBonus: 0.05 },
+        { qualityBonus: 0.10 },
+        { qualityBonus: 0.18 },
+        { qualityBonus: 0.30 },
+        { qualityBonus: 0.50 }
+      ]
+    },
+    {
+      id: 'storage',
+      name: '老家倉儲',
+      subDescription: '老家還有空間可以放',
+      description: '降低倉儲成本',
+      maxLevel: 5,
+      costs: [1500, 3000, 6000, 12000, 25000],
+      effects: [
+        { storageCostReduction: 0.15 },
+        { storageCostReduction: 0.30 },
+        { storageCostReduction: 0.45 },
+        { storageCostReduction: 0.60 },
+        { storageCostReduction: 0.75 }
+      ]
+    },
+    {
+      id: 'friends',
+      name: '親友團',
+      subDescription: '親友的支持是最溫暖的力量',
+      description: '場次開始時獲得保底銷量(僅對500元以下刊物有效)',
+      maxLevel: 5,
+      costs: [5000, 10000, 15000, 30000, 50000],
+      effects: [
+        { guaranteedSales: 10 },
+        { guaranteedSales: 20 },
+        { guaranteedSales: 30 },
+        { guaranteedSales: 40 },
+        { guaranteedSales: 50 }
+      ]
+    },
+    {
+      id: 'social',
+      name: '社群經營',
+      subDescription: '當網紅接業配，走上人生巔峰',
+      description: '提升整體銷量倍率',
+      maxLevel: 5,
+      costs: [1500, 5000, 10000, 25000, 60000],
+      effects: [
+        { salesMultiplier: 1.05 },
+        { salesMultiplier: 1.08 },
+        { salesMultiplier: 1.12 },
+        { salesMultiplier: 1.18 },
+        { salesMultiplier: 1.25 }
+      ]
+    },
+    {
+      id: 'typewriter',
+      name: '超級打字機',
+      subDescription: '寫稿速度等於截止時間的倒數',
+      description: '創作時有機率獲得2份草稿',
+      maxLevel: 5,
+      costs: [1500, 5000, 10000, 25000, 50000],
+      effects: [
+        { typewriterBonus: 0.20 }, // 20% 機率
+        { typewriterBonus: 0.40 }, // 40% 機率
+        { typewriterBonus: 0.60 }, // 60% 機率
+        { typewriterBonus: 0.80 }, // 80% 機率
+        { typewriterBonus: 1.00 }  // 100% 機率
+      ]
+    },
+    {
+      id: 'sage',
+      name: '聖德太子',
+      subDescription: '一心多用的傳說境界',
+      description: '研究作品時有機率獲得2級理解度',
+      maxLevel: 5,
+      costs: [1500, 5000, 10000, 25000, 50000],
+      effects: [
+        { sageBonus: 0.20 }, // 20% 機率
+        { sageBonus: 0.40 }, // 40% 機率
+        { sageBonus: 0.60 }, // 60% 機率
+        { sageBonus: 0.80 }, // 80% 機率
+        { sageBonus: 1.00 }  // 100% 機率
+      ]
+    },
+    {
+      id: 'analyst',
+      name: '市場分析達人',
+      subDescription: '如果把這個能力拿去炒股該有多好',
+      description: '研究市場時有機率獲得2級調研等級',
+      maxLevel: 5,
+      costs: [1500, 5000, 10000, 25000, 50000],
+      effects: [
+        { analystBonus: 0.20 }, // 20% 機率
+        { analystBonus: 0.40 }, // 40% 機率
+        { analystBonus: 0.60 }, // 60% 機率
+        { analystBonus: 0.80 }, // 80% 機率
+        { analystBonus: 1.00 }  // 100% 機率
+      ]
+    },
+    {
+      id: 'investor',
+      name: '天使投資人',
+      subDescription: '有錢人的錢就是比較好賺',
+      description: '解鎖舉債功能與額度',
+      maxLevel: 3,
+      costs: [1000, 3000, 5000],
+      effects: [
+        { debtLimit: 10000 },
+        { debtLimit: 30000 },
+        { debtLimit: 50000 }
+      ]
+    },
+    {
+      id: 'stock',
+      name: '股市投資',
+      subDescription: '人有兩隻腳，錢有四隻腳',
+      description: '每回合獲得資金利息',
+      maxLevel: 3,
+      costs: [10000, 30000, 80000],
+      effects: [
+        { interestRate: 0.03 },
+        { interestRate: 0.05 },
+        { interestRate: 0.08 }
+      ]
+    },
+    {
+      id: 'writing',
+      name: '提升文筆',
+      subDescription: '沒有效果，難道你覺得文筆對銷量有實際幫助嗎？',
+      description: '但我還是想點高',
+      maxLevel: null, // 無上限
+      costs: [500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 256000],
+      costFormula: (level) => 500 * Math.pow(2, level), // 超過預設陣列時使用公式
+      effects: [
+        { baseQualityBonus: 0 }, // 已移除實際效果
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 },
+        { baseQualityBonus: 0 }
+      ],
+      effectFormula: (level) => ({ baseQualityBonus: 0 }) // 超過預設陣列時使用公式
+    }
+  ],
+  
+  /** 最大銷售量基礎設定 */
+  MAX_SALES: {
+    BASE: 100,           // 基礎最大銷售量
+    PER_HELPER_LEVEL: 100, // 每級小幫手增加的銷售量
+    FRIENDS_MAX_TYPES: 3, // 親友團最多買幾種商品
+    FRIENDS_MAX_PRICE: 500 // 親友團購買價格上限
+  },
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 👥 V2: 顧客類型封面/紙質敏感度 (T009)
+  // ═══════════════════════════════════════════════════════════════
+  
+  CUSTOMER_COEFFICIENTS: {
+    CASUAL: {
+      coverSensitivity: 0.8,   // 封面影響較小
+      paperSensitivity: 0.5,   // 紙質幾乎不在意
+      name: '普通粉絲'
+    },
+    LURKER: {
+      coverSensitivity: 1.0,
+      paperSensitivity: 0.7,
+      name: '潛水者'
+    },
+    MEMER: {
+      coverSensitivity: 1.2,   // 喜歡華麗封面
+      paperSensitivity: 0.4,   // 不在意紙質
+      name: '迷因人'
+    },
+    ENTHUSIAST: {
+      coverSensitivity: 1.3,
+      paperSensitivity: 1.2,
+      name: '狂熱粉絲'
+    },
+    COLLECTOR: {
+      coverSensitivity: 1.5,   // 非常重視封面
+      paperSensitivity: 1.8,   // 極度重視紙質
+      name: '收藏家'
+    },
+    WHALE: {
+      coverSensitivity: 1.4,
+      paperSensitivity: 1.5,
+      name: '課金大佬'
+    },
+    CRITIC: {
+      coverSensitivity: 0.9,
+      paperSensitivity: 1.0,
+      name: '評論家'
+    },
+    HATER: {
+      coverSensitivity: 0.6,
+      paperSensitivity: 0.3,
+      name: '黑子'
+    }
+  },
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 🎨 V2: 封面與紙質等級 (T010)
+  // ═══════════════════════════════════════════════════════════════
+  
+  COVER_LEVELS: {
+    free: {
+      name: 'AI繪圖',
+      cost: 0,
+      attractionModifier: -0.20,
+      description: '用AI生成的封面'
+    },
+    basic: {
+      name: '朋友幫忙',
+      cost: 500,
+      attractionModifier: 0,
+      description: '請朋友幫忙畫的封面'
+    },
+    refined: {
+      name: '專業繪師',
+      cost: 2000,
+      attractionModifier: 0.25,
+      description: '委託專業繪師的封面'
+    },
+    premium: {
+      name: '大手繪師',
+      cost: 10000,
+      attractionModifier: 0.50,
+      description: '業界大手的特製封面'
+    }
+  },
+  
+  PAPER_LEVELS: {
+    economy: {
+      name: '再生紙',
+      costModifier: -0.20,
+      attractionModifier: -0.20,
+      description: '影印紙，省錢但質感差'
+    },
+    standard: {
+      name: '標準紙',
+      costModifier: 0,
+      attractionModifier: 0,
+      description: '一般同人誌用紙'
+    },
+    quality: {
+      name: '高級紙',
+      costModifier: 0.20,
+      attractionModifier: 0.20,
+      description: '高磅數進口紙'
+    },
+    luxury: {
+      name: '豪華紙',
+      costModifier: 0.50,
+      attractionModifier: 0.50,
+      description: '尊爵不凡，縱享絲滑'
+    }
+  },
+  
+  // ═══════════════════════════════════════════════════════════════
+  // 📉 V2: 作品衰退度 (T011)
+  // ═══════════════════════════════════════════════════════════════
+  
+  DECAY_RATES: {
+    trending: {
+      name: '時事熱門',
+      minDecay: 50,
+      maxDecay: 80,
+      description: '熱度來得快去得也快'
+    },
+    normal: {
+      name: '一般作品',
+      minDecay: 20,
+      maxDecay: 50,
+      description: '穩定的人氣衰減'
+    },
+    evergreen: {
+      name: '經典長青',
+      minDecay: 10,
+      maxDecay: 20,
+      description: '歷久不衰的經典題材'
+    }
   }
 };
 

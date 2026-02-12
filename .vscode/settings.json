@@ -11,7 +11,13 @@
         ".specify/scripts/powershell/": true,
         "git checkout": true,
         "git add": true,
-        "git commit": true
+        "git commit": true,
+        "git fetch": true,
+        "git ls-remote": true,
+        "/^powershell -ExecutionPolicy Bypass -File '\\.specify/scripts/powershell/create-new-feature\\.ps1' -Json -Number 2 -ShortName \"v2-major-update\" \"V2 major feature update: club upgrades, random events, developer log, inventory management, game over system, UI improvements, mechanics changes, and code refactoring\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     },
     "chat.agent.maxRequests": 100
 }

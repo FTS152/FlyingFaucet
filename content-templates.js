@@ -518,6 +518,695 @@ const ContentTemplates = {
   ],
   
   // ═══════════════════════════════════════════════════════════════
+  // 🎲 V2: 場次隨機事件池 (T012-T013)
+  // ═══════════════════════════════════════════════════════════════
+  
+  SessionEventPool: [
+    // === 負面事件 (11條) ===
+    {
+      id: 'neg_001',
+      name: '超大豪雨',
+      description: '場外突然下起傾盆大雨，許多人決定待在家裡追劇',
+      type: 'negative',
+      category: 'weather',
+      effects: [
+        { target: 'visitor_count', modifier: 'multiply', value: 0.6, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: ['pos_004']
+      },
+      notification: {
+        title: '☔ 傾盆大雨',
+        message: '場外突然下起傾盆大雨，許多人決定待在家裡追劇。來客數減少40%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_002',
+      name: '超大手攤位',
+      description: '隔壁來了超人氣大手社團，人潮塞到你的攤位前都過不去',
+      type: 'negative',
+      category: 'neighbor',
+      effects: [
+        { target: 'stay_rate', modifier: 'multiply', value: 0.7, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.06,
+        exclusive: ['ext_010']
+      },
+      notification: {
+        title: '😱 超大手攤位',
+        message: '隔壁來了超人氣大手社團，人潮塞到你的攤位前都過不去。停留機率減少30%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_003',
+      name: '打翻飲料',
+      description: '小幫手不小心把珍奶打翻在作品上',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'inventory', modifier: 'add', value: -10, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '🧋 打翻飲料',
+        message: '小幫手不小心把珍奶打翻在《{workTitle}》上。庫存損失10本！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_004',
+      name: '空調故障',
+      description: '會場空調壞了，悶熱到大家都想早點回家',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'session_time', modifier: 'multiply', value: 0.8, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '🥵 空調故障',
+        message: '會場空調壞了，悶熱到大家都想早點回家。場次時間減少20%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_005',
+      name: '找錯錢',
+      description: '忙中出錯，找錯錢給好幾位顧客',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'revenue', modifier: 'multiply', value: 0.85, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: []
+      },
+      notification: {
+        title: '💸 找錯錢',
+        message: '忙中出錯，找錯錢給好幾位顧客。收益減少15%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_006',
+      name: '印刷瑕疵',
+      description: '發現這批刊物有印刷瑕疵，只好降價賣出',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'price', modifier: 'multiply', value: 0.7, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '📖 印刷瑕疵',
+        message: '發現《{workTitle}》有印刷瑕疵，只好降價賣出。售價減少30%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_007',
+      name: '場次爭議',
+      description: '會場發生爭議事件，樂子人和黑子顧客蜂擁而至',
+      type: 'negative',
+      category: 'controversy',
+      effects: [
+        { target: 'bad_customer_rate', modifier: 'multiply', value: 1.5, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '😤 場次爭議',
+        message: '會場發生爭議事件，樂子人和黑子顧客蜂擁而至。奧客比例增加50%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_008',
+      name: '交通中斷',
+      description: '附近交通大亂，很多人中途折返',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'visitor_count', modifier: 'multiply', value: 0.75, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '🚗 交通中斷',
+        message: '附近交通大亂，很多人中途折返。來客數減少25%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_009',
+      name: '網路炎上',
+      description: '你的作品在網路上被人挑毛病炎上',
+      type: 'negative',
+      category: 'social',
+      effects: [
+        { target: 'popularity', modifier: 'add', value: -20, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 3,
+        maxRound: null,
+        probability: 0.03,
+        exclusive: []
+      },
+      notification: {
+        title: '🔥 網路炎上',
+        message: '你的《{workTitle}》在網路上被人挑毛病炎上。人氣減少20點！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_010',
+      name: '同質競爭',
+      description: '發現有其他社團出了相似題材的作品',
+      type: 'negative',
+      category: 'market',
+      effects: [
+        { target: 'sales', modifier: 'multiply', value: 0.8, scope: 'specific_theme' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: []
+      },
+      notification: {
+        title: '📚 同質競爭',
+        message: '發現有其他社團出了相似題材的作品。該題材銷量減少20%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'neg_011',
+      name: '攤位太亂',
+      description: '刊物擺放太亂，顧客找不到想要的作品',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'sales', modifier: 'multiply', value: 0.9, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: []
+      },
+      notification: {
+        title: '📦 攤位太亂',
+        message: '刊物擺放太亂，顧客找不到想要的作品。銷量減少10%！',
+        duration: 3000
+      }
+    },
+    
+    // === 正面事件 (11條) ===
+    {
+      id: 'pos_001',
+      name: '總統參訪',
+      description: '總統蒞臨會場參訪，還買了你的刊物上新聞！',
+      type: 'positive',
+      category: 'celebrity',
+      effects: [
+        { target: 'sales', modifier: 'multiply', value: 2.0, scope: 'all' },
+        { target: 'popularity', modifier: 'add', value: 50, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 5,
+        maxRound: null,
+        probability: 0.01,
+        exclusive: []
+      },
+      notification: {
+        title: '🎉 總統參訪',
+        message: '總統蒞臨會場參訪，還買了你的刊物上新聞！銷量翻倍，人氣大增！',
+        duration: 4000
+      }
+    },
+    {
+      id: 'pos_002',
+      name: '網紅推薦',
+      description: '知名網紅在社群推薦你的作品',
+      type: 'positive',
+      category: 'social',
+      effects: [
+        { target: 'sales', modifier: 'multiply', value: 1.5, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: []
+      },
+      notification: {
+        title: '📱 網紅推薦',
+        message: '知名網紅在社群推薦《{workTitle}》！該作品銷量增加50%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_003',
+      name: '台股大漲',
+      description: '台股創新高，場內瀰漫一股「今天花多少都沒關係」的氛圍',
+      type: 'positive',
+      category: 'market',
+      effects: [
+        { target: 'budget', modifier: 'multiply', value: 1.3, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '📈 台股大漲',
+        message: '台股創新高，場內瀰漫一股「今天花多少都沒關係」的氛圍。顧客預算增加30%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_004',
+      name: '天氣晴朗',
+      description: '今天天氣超好，大家都出門參加場次',
+      type: 'positive',
+      category: 'weather',
+      effects: [
+        { target: 'visitor_count', modifier: 'multiply', value: 1.25, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.06,
+        exclusive: ['neg_001']
+      },
+      notification: {
+        title: '☀️ 天氣晴朗',
+        message: '今天天氣超好，大家都出門參加場次。來客數增加25%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_005',
+      name: '好位置',
+      description: '你的攤位剛好在入口附近，人潮川流不息',
+      type: 'positive',
+      category: 'neighbor',
+      effects: [
+        { target: 'stay_rate', modifier: 'multiply', value: 1.25, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: ['ext_008']
+      },
+      notification: {
+        title: '📍 好位置',
+        message: '你的攤位剛好在入口附近，人潮川流不息。停留機率增加25%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_006',
+      name: '回頭客',
+      description: '有粉絲帶了一群朋友來支持你',
+      type: 'positive',
+      category: 'social',
+      effects: [
+        { target: 'sales', modifier: 'add', value: 20, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 2,
+        maxRound: null,
+        probability: 0.06,
+        exclusive: []
+      },
+      notification: {
+        title: '🙋 回頭客',
+        message: '有粉絲帶了一群朋友來支持你！《{workTitle}》銷量增加20本！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_007',
+      name: '話題熱潮',
+      description: '你的作品題材剛好搭上最近的話題熱潮',
+      type: 'positive',
+      category: 'market',
+      effects: [
+        { target: 'popularity', modifier: 'add', value: 30, scope: 'specific_theme' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: []
+      },
+      notification: {
+        title: '🔥 話題熱潮',
+        message: '你的作品題材剛好搭上最近的話題熱潮！該題材人氣增加30點！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_008',
+      name: '同好聚會',
+      description: '附近有相關題材的同好聚會，結束後大家順便逛場',
+      type: 'positive',
+      category: 'social',
+      effects: [
+        { target: 'visitor_count', modifier: 'multiply', value: 1.4, scope: 'specific_theme' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '👥 同好聚會',
+        message: '附近有相關題材的同好聚會，結束後大家順便逛場。該題材來客增加40%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_009',
+      name: '贊助商邀約',
+      description: '有廠商看上你的作品，洽談合作授權',
+      type: 'positive',
+      category: 'celebrity',
+      effects: [
+        { target: 'revenue', modifier: 'add', value: 5000, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 5,
+        maxRound: null,
+        probability: 0.03,
+        exclusive: []
+      },
+      notification: {
+        title: '💼 贊助商邀約',
+        message: '有廠商看上你的作品，洽談合作授權！獲得額外收入 $5000！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_010',
+      name: '完售慶祝',
+      description: '某作品提前完售，消息傳開後更多人來攤位朝聖',
+      type: 'positive',
+      category: 'social',
+      effects: [
+        { target: 'sales', modifier: 'multiply', value: 1.15, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        requiresSoldOut: true,
+        exclusive: []
+      },
+      notification: {
+        title: '🎊 完售慶祝',
+        message: '某作品提前完售，消息傳開後更多人來攤位朝聖！其他作品銷量增加15%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'pos_011',
+      name: 'Coser合照',
+      description: '你僱用的Coser小幫手超受歡迎，大家排隊合照',
+      type: 'positive',
+      category: 'celebrity',
+      effects: [
+        { target: 'stay_rate', modifier: 'multiply', value: 1.4, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        requiresUpgrade: { id: 'coser', minLevel: 1 },
+        exclusive: []
+      },
+      notification: {
+        title: '📸 Coser合照',
+        message: '你僱用的Coser小幫手超受歡迎，大家排隊合照！停留機率增加40%！',
+        duration: 3000
+      }
+    },
+    
+    // === 混合/擴充事件 (10條) ===
+    {
+      id: 'ext_001',
+      name: '電力中斷',
+      description: '會場臨時停電半小時',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'session_time', modifier: 'multiply', value: 0.85, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.03,
+        exclusive: []
+      },
+      notification: {
+        title: '💡 電力中斷',
+        message: '會場臨時停電半小時。場次時間減少15%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_002',
+      name: '作品獲獎',
+      description: '你的作品獲得場次人氣獎提名',
+      type: 'positive',
+      category: 'celebrity',
+      effects: [
+        { target: 'popularity', modifier: 'add', value: 40, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 3,
+        maxRound: null,
+        probability: 0.03,
+        exclusive: []
+      },
+      notification: {
+        title: '🏆 作品獲獎',
+        message: '你的《{workTitle}》獲得場次人氣獎提名！人氣增加40點！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_003',
+      name: '排隊人潮',
+      description: '攤位大排長龍，反而嚇跑一些不想等的顧客',
+      type: 'mixed',
+      category: 'social',
+      effects: [
+        { target: 'stay_rate', modifier: 'multiply', value: 0.85, scope: 'all' },
+        { target: 'sales', modifier: 'multiply', value: 1.2, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 2,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '🚶 排隊人潮',
+        message: '攤位大排長龍，反而嚇跑一些不想等的顧客。停留機率-15%，但銷量+20%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_004',
+      name: '老朋友到訪',
+      description: '多年沒見的創作圈老友來探班聊天',
+      type: 'positive',
+      category: 'social',
+      effects: [
+        { target: 'next_round_efficiency', modifier: 'multiply', value: 1.2, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 3,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '👋 老朋友到訪',
+        message: '多年沒見的創作圈老友來探班聊天。下輪創作效率+20%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_005',
+      name: '物流延誤',
+      description: '部分刊物物流延誤，場次開始時庫存不足',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'inventory', modifier: 'multiply', value: 0.7, scope: 'random_work' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '📦 物流延誤',
+        message: '《{workTitle}》物流延誤，場次開始時庫存減少30%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_006',
+      name: '快閃促銷',
+      description: '你決定來個快閃特價活動吸引人潮',
+      type: 'mixed',
+      category: 'market',
+      effects: [
+        { target: 'price', modifier: 'multiply', value: 0.8, scope: 'all' },
+        { target: 'sales', modifier: 'multiply', value: 1.35, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '🏷️ 快閃促銷',
+        message: '你決定來個快閃特價活動吸引人潮。售價-20%，但銷量+35%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_007',
+      name: '媒體採訪',
+      description: '有媒體來採訪場次，順便拍了你的攤位',
+      type: 'positive',
+      category: 'celebrity',
+      effects: [
+        { target: 'reputation', modifier: 'add', value: 10, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 2,
+        maxRound: null,
+        probability: 0.04,
+        exclusive: []
+      },
+      notification: {
+        title: '📺 媒體採訪',
+        message: '有媒體來採訪場次，順便拍了你的攤位。社團知名度+10點！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_008',
+      name: '場地太遠',
+      description: '這次場地位置偏僻，很多人懶得來',
+      type: 'negative',
+      category: 'accident',
+      effects: [
+        { target: 'visitor_count', modifier: 'multiply', value: 0.85, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: ['pos_005']
+      },
+      notification: {
+        title: '🗺️ 場地太遠',
+        message: '這次場地位置偏僻，很多人懶得來。來客數減少15%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_009',
+      name: '主辦優惠',
+      description: '主辦單位推出入場優惠活動',
+      type: 'positive',
+      category: 'market',
+      effects: [
+        { target: 'visitor_count', modifier: 'multiply', value: 1.2, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: []
+      },
+      notification: {
+        title: '🎫 主辦優惠',
+        message: '主辦單位推出入場優惠活動。來客數增加20%！',
+        duration: 3000
+      }
+    },
+    {
+      id: 'ext_010',
+      name: '隔壁棄攤',
+      description: '隔壁攤位沒來設攤，空間變寬敞了',
+      type: 'positive',
+      category: 'neighbor',
+      effects: [
+        { target: 'stay_rate', modifier: 'multiply', value: 1.1, scope: 'all' }
+      ],
+      triggerConditions: {
+        minRound: 1,
+        maxRound: null,
+        probability: 0.05,
+        exclusive: ['neg_002']
+      },
+      notification: {
+        title: '🪑 隔壁棄攤',
+        message: '隔壁攤位沒來設攤，空間變寬敞了。停留機率增加10%！',
+        duration: 3000
+      }
+    }
+  ],
+  
+  // ═══════════════════════════════════════════════════════════════
   // 📋 作品退場原因模板
   // ═══════════════════════════════════════════════════════════════
   
