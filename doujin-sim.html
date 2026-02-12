@@ -3925,16 +3925,14 @@
       let expenses = 0;
       const processedPubs = new Set(); // 追蹤已處理的出版物，避免重複計算
       for (const [pubId, sales] of Object.entries(results.itemSales)) {
-        if (sales.sold > 0) {
-          const pub = GameState.publications.find(p => p.id === pubId);
-          if (pub && !processedPubs.has(pubId)) {
-            // 如果是本回合印刷的刊物，計算全部生產成本
-            if (pub.createdRound === GameState.round) {
-              expenses += pub.productionCost;
-              processedPubs.add(pubId);
-            }
-            // 舊庫存不計算成本（已在之前回合計算過）
+        const pub = GameState.publications.find(p => p.id === pubId);
+        if (pub && !processedPubs.has(pubId)) {
+          // 如果是本回合印刷的刊物，計算全部生產成本
+          if (pub.createdRound === GameState.round) {
+            expenses += pub.productionCost;
+            processedPubs.add(pubId);
           }
+          // 舊庫存不計算成本（已在之前回合計算過）
         }
       }
       
@@ -4702,24 +4700,35 @@
     }
     
     function skipRound() {
-      // 跳過場次，直接進入下一回合（無收入）
+      // 跳過場次，先顯示結果頁面，讓玩家通過社團管理操作後再繼續
       if (!confirm('確定要跳過本回合場次嗎？\n\n• 不會有任何銷售收入\n• 庫存仍然會收取倉儲費\n• AP將會重置')) {
         return;
       }
       
-      // 紀錄空白場次
-      GameState.history.push({
-        round: GameState.round,
+      // 構造跳過場次的結果對象
+      const skipResults = {
         totalRevenue: 0,
-        unitsSold: 0,
-        expenses: 0,
-        profit: 0,
-        skipped: true,
-        notableEvents: ['跳過場次']
-      });
+        totalVisitors: 0,
+        itemSales: {},
+        customerLog: []
+      };
       
-      // 進入下一回合
-      proceedToNextRound();
+      // 設置階段為結果頁面
+      GameState.phase = PHASES.RESULTS;
+      renderPhase(PHASES.RESULTS);
+      
+      // 顯示跳過場次的結果
+      renderResults(skipResults, [{
+        name: '跳過場次',
+        description: '本回合沒有參加任何場次，因此沒有銷售收入。',
+        type: 'neutral',
+        notification: {
+          title: '⏭️ 跳過',
+          message: '本回合沒有參加任何場次，因此沒有銷售收入。'
+        }
+      }]);
+      
+      saveGame();
     }
     
     // === 趨勢系統 ===
@@ -4890,6 +4899,10 @@
         const idx = GameState.franchises.indexOf(franchise);
         if (idx > -1) {
           GameState.franchises.splice(idx, 1);
+          
+          // 同時刪除該作品的草稿（避免玩家選擇已下架作品的草稿導致錯誤）
+          GameState.drafts = GameState.drafts.filter(d => d.franchiseId !== franchise.id);
+          
           report.removed.push({
             name: franchise.name,
             reason: reason.name,
