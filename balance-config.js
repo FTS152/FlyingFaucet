@@ -46,7 +46,7 @@ const BalanceConfig = {
   /** 各粉絲類型的價格心理閾值 (超過會大幅降低購買意願) */
   PRICE_THRESHOLDS: {
     CASUAL: 300,      // 普通粉絲
-    LURKER: 200,      // 潛水者
+    LURKER: 300,      // 潛水者
     MEMER: 400,       // 迷因人
     ENTHUSIAST: 600, // 狂熱粉絲
     COLLECTOR: 800,  // 收藏家
@@ -57,9 +57,6 @@ const BalanceConfig = {
   
   /** 絕對價格上限 - 超過此價格無人購買 */
   ABSOLUTE_PRICE_CEILING: 3000,
-  
-  /** 價格超過閾值時的意願衰減最大值 (每超過1000元降低的意願比例) */
-  PRICE_RELUCTANCE_RATE: 0.98,
   
   // ═══════════════════════════════════════════════════════════════
   // 🔞 R18 內容系統

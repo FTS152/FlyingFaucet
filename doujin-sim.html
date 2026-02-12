@@ -2625,10 +2625,9 @@
           // 價格閾值檢查：超過閾值時大幅降低購買意願
           const priceThreshold = PRICE_THRESHOLDS[attendee.fanType] || 500;
           if (item.retailPrice > priceThreshold) {
-            // 超過閾值越多，購買意願越低
+            // 超過閾值越多，購買意願越低，當超過預期價格兩倍時就不買了
             const overThreshold = item.retailPrice - priceThreshold;
-            const reluctanceCap = BalanceConfig.PRICE_RELUCTANCE_RATE ?? 0.98;
-            const reluctance = 1 - Math.min(reluctanceCap, overThreshold / 1000);
+            const reluctance = 1 - Math.min(1, overThreshold / priceThreshold);
             if (Math.random() > reluctance) {
               // 記錄：因為價格放棄
               customerLog.push({
