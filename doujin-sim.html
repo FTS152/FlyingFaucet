@@ -464,6 +464,7 @@
     .event-notifications {
       display: flex;
       flex-direction: column;
+      margin-bottom: 12px;
       gap: 8px;
     }
     
@@ -1118,6 +1119,303 @@
       margin-top: 2px;
       word-break: break-all;
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       📱 V3: 社群觀察 + 創作 統一介面
+       ═══════════════════════════════════════════════════════════════ */
+    /* 社群觀察模式使用寬版容器 */
+    .container.wide-phase {
+      max-width: 1600px;
+    }
+
+    .sa-layout {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 24px;
+      margin-top: 12px;
+    }
+
+    .sa-feed-panel {
+      min-height: 400px;
+      min-width: 0; /* 防止 grid overflow */
+    }
+
+    .sa-feed-panel .social-feed {
+      max-height: 600px;
+    }
+
+    .sa-action-panel {
+      max-height: 700px;
+      overflow-y: auto;
+      padding-right: 8px;
+      min-width: 0;
+      position: sticky;
+      top: 12px;
+      align-self: start;
+    }
+
+    /* 平台標籤 */
+    .platform-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .platform-tab {
+      flex: 1;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #aaa;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.85rem;
+    }
+
+    .platform-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .tab-count {
+      display: inline-block;
+      font-size: 0.7rem;
+      min-width: 20px;
+      padding: 1px 5px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      text-align: center;
+      margin-left: 4px;
+    }
+
+    .platform-tab.active .tab-count {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .platform-tab.active[data-platform="FEETBOOK"] {
+      background: linear-gradient(135deg, #1877f2 0%, #42a5f5 100%);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .platform-tab.active[data-platform="Y"] {
+      background: linear-gradient(135deg, #1da1f2 0%, #0d8ecf 100%);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .platform-tab.active[data-platform="THREECH"] {
+      background: linear-gradient(135deg, #4a752c 0%, #6b9b37 100%);
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .platform-feed-content.hidden {
+      display: none;
+    }
+
+    /* Feed 熱門趨勢列 */
+    .feed-trending {
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .trending-tag {
+      padding: 2px 8px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 12px;
+      color: #f59e0b;
+      font-size: 0.78rem;
+    }
+
+    .trending-tag small {
+      color: #b45309;
+      font-size: 0.7rem;
+    }
+
+    /* 平台專屬貼文樣式 */
+    .post.platform-FEETBOOK {
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .post.platform-THREECH {
+      border-radius: 2px;
+      padding: 10px 12px;
+      background: rgba(74, 117, 44, 0.06);
+      border-left: 3px solid #4a752c;
+      font-family: 'MS PGothic', 'Noto Sans JP', monospace;
+      font-size: 1.0rem;
+      line-height: 1.6;
+    }
+
+    .post.platform-Y {
+      border-radius: 16px;
+      padding: 12px 16px;
+      border-left: 2px solid #1da1f2;
+    }
+
+    /* 互動指標列 */
+    .post-engagement {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.8rem;
+      color: #666;
+      display: flex;
+      gap: 16px;
+    }
+
+    .post-engagement span {
+      transition: color 0.15s;
+      cursor: default;
+    }
+
+    .post-engagement span:hover {
+      color: #aaa;
+    }
+
+    /* 聲線標籤 */
+    .voice-badge {
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(168, 85, 247, 0.2);
+      color: #a855f7;
+      margin-left: 8px;
+    }
+
+    /* 事件貼文標記 */
+    .event-badge {
+      font-size: 0.68rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      margin-left: 6px;
+    }
+
+    /* 事件觸發貼文高亮 */
+    .post.event-triggered {
+      animation: postFlashIn 0.6s ease-out;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      background: rgba(251, 191, 36, 0.05);
+    }
+
+    @keyframes postFlashIn {
+      from { opacity: 0; transform: translateY(-10px); background: rgba(251, 191, 36, 0.15); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Feed 變更指示器 */
+    .feed-update-banner {
+      padding: 8px 14px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(251, 191, 36, 0.08));
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #f59e0b;
+      text-align: center;
+      animation: bannerSlideIn 0.4s ease-out;
+      cursor: pointer;
+    }
+
+    .feed-update-banner:hover {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.12));
+    }
+
+    @keyframes bannerSlideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 月份指示器 */
+    .month-advance {
+      animation: monthPulse 0.5s ease-out;
+    }
+
+    @keyframes monthPulse {
+      0% { color: #f59e0b; transform: scale(1.1); }
+      100% { color: #888; transform: scale(1); }
+    }
+
+    /* 右欄 franchise 卡片精簡模式 */
+    .sa-action-panel .franchise-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .sa-action-panel .franchise-card {
+      padding: 12px 14px;
+      border-radius: 10px;
+    }
+
+    .sa-action-panel .franchise-name {
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .sa-action-panel .franchise-description {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-size: 0.8rem !important;
+      margin: 4px 0 !important;
+    }
+
+    .sa-action-panel .franchise-tags {
+      margin: 4px 0;
+    }
+
+    .sa-action-panel .franchise-stats {
+      font-size: 0.78rem;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sa-action-panel .fan-distribution {
+      font-size: 0.75rem;
+    }
+
+    .sa-action-panel .action-buttons {
+      margin-top: 6px;
+    }
+
+    .sa-action-panel .action-buttons button {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    /* 響應式：中等螢幕縮回標準寬度 */
+    @media (max-width: 1200px) {
+      .container.wide-phase {
+        max-width: 100%;
+      }
+    }
+
+    /* 響應式：窄螢幕改為單欄堆疊 */
+    @media (max-width: 900px) {
+      .sa-layout {
+        grid-template-columns: 1fr;
+      }
+      .sa-action-panel {
+        max-height: none;
+        position: static;
+      }
+    }
   </style>
   
   <!-- 外部配置檔案 -->
@@ -1131,6 +1429,7 @@
   <script src="js/sales-calculator.js"></script>
   <script src="js/inventory-manager.js"></script>
   <script src="js/game-over.js"></script>
+<script src="js/platform-engine.js"></script>
 </head>
 <body>
   <div class="container">
@@ -1208,68 +1507,66 @@
       <div id="dev-log-stats" style="padding: 8px 12px; border-top: 1px solid rgba(255, 152, 0, 0.2); font-size: 0.7rem; color: #888;"></div>
     </div>
     
-    <!-- === 社群觀察介面 === -->
-    <div id="observation-phase" class="phase hidden">
+    <!-- === V3: 社群觀察 + 創作（統一介面） === -->
+    <div id="social-action-phase" class="phase hidden">
       <div class="phase-header">
-        <h2>📱 社群觀察 <span id="obs-circle-name" style="font-size: 0.7em; color: #60a5fa; margin-left: 12px;"></span></h2>
+        <h2>📱 社群觀察 & 創作 <span id="sa-circle-name" style="font-size: 0.7em; color: #60a5fa; margin-left: 12px;"></span></h2>
         <div class="stats-bar">
           <div class="stat">
             <span class="stat-label">回合</span>
-            <span class="stat-value" id="obs-round">1</span>
+            <span class="stat-value" id="sa-round">1</span>
           </div>
           <div class="stat">
             <span class="stat-label">資金</span>
-            <span class="stat-value money" id="obs-money">$10,000</span>
+            <span class="stat-value money" id="sa-money">$10,000</span>
           </div>
           <div class="stat">
             <span class="stat-label">行動點</span>
-            <span class="stat-value ap" id="obs-ap">5</span>
+            <span class="stat-value ap" id="sa-ap">5</span>
           </div>
           <div class="stat" style="flex: 2;">
             <span class="stat-label">目標進度</span>
             <div style="display: flex; align-items: center; gap: 8px;">
               <div class="goal-progress-bar" style="flex: 1; height: 16px; background: rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden;">
-                <div id="obs-goal-progress" style="height: 100%; background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%); width: 0%; transition: width 0.3s;"></div>
+                <div id="sa-goal-progress" style="height: 100%; background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%); width: 0%; transition: width 0.3s;"></div>
               </div>
-              <span id="obs-goal-text" style="font-size: 0.75rem; color: #888;">0%</span>
+              <span id="sa-goal-text" style="font-size: 0.75rem; color: #888;">0%</span>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- 事件通知區 -->
-      <div id="event-notifications" class="event-notifications" style="margin-bottom: 16px;"></div>
-      
-      <p style="margin-bottom: 16px; color: #aaa;">觀察社群媒體上的討論，了解哪些作品正在熱門...</p>
-      <div id="social-feed" class="social-feed"></div>
-      <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
-        <button id="btn-view-history" class="secondary-btn">📊 查看歷史</button>
-        <button id="btn-start-action">開始創作 →</button>
+
+      <!-- 描述文字 -->
+      <p style="text-align: center; color: #888; font-size: 0.85rem; margin: 4px 0 0 0;">觀察社群媒體上的討論，了解哪些作品正在熱門...</p>
+
+      <!-- 月份指示器 -->
+      <div id="month-indicator" style="text-align: center; margin: 8px 0; font-size: 0.85rem; color: #888;">
+        <span id="current-month">第 1 月</span> / <span id="total-months">6</span> 月 <span id="ap-done-hint" style="color: #fbbf24; font-weight: bold; display: none;">— 該參加場次了！</span>
       </div>
-    </div>
-    
-    <!-- === 創作介面 === -->
-    <div id="action-phase" class="phase hidden">
-      <div class="phase-header">
-        <h2>✏️ 創作階段</h2>
-        <div class="stats-bar">
-          <div class="stat">
-            <span class="stat-label">回合</span>
-            <span class="stat-value" id="act-round">1</span>
+
+      <!-- 主內容：左右分欄 -->
+      <div class="sa-layout">
+        <!-- 左欄：社群動態 -->
+        <div class="sa-feed-panel">
+          <!-- 事件通知區（在 feed 內，不影響右欄位置） -->
+          <div id="sa-event-notifications" class="event-notifications"></div>
+          <div class="platform-tabs">
+            <button class="platform-tab active" data-platform="FEETBOOK">📘 FeetBook <span class="tab-count">0</span></button>
+            <button class="platform-tab" data-platform="Y">🐦 Y <span class="tab-count">0</span></button>
+            <button class="platform-tab" data-platform="THREECH">💬 3ch <span class="tab-count">0</span></button>
           </div>
-          <div class="stat">
-            <span class="stat-label">資金</span>
-            <span class="stat-value money" id="act-money">$10,000</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">行動點</span>
-            <span class="stat-value ap" id="act-ap">5</span>
-          </div>
+          <div id="feed-FEETBOOK" class="platform-feed-content social-feed"></div>
+          <div id="feed-Y" class="platform-feed-content social-feed hidden"></div>
+          <div id="feed-THREECH" class="platform-feed-content social-feed hidden"></div>
+        </div>
+
+        <!-- 右欄：創作行動 -->
+        <div class="sa-action-panel">
+          <h3 style="margin-bottom: 12px;">✏️ 創作行動 <span style="font-size: 0.8em; color: #888;">(每次消耗 1 AP = 1 個月)</span></h3>
+          <div id="franchise-list" class="franchise-grid"></div>
         </div>
       </div>
-      <p style="margin-bottom: 16px; color: #aaa;">選擇作品進行創作，每次創作消耗 1 行動點</p>
-      
-      <div id="franchise-list" class="franchise-grid"></div>
+
       <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
         <button id="btn-action-history" class="secondary-btn">📊 查看狀態</button>
         <button id="btn-to-prep" disabled>前往準備 →</button>
@@ -1654,12 +1951,14 @@
     // 遊戲階段
     const PHASES = {
       MENU: 'MENU',
-      OBSERVATION: 'OBSERVATION',
-      ACTION: 'ACTION',
+      SOCIAL_ACTION: 'SOCIAL_ACTION', // V3: 合併觀察+創作
       PREP: 'PREP',
       CONVENTION: 'CONVENTION',
       RESULTS: 'RESULTS'
     };
+    // 向後相容舊存檔
+    PHASES.OBSERVATION = PHASES.SOCIAL_ACTION;
+    PHASES.ACTION = PHASES.SOCIAL_ACTION;
     
     // === 動態事件系統 ===
     const EVENT_CATEGORIES = {
@@ -1869,7 +2168,13 @@
         totalVisitors: 0,         // 總來客數
         maxSalesReached: false,   // 是否觸發銷售上限
         lostSales: 0              // 因上限損失的潛在銷量
-      }
+      },
+
+      // === V3 新增欄位 ===
+      platformFeeds: {},            // 三平台 feed 資料（不持久化）
+      activePlatform: 'FEETBOOK',   // 當前選取的平台 tab
+      socialEventCooldowns: {},     // 社群事件冷卻追蹤
+      saveVersion: 2                // 存檔版本
     };
     
     // === 工具函數 ===
@@ -2077,47 +2382,6 @@
       return sentences.join('');
     }
     
-    function generateSocialPost(franchise, fanType, seed) {
-      const rng = seededRandom(seed);
-      const templates = PostTemplates[fanType];
-      let template = pickRandom(templates, rng);
-      
-      // 替換 placeholder
-      template = template.replace('【franchise】', franchise.name);
-      template = template.replace('【character】', pickRandom(Dictionary.character, rng));
-      template = template.replace('【highlight】', pickRandom(Dictionary.highlight, rng));
-      template = template.replace('【meme】', pickRandom(Dictionary.meme, rng));
-      template = template.replace('【criticism】', '這種安排很明顯是趕工');
-      
-      // 生成用戶名
-      const usernameParts = [
-        pickRandom(['推', '粉', '黨', '廚', '控', '狂', '迷'], rng),
-        pickRandom(['小', '大', '超級', '終極', '專業', '業餘', '隱藏'], rng)
-      ];
-      const username = pickRandom(Dictionary.role, rng) + pickRandom(usernameParts, rng);
-      
-      // 生成時間戳記
-      const timeUnits = ['m', 'h', 'd'];
-      const timeValues = [
-        Math.floor(rng() * 59) + 1,
-        Math.floor(rng() * 23) + 1,
-        Math.floor(rng() * 7) + 1
-      ];
-      const timeIdx = Math.floor(rng() * 3);
-      const timestamp = timeValues[timeIdx] + timeUnits[timeIdx];
-      
-      return {
-        id: 'post_' + generateId(),
-        username,
-        franchiseId: franchise.id,
-        franchiseName: franchise.name,
-        content: template,
-        fanType,
-        timestamp,
-        metadata: { seed }
-      };
-    }
-    
     function getFanTypeDistribution(franchise) {
       // 基於 P, D, B 計算粉絲類型分布
       const P = franchise.popularity;
@@ -2242,58 +2506,95 @@
         purchasingPowerText: '???',
         archetypeText: '???',
         marketSize: '???',
-        fanDistribution: null
+        fanDistribution: null,
+        trendInfo: null
       };
-      
+
+      // Lv1: 人氣 (高/中/低)
       if (audienceLevel >= 1) {
-        result.popularityText = franchise.popularity >= HIGH_P ? '高' : 
+        result.popularityText = franchise.popularity >= HIGH_P ? '高' :
                                franchise.popularity <= LOW_P ? '低' : '中';
       }
-      
+
+      // Lv2: 前1種粉絲類型
       if (audienceLevel >= 2) {
-        // 顯示前 2 種粉絲類型
+        const dist = getFanTypeDistribution(franchise);
+        const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+        result.fanDistribution = sorted.slice(0, 1).map(([type, pct]) => ({
+          type, name: FAN_TYPE_NAMES[type], percentage: Math.round(pct * 100)
+        }));
+      }
+
+      // Lv3: 前2種粉絲類型
+      if (audienceLevel >= 3) {
         const dist = getFanTypeDistribution(franchise);
         const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
         result.fanDistribution = sorted.slice(0, 2).map(([type, pct]) => ({
-          type,
-          name: FAN_TYPE_NAMES[type],
-          percentage: Math.round(pct * 100)
+          type, name: FAN_TYPE_NAMES[type], percentage: Math.round(pct * 100)
         }));
       }
-      
-      if (audienceLevel >= 3) {
-        result.densityText = franchise.audienceDensity >= HIGH_D ? '高' : 
-                            franchise.audienceDensity <= LOW_D ? '低' : '中';
-        // 估算市場規模
-        const baseSize = franchise.popularity * franchise.audienceDensity * 100;
-        result.marketSize = baseSize >= 4000 ? '大規模' : baseSize >= 2000 ? '中規模' : '小規模';
-      }
-      
+
+      // Lv4: 密度 (高/中/低)
       if (audienceLevel >= 4) {
-        // 顯示前 4 種粉絲類型
+        result.densityText = franchise.audienceDensity >= HIGH_D ? '高' :
+                            franchise.audienceDensity <= LOW_D ? '低' : '中';
+      }
+
+      // Lv5: 前4種粉絲類型
+      if (audienceLevel >= 5) {
         const dist = getFanTypeDistribution(franchise);
         const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
         result.fanDistribution = sorted.slice(0, 4).map(([type, pct]) => ({
-          type,
-          name: FAN_TYPE_NAMES[type],
-          percentage: Math.round(pct * 100)
+          type, name: FAN_TYPE_NAMES[type], percentage: Math.round(pct * 100)
         }));
       }
-      
-      if (audienceLevel >= 5) {
-        result.purchasingPowerText = franchise.purchasingPower >= HIGH_B ? '高' : 
+
+      // Lv6: 前6種粉絲類型
+      if (audienceLevel >= 6) {
+        const dist = getFanTypeDistribution(franchise);
+        const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
+        result.fanDistribution = sorted.slice(0, 6).map(([type, pct]) => ({
+          type, name: FAN_TYPE_NAMES[type], percentage: Math.round(pct * 100)
+        }));
+      }
+
+      // Lv7: 購買力 (高/中/低)
+      if (audienceLevel >= 7) {
+        result.purchasingPowerText = franchise.purchasingPower >= HIGH_B ? '高' :
                                     franchise.purchasingPower <= LOW_B ? '低' : '中';
-        result.archetypeText = ARCHETYPE_NAMES[franchise.archetype];
-        // 完整 8 類型分布
+      }
+
+      // Lv8: 全8種粉絲類型
+      if (audienceLevel >= 8) {
         const dist = getFanTypeDistribution(franchise);
         const sorted = Object.entries(dist).sort((a, b) => b[1] - a[1]);
         result.fanDistribution = sorted.map(([type, pct]) => ({
-          type,
-          name: FAN_TYPE_NAMES[type],
-          percentage: Math.round(pct * 100)
+          type, name: FAN_TYPE_NAMES[type], percentage: Math.round(pct * 100)
         }));
       }
-      
+
+      // Lv9: 市場規模 + 原型
+      if (audienceLevel >= 9) {
+        const baseSize = franchise.popularity * franchise.audienceDensity * 100;
+        result.marketSize = baseSize >= 4000 ? '大規模' : baseSize >= 2000 ? '中規模' : '小規模';
+        result.archetypeText = ARCHETYPE_NAMES[franchise.archetype];
+      }
+
+      // Lv10: 衰退類型
+      if (audienceLevel >= 10) {
+        const decayRates = BalanceConfig.DECAY_RATES;
+        let trendType = 'normal';
+        if (franchise.decayRate !== undefined) {
+          if (franchise.decayRate >= decayRates.trending.minDecay) trendType = 'trending';
+          else if (franchise.decayRate <= decayRates.evergreen.maxDecay) trendType = 'evergreen';
+        }
+        result.trendInfo = {
+          type: trendType,
+          name: decayRates[trendType].name,
+          description: decayRates[trendType].description
+        };
+      }
+
       return result;
     }
     
@@ -2337,7 +2638,7 @@
       const essenceBonus = 1 + (draft.essenceLevel * 0.05);
       const estimatedRate = baseRate * essenceBonus;
       
-      const estimatedAttendees = Math.round(franchise.popularity * franchise.audienceDensity * 50);
+      const estimatedAttendees = Math.round(BalanceConfig.getEffectivePopularity(franchise.popularity) * franchise.audienceDensity * 50);
       const baseSales = Math.round(estimatedAttendees * estimatedRate);
       
       let confidence = '低';
@@ -2355,44 +2656,6 @@
         confidence,
         combinedLevel
       };
-    }
-    
-    function generateSocialFeed(franchises) {
-      const posts = [];
-      const baseSeed = Date.now();
-      
-      for (const franchise of franchises) {
-        // 計算貼文數量 = P × activity × trend
-        const trendMultiplier = franchise.seasonal ? 1.5 : 1.0;
-        const postCount = Math.floor(
-          franchise.popularity * franchise.audienceActivity * trendMultiplier * 0.3
-        );
-        
-        const fanDist = getFanTypeDistribution(franchise);
-        const fanTypes = Object.keys(fanDist);
-        
-        for (let i = 0; i < postCount; i++) {
-          // 按分布選擇粉絲類型
-          let r = Math.random();
-          let selectedType = 'CASUAL';
-          let cumulative = 0;
-          for (const type of fanTypes) {
-            cumulative += fanDist[type];
-            if (r <= cumulative) {
-              selectedType = type;
-              break;
-            }
-          }
-          
-          const post = generateSocialPost(franchise, selectedType, baseSeed + i + franchise.seed);
-          posts.push(post);
-        }
-      }
-      
-      // 隨機排序模擬時間線
-      posts.sort(() => Math.random() - 0.5);
-      
-      return posts.slice(0, 100); // 最多100則
     }
     
     // === 場次模擬函數 ===
@@ -2424,7 +2687,7 @@
       // 計算總 P
       const boothFranchiseIds = boothItems.map(item => item.franchiseId);
       const boothFranchises = allFranchises.filter(f => boothFranchiseIds.includes(f.id));
-      const totalP = boothFranchises.reduce((sum, f) => sum + f.popularity, 0);
+      const totalP = boothFranchises.reduce((sum, f) => sum + BalanceConfig.getEffectivePopularity(f.popularity), 0);
       
       // 入場人數基於 P
       const baseCount = totalP * BalanceConfig.CONVENTION.ATTENDEE_MULTIPLIER;
@@ -2452,10 +2715,15 @@
       const fanTypes = Object.keys(fanTypeWeights);
       const totalWeight = Object.values(fanTypeWeights).reduce((a, b) => a + b, 0);
       
+      // 預先按 franchise 分組 boothItems（供 per-franchise targetList roll）
+      const boothItemsByFranchise = new Map();
+      for (const item of boothItems) {
+        if (!boothItemsByFranchise.has(item.franchiseId)) boothItemsByFranchise.set(item.franchiseId, []);
+        boothItemsByFranchise.get(item.franchiseId).push(item);
+      }
+
       const attendees = [];
       for (let i = 0; i < attendeeCount; i++) {
-        const budget = 1500 + Math.random() * 3500;
-        
         // 根據權重選擇粉絲類型
         let fanType = 'CASUAL';
         let r = Math.random() * totalWeight;
@@ -2467,13 +2735,17 @@
             break;
           }
         }
-        
-        // 生成 target list (基於 D)
+
+        // 按顧客類型決定預算
+        const budgetRange = BalanceConfig.CUSTOMER_BUDGETS[fanType] || { min: 1000, max: 3000 };
+        const budget = budgetRange.min + Math.random() * (budgetRange.max - budgetRange.min);
+
+        // 生成 target list (per-franchise roll：同 franchise 只 roll 一次 D)
         const targetList = [];
-        for (const item of boothItems) {
-          const franchise = allFranchises.find(f => f.id === item.franchiseId);
+        for (const [fId, fItems] of boothItemsByFranchise) {
+          const franchise = allFranchises.find(f => f.id === fId);
           if (franchise && Math.random() < franchise.audienceDensity) {
-            targetList.push(item.id);
+            for (const item of fItems) targetList.push(item.id);
           }
         }
         
@@ -2602,111 +2874,92 @@
       // 絕對價格上限：超過此價格無人購買
       const ABSOLUTE_PRICE_CEILING = BalanceConfig.ABSOLUTE_PRICE_CEILING;
       
+      // 按 franchiseId 分組 items
+      const franchiseGroups = new Map();
+      for (const item of items) {
+        if (!franchiseGroups.has(item.franchiseId)) franchiseGroups.set(item.franchiseId, []);
+        franchiseGroups.get(item.franchiseId).push(item);
+      }
+
+      // 計算單品購買機率的 helper
+      const calcPurchaseProb = (item, franchise, attendee) => {
+        let prob = franchise.audienceDensity;
+        prob *= (1 - (item.retailPrice / attendee.budget) * attendee.priceSensitivity * 0.3);
+        prob *= franchise.purchasingPower;
+        prob *= (1 - attendee.fatigue * 0.5);
+        if (attendee.targetList.includes(item.id)) prob *= 1.5;
+        const essenceModifier = (item.essenceSnapshot - 5) * 0.05 + 1.0;
+        if (QUALITY_SENSITIVE_FANS.includes(attendee.fanType)) prob *= essenceModifier;
+        if (item.isR18) prob *= (R18_PREFERENCE[attendee.fanType] || 1.0);
+        if (typeof UpgradeSystem !== 'undefined') prob *= UpgradeSystem.getSalesMultiplier();
+        return clamp(prob, 0, 0.9);
+      };
+
+      // 執行購買的 helper
+      const executePurchase = (item, attendee) => {
+        item.remainingCount--;
+        attendee.budget -= item.retailPrice;
+        attendee.purchasedItems.push(item.id);
+        attendee.fatigue += 0.1;
+        const adjustedRevenue = Math.round(item.retailPrice * revenueMultiplier);
+        itemSales[item.id].sold++;
+        itemSales[item.id].revenue += adjustedRevenue;
+        totalRevenue += adjustedRevenue;
+        soldItems.push({ itemId: item.id, attendeeId: attendee.id, price: adjustedRevenue });
+        customerLog.push({ type: 'purchase', fanType: attendee.fanType, itemId: item.id, price: item.retailPrice, copies: 1 });
+      };
+
+      const bonusChances = BalanceConfig.FRANCHISE_BONUS_CHANCES;
+
       for (const visit of visits) {
         const attendee = visit.attendee;
-        
-        for (const item of items) {
-          if (item.remainingCount <= 0) continue;
-          if (attendee.budget < item.retailPrice) continue;
-          // 僅購買在target list中的商品，增加購買意願
-          if (!attendee.targetList.includes(item.id)) continue;
-          
-          // 絕對價格上限檢查：超過5000元沒人會買
-          if (item.retailPrice > ABSOLUTE_PRICE_CEILING) {
-            customerLog.push({
-              type: 'price_refuse',
-              fanType: attendee.fanType,
-              itemId: item.id,
-              price: item.retailPrice
-            });
-            continue;
-          }
-          
-          // 價格閾值檢查：超過閾值時大幅降低購買意願
+
+        for (const [franchiseId, groupItems] of franchiseGroups) {
+          // 過濾：庫存 > 0、預算足夠、在 targetList 中、未超價格上限
+          const eligible = groupItems.filter(item =>
+            item.remainingCount > 0 &&
+            attendee.budget >= item.retailPrice &&
+            attendee.targetList.includes(item.id) &&
+            item.retailPrice <= ABSOLUTE_PRICE_CEILING
+          );
+          if (eligible.length === 0) continue;
+
+          // 選最佳刊物（品質最高 essenceSnapshot，同分取較便宜）
+          eligible.sort((a, b) => b.essenceSnapshot - a.essenceSnapshot || a.retailPrice - b.retailPrice);
+          const primary = eligible[0];
+
+          // 價格閾值檢查（主判定前）
           const priceThreshold = PRICE_THRESHOLDS[attendee.fanType] || 500;
-          if (item.retailPrice > priceThreshold) {
-            // 超過閾值越多，購買意願越低，當超過預期價格兩倍時就不買了
-            const overThreshold = item.retailPrice - priceThreshold;
+          if (primary.retailPrice > priceThreshold) {
+            const overThreshold = primary.retailPrice - priceThreshold;
             const reluctance = 1 - Math.min(1, overThreshold / priceThreshold);
             if (Math.random() > reluctance) {
-              // 記錄：因為價格放棄
-              customerLog.push({
-                type: 'price_refuse',
-                fanType: attendee.fanType,
-                itemId: item.id,
-                price: item.retailPrice
-              });
+              customerLog.push({ type: 'price_refuse', fanType: attendee.fanType, itemId: primary.id, price: primary.retailPrice });
               continue;
             }
           }
-          
-          const franchise = getSalesFranchise(item);
-          
-          // 購買機率 = D × B × 價格因素 × 疲勞因素
-          let prob = franchise.audienceDensity;
-          prob *= (1 - (item.retailPrice / attendee.budget) * attendee.priceSensitivity * 0.3);
-          prob *= franchise.purchasingPower;
-          prob *= (1 - attendee.fatigue * 0.5);
-          
-          // 是目標的話機率更高
-          if (attendee.targetList.includes(item.id)) {
-            prob *= 1.5;
+
+          const franchise = getSalesFranchise(primary);
+          const prob = calcPurchaseProb(primary, franchise, attendee);
+
+          // 主判定
+          if (Math.random() >= prob) {
+            customerLog.push({ type: 'browse_only', fanType: attendee.fanType, itemId: primary.id });
+            continue;
           }
-          
-          // 品質敏感型粉絲：理解度影響購買意願
-          // essenceSnapshot 0-10，0 = -20%，5 = 基準，10 = +30%
-          const essenceModifier = (item.essenceSnapshot - 5) * 0.05 + 1.0;
-          if (QUALITY_SENSITIVE_FANS.includes(attendee.fanType)) {
-            prob *= essenceModifier;
-          }
-          
-          // R18 內容影響購買意願
-          if (item.isR18) {
-            const r18Mod = R18_PREFERENCE[attendee.fanType] || 1.0;
-            prob *= r18Mod;
-          }
-          
-          // T027: 社群經營升級的銷量乘數
-          if (typeof UpgradeSystem !== 'undefined') {
-            prob *= UpgradeSystem.getSalesMultiplier();
-          }
-          
-          prob = clamp(prob, 0, 0.9);
-          
-          if (Math.random() < prob) {
-            item.remainingCount--;
-            attendee.budget -= item.retailPrice;
-            attendee.purchasedItems.push(item.id);
-            attendee.fatigue += 0.1;
-            
-            // T043: 套用事件收益修正 (只使用乘法效果)
-            const adjustedRevenue = Math.round(item.retailPrice * revenueMultiplier);
-            
-            itemSales[item.id].sold++;
-            itemSales[item.id].revenue += adjustedRevenue;
-            totalRevenue += adjustedRevenue;
-            
-            soldItems.push({
-              itemId: item.id,
-              attendeeId: attendee.id,
-              price: adjustedRevenue
-            });
-            
-            // 記錄：購買成功
-            customerLog.push({
-              type: 'purchase',
-              fanType: attendee.fanType,
-              itemId: item.id,
-              price: item.retailPrice,
-              copies: 1
-            });
-          } else {
-            // 記錄：看了但沒買
-            customerLog.push({
-              type: 'browse_only',
-              fanType: attendee.fanType,
-              itemId: item.id
-            });
+
+          // 主判定成功：購買 primary
+          executePurchase(primary, attendee);
+
+          // Bonus rolls：同 franchise 其餘刊物
+          const remaining = eligible.slice(1);
+          for (let i = 0; i < remaining.length; i++) {
+            const bonusItem = remaining[i];
+            if (bonusItem.remainingCount <= 0 || attendee.budget < bonusItem.retailPrice) continue;
+            const bonusProb = bonusChances[i] !== undefined ? bonusChances[i] : bonusChances[bonusChances.length - 1];
+            if (Math.random() < bonusProb) {
+              executePurchase(bonusItem, attendee);
+            }
           }
         }
       }
@@ -2997,7 +3250,12 @@
             devMode: GameState.devMode,
             circle: GameState.circle,
             sessionState: GameState.sessionState,
-            circleName: GameState.circleName
+            circleName: GameState.circleName,
+            // V3 新增欄位
+            activePlatform: GameState.activePlatform || 'FEETBOOK',
+            socialEventCooldowns: GameState.socialEventCooldowns || {},
+            saveVersion: 2
+            // platformFeeds 不持久化，每次進入 phase 重新生成
           }
         };
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
@@ -3008,20 +3266,45 @@
         return false;
       }
     }
-    
+
     function loadGame() {
       try {
         const raw = localStorage.getItem(SAVE_KEY);
         if (!raw) return false;
-        
+
         const saveData = JSON.parse(raw);
         Object.assign(GameState, saveData.state);
+
+        // V3: 存檔遷移
+        migrateSaveData(saveData);
+
         log('Game loaded', GameState);
         return true;
       } catch (e) {
         console.error('Load failed:', e);
         return false;
       }
+    }
+
+    function migrateSaveData(saveData) {
+      const version = saveData.state?.saveVersion || 1;
+      if (version < 2) {
+        // Phase 名稱遷移：舊的 OBSERVATION / ACTION → SOCIAL_ACTION
+        if (GameState.phase === 'OBSERVATION' || GameState.phase === 'ACTION') {
+          GameState.phase = PHASES.SOCIAL_ACTION;
+        }
+        // 新增缺失欄位
+        if (!GameState.platformFeeds) GameState.platformFeeds = {};
+        if (!GameState.activePlatform) GameState.activePlatform = 'FEETBOOK';
+        if (!GameState.socialEventCooldowns) GameState.socialEventCooldowns = {};
+        GameState.currentPosts = []; // 清除舊格式
+        GameState.saveVersion = 2;
+        console.log('[Migration] Save migrated from v1 to v2');
+      }
+      // 確保 V3 欄位存在（即使是 v2 存檔）
+      if (!GameState.platformFeeds) GameState.platformFeeds = {};
+      if (!GameState.activePlatform) GameState.activePlatform = 'FEETBOOK';
+      if (!GameState.socialEventCooldowns) GameState.socialEventCooldowns = {};
     }
     
     function clearSave() {
@@ -3037,32 +3320,36 @@
     function renderPhase(phase) {
       // 隱藏所有階段
       document.querySelectorAll('.phase').forEach(el => el.classList.add('hidden'));
-      
+
+      // V3: 社群觀察需要寬版容器
+      const container = document.querySelector('.container');
+      if (phase === PHASES.SOCIAL_ACTION) {
+        container.classList.add('wide-phase');
+      } else {
+        container.classList.remove('wide-phase');
+      }
+
       // 顯示指定階段
       const phaseMap = {
         [PHASES.MENU]: 'main-menu',
-        [PHASES.OBSERVATION]: 'observation-phase',
-        [PHASES.ACTION]: 'action-phase',
+        [PHASES.SOCIAL_ACTION]: 'social-action-phase',
         [PHASES.PREP]: 'prep-phase',
         [PHASES.CONVENTION]: 'convention-phase',
         [PHASES.RESULTS]: 'results-phase'
       };
-      
+
       const elementId = phaseMap[phase];
       if (elementId) {
         document.getElementById(elementId).classList.remove('hidden');
       }
-      
+
       // 更新階段特定內容
       switch (phase) {
         case PHASES.MENU:
           renderMenu();
           break;
-        case PHASES.OBSERVATION:
-          renderObservation();
-          break;
-        case PHASES.ACTION:
-          renderAction();
+        case PHASES.SOCIAL_ACTION:
+          renderSocialAction();
           break;
         case PHASES.PREP:
           renderPrep();
@@ -3094,69 +3381,166 @@
     
     function updateStats() {
       // 更新所有階段的狀態列
-      const statIds = ['obs', 'act', 'prep'];
+      const statIds = ['sa', 'prep'];
       for (const prefix of statIds) {
         const roundEl = document.getElementById(`${prefix}-round`);
         const moneyEl = document.getElementById(`${prefix}-money`);
         const apEl = document.getElementById(`${prefix}-ap`);
-        
+
         if (roundEl) roundEl.textContent = GameState.round;
         if (moneyEl) moneyEl.textContent = formatCurrency(GameState.money);
         if (apEl) apEl.textContent = GameState.ap;
       }
-      
+
       // 更新社團名稱
-      const circleNameEl = document.getElementById('obs-circle-name');
+      const circleNameEl = document.getElementById('sa-circle-name');
       if (circleNameEl && GameState.circleName) {
         circleNameEl.textContent = `【${GameState.circleName}】`;
       }
-      
-      // 更新目標進度（觀察階段）
-      const goalProgress = document.getElementById('obs-goal-progress');
-      const goalText = document.getElementById('obs-goal-text');
+
+      // 更新目標進度
+      const goalProgress = document.getElementById('sa-goal-progress');
+      const goalText = document.getElementById('sa-goal-text');
       if (goalProgress && goalText) {
         const percentage = Math.min(100, (GameState.money / GOAL_AMOUNT) * 100);
         goalProgress.style.width = percentage + '%';
-        goalText.textContent = `${percentage.toFixed(1)}% ($${formatCurrency(GameState.money)}/$${formatCurrency(GOAL_AMOUNT)})`;
+        goalText.textContent = `${percentage.toFixed(1)}% (${formatCurrency(GameState.money)}/${formatCurrency(GOAL_AMOUNT)})`;
       }
     }
-    
-    function renderObservation() {
+
+    // === V3: 統一社群觀察 + 創作渲染 ===
+
+    function renderSocialAction() {
       updateStats();
-      
+
       // 顯示本回合事件通知
       renderEventNotifications();
-      
-      // 生成並顯示社群貼文
-      if (GameState.currentPosts.length === 0) {
-        GameState.currentPosts = generateSocialFeed(GameState.franchises);
+
+      // 初始化平台引擎並生成 feed
+      if (!GameState.platformFeeds || Object.keys(GameState.platformFeeds).length === 0) {
+        PlatformEngine.init();
+        GameState.platformFeeds = PlatformEngine.generatePlatformFeeds(
+          GameState.franchises, GameState.round
+        );
       }
-      
-      const feedEl = document.getElementById('social-feed');
-      feedEl.innerHTML = GameState.currentPosts.map(post => `
-        <div class="post ${post.fanType}">
+
+      // 渲染當前平台 feed
+      const activePlatform = GameState.activePlatform || 'FEETBOOK';
+      renderPlatformFeed(activePlatform);
+
+      // 渲染創作行動列表
+      renderFranchiseGrid();
+
+      // 更新月份指示器
+      const monthsSpent = GameState.maxAp - GameState.ap;
+      const monthEl = document.getElementById('current-month');
+      const totalEl = document.getElementById('total-months');
+      const apDoneHint = document.getElementById('ap-done-hint');
+      if (monthEl) monthEl.textContent = `第 ${monthsSpent + 1} 月`;
+      if (totalEl) totalEl.textContent = GameState.maxAp + 1;
+      if (apDoneHint) apDoneHint.style.display = GameState.ap <= 0 ? 'inline' : 'none';
+
+      // 更新前往準備按鈕狀態
+      document.getElementById('btn-to-prep').disabled = GameState.ap > 0;
+    }
+
+    function renderPlatformFeed(platformId) {
+      // 更新 tab active 狀態 + post count badges
+      document.querySelectorAll('.platform-tab').forEach(t => {
+        t.classList.remove('active');
+        const pid = t.getAttribute('data-platform');
+        const count = PlatformEngine.getPlatformFeed(pid).length;
+        const badge = t.querySelector('.tab-count');
+        if (badge) badge.textContent = count;
+      });
+      const activeTab = document.querySelector(`.platform-tab[data-platform="${platformId}"]`);
+      if (activeTab) activeTab.classList.add('active');
+
+      // 切換 feed 顯示
+      document.querySelectorAll('.platform-feed-content').forEach(el => el.classList.add('hidden'));
+      const feedEl = document.getElementById(`feed-${platformId}`);
+      if (!feedEl) return;
+      feedEl.classList.remove('hidden');
+
+      // 從 PlatformEngine 取得貼文
+      const posts = PlatformEngine.getPlatformFeed(platformId);
+
+      // Feed 統計摘要
+      const franchiseCounts = {};
+      posts.forEach(p => {
+        franchiseCounts[p.franchiseName] = (franchiseCounts[p.franchiseName] || 0) + 1;
+      });
+      const topFranchises = Object.entries(franchiseCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+      const trendingHtml = topFranchises.length > 0
+        ? `<div class="feed-trending">🔥 熱門: ${topFranchises.map(([name, count]) =>
+            `<span class="trending-tag">${name} <small>(${count})</small></span>`
+          ).join(' ')}</div>`
+        : '';
+
+      // Feed 變更指示器（僅在事件觸發後首次渲染時顯示）
+      let updateBannerHtml = '';
+      if (GameState._feedUpdateInfo) {
+        const info = GameState._feedUpdateInfo;
+        updateBannerHtml = `<div class="feed-update-banner" onclick="this.remove()">
+          📡 ${info.eventName} — 出現 ${info.count} 則相關新貼文 (點擊關閉)
+        </div>`;
+        GameState._feedUpdateInfo = null; // 顯示後清除
+      }
+
+      feedEl.innerHTML = updateBannerHtml + trendingHtml + posts.map(post => renderPostHTML(post, platformId)).join('');
+    }
+
+    function renderPostHTML(post, platformId) {
+      const platformClass = `platform-${platformId}`;
+      const eventClass = post.isEventTriggered ? 'event-triggered' : '';
+      const voiceBadge = '';
+      const eventBadge = post.isEventTriggered ? '<span class="event-badge">📡 話題</span>' : '';
+
+      // 平台專屬 username
+      let usernameHtml;
+      if (platformId === 'THREECH') {
+        usernameHtml = `<span class="post-username" style="color: #4a752c;">${post.anonName || '名無しさん'}</span>`;
+      } else {
+        usernameHtml = `<span class="post-username">@${post.username}</span>`;
+      }
+
+      // 互動指標
+      const engagementHtml = post.engagementDisplay
+        ? `<div class="post-engagement">${post.engagementDisplay}</div>`
+        : '';
+
+      // 底部 footer (hashtags)
+      const footerHtml = post.wrappedFooter
+        ? `<span class="post-franchise">${post.wrappedFooter}</span>`
+        : `<span class="post-franchise">#${post.franchiseName}</span>`;
+
+      return `
+        <div class="post ${post.fanType} ${platformClass} ${eventClass}">
           <div class="post-header">
-            <span class="post-username">@${post.username}</span>
+            ${usernameHtml} ${voiceBadge} ${eventBadge}
             <span class="post-timestamp">${post.timestamp}</span>
           </div>
-          <div class="post-content">${post.content}</div>
-          <span class="post-franchise">#${post.franchiseName}</span>
+          <div class="post-content">${(post.wrappedContent || post.content).replace(/\n/g, '<br>')}</div>
+          ${footerHtml}
+          ${engagementHtml}
         </div>
-      `).join('');
+      `;
     }
     
     function renderEventNotifications() {
-      const notificationsEl = document.getElementById('event-notifications');
+      const notificationsEl = document.getElementById('sa-event-notifications') || document.getElementById('event-notifications');
       if (!notificationsEl) return;
-      
-      // 顯示本回合的事件
-      const currentRoundEvents = GameState.eventLog.filter(e => e.round === GameState.round);
-      
+
+      // 顯示本回合的事件（最多 5 筆）
+      const currentRoundEvents = GameState.eventLog.filter(e => e.round === GameState.round).slice(-3);
+
       if (currentRoundEvents.length === 0) {
         notificationsEl.innerHTML = '';
         return;
       }
-      
+
       notificationsEl.innerHTML = currentRoundEvents.map(event => {
         // 判斷效果是正面還是負面
         let effectClass = '';
@@ -3485,8 +3869,11 @@
     }
 
     function renderAction() {
-      updateStats();
-      
+      // V3: 向後相容，重導到統一介面
+      renderSocialAction();
+    }
+
+    function renderFranchiseGrid() {
       const listEl = document.getElementById('franchise-list');
       listEl.innerHTML = GameState.franchises.map(franchise => {
         const draft = GameState.drafts.find(d => d.franchiseId === franchise.id);
@@ -3531,7 +3918,7 @@
             <div class="franchise-name">
               ${isNew ? '<span class="new-badge">NEW</span>' : ''}
               ${franchise.name}
-              ${audienceLevel >= 5 ? `<span class="archetype-badge ${franchise.archetype}">${intel.archetypeText}</span>` : ''}
+              ${audienceLevel >= 9 ? `<span class="archetype-badge ${franchise.archetype}">${intel.archetypeText}</span>` : ''}
             </div>
             <div class="franchise-description" style="font-size: 0.85rem; color: #aaa; margin: 8px 0; line-height: 1.5;">
               ${franchise.description}
@@ -3551,9 +3938,13 @@
               <span>人氣: ${intel.popularityText}</span>
               <span>密度: ${intel.densityText}</span>
               <span>購買力: ${intel.purchasingPowerText}</span>
-              ${audienceLevel >= 3 ? `<span>市場: ${intel.marketSize}</span>` : ''}
+              ${audienceLevel >= 9 ? `<span>市場: ${intel.marketSize}</span>` : ''}
             </div>
             ${fanDistHtml}
+            ${intel.trendInfo ? `
+            <div style="margin-top: 4px; padding: 4px 8px; background: rgba(245,158,11,0.08); border-radius: 4px; font-size: 0.8rem; color: #fbbf24;">
+              ${intel.trendInfo.name} — ${intel.trendInfo.description}
+            </div>` : ''}
             <div class="draft-info" style="margin: 8px 0; font-size: 0.85rem; color: #aaa;">
               草稿: ${draftCount} | 理解度: ${essenceLevel}/10 | 調研: ${audienceLevel}/10
             </div>
@@ -4225,7 +4616,7 @@
           money: BalanceConfig.STARTING_MONEY,
           ap: BalanceConfig.ACTION_POINTS_PER_ROUND,
           maxAp: BalanceConfig.ACTION_POINTS_PER_ROUND,
-          phase: PHASES.OBSERVATION,
+          phase: PHASES.SOCIAL_ACTION,
           franchises: [],
           drafts: [],
           publications: [],
@@ -4236,7 +4627,12 @@
           seed: Date.now(),
           currentPosts: [],
           circleName: options.circleName || '無名社團',
-          goalReached: false
+          goalReached: false,
+          // V3 新增欄位
+          platformFeeds: {},
+          activePlatform: 'FEETBOOK',
+          socialEventCooldowns: {},
+          saveVersion: 2
         };
         
         // 生成 10-15 個作品
@@ -4345,12 +4741,71 @@
       }
       
       GameState.ap--;
-      
-      // 每次行動後可能觸發事件
+
+      // 每次行動後可能觸發既有事件（修改 P/D/B）
       triggerActionEvents();
-      
+
+      // V3: 擲骰社群事件並即時更新 feed
+      let newPostCount = 0;
+      let triggeredEventName = '';
+      if (typeof PlatformEngine !== 'undefined') {
+        PlatformEngine.init();
+        if (!GameState.socialEventCooldowns) GameState.socialEventCooldowns = {};
+        const socialEvents = PlatformEngine.rollSocialEvents(
+          GameState.franchises, GameState.socialEventCooldowns, GameState.round
+        );
+        for (const { event: sEvt, targetFranchise } of socialEvents) {
+          // 套用效果到作品屬性
+          if (sEvt.effect) {
+            if (sEvt.effect.popularity) targetFranchise.popularity = clamp(targetFranchise.popularity + sEvt.effect.popularity, 1, 100);
+            if (sEvt.effect.density) targetFranchise.audienceDensity = clamp(targetFranchise.audienceDensity + sEvt.effect.density, 0.1, 1.0);
+            if (sEvt.effect.purchasingPower) targetFranchise.purchasingPower = clamp(targetFranchise.purchasingPower + sEvt.effect.purchasingPower, 0.5, 2.0);
+          }
+          // 記錄洗版前的數量
+          const beforeCount = PlatformEngine.getPlatformFeed(GameState.activePlatform || 'FEETBOOK')
+            .filter(p => p.isEventTriggered).length;
+          // 洗版效果
+          PlatformEngine.applySocialEventToFeeds(sEvt, targetFranchise);
+          const afterCount = PlatformEngine.getPlatformFeed(GameState.activePlatform || 'FEETBOOK')
+            .filter(p => p.isEventTriggered).length;
+          newPostCount += (afterCount - beforeCount);
+          triggeredEventName = sEvt.name;
+          // 記錄到事件日誌
+          GameState.eventLog.push({
+            round: GameState.round,
+            eventName: sEvt.name,
+            description: sEvt.description.replace('【franchise】', targetFranchise.name),
+            effect: sEvt.effect,
+            franchiseId: targetFranchise.id
+          });
+        }
+      }
+
       saveGame();
-      renderAction();
+
+      // 選擇性更新：有事件才重渲染 feed，否則只更新右欄
+      if (newPostCount > 0) {
+        GameState._feedUpdateInfo = { count: newPostCount, eventName: triggeredEventName };
+        // 同步 feed 到 GameState
+        GameState.platformFeeds = {};
+        const pids2 = PlatformEngine.getAllPlatformIds();
+        for (const pid2 of pids2) {
+          GameState.platformFeeds[pid2] = PlatformEngine.getPlatformFeed(pid2);
+        }
+        renderSocialAction(); // 完整重渲染（含 feed）
+      } else {
+        // 無事件：只更新右欄和狀態列，不動 feed
+        updateStats();
+        renderFranchiseGrid();
+        const monthsSpent = GameState.maxAp - GameState.ap;
+        const monthEl = document.getElementById('current-month');
+        const totalEl = document.getElementById('total-months');
+        const apDoneHint = document.getElementById('ap-done-hint');
+        if (monthEl) monthEl.textContent = `第 ${monthsSpent + 1} 月`;
+        if (totalEl) totalEl.textContent = GameState.maxAp + 1;
+        if (apDoneHint) apDoneHint.style.display = GameState.ap <= 0 ? 'inline' : 'none';
+        document.getElementById('btn-to-prep').disabled = GameState.ap > 0;
+      }
     }
     
     function triggerActionEvents() {
@@ -4981,7 +5436,7 @@
     }
     
     function advancePhase() {
-      const phaseOrder = [PHASES.OBSERVATION, PHASES.ACTION, PHASES.PREP, PHASES.CONVENTION, PHASES.RESULTS];
+      const phaseOrder = [PHASES.SOCIAL_ACTION, PHASES.PREP, PHASES.CONVENTION, PHASES.RESULTS];
       const currentIdx = phaseOrder.indexOf(GameState.phase);
       
       if (currentIdx < phaseOrder.length - 1) {
@@ -5375,10 +5830,12 @@
       // 繼續到下一回合
       GameState.round++;
       GameState.ap = GameState.maxAp;
-      GameState.phase = PHASES.OBSERVATION;
-      GameState.currentPosts = []; // 重新生成社群貼文
+      GameState.phase = PHASES.SOCIAL_ACTION;
+      GameState.currentPosts = []; // 向後相容
+      GameState.platformFeeds = {}; // V3: 清空讓下回合重新生成
+      GameState.activePlatform = 'FEETBOOK'; // V3: 重置到預設平台
       console.log('[ProceedToNextRound] Starting round', GameState.round);
-      
+
       // 重置場次狀態
       GameState.sessionState = {
         isActive: false,
@@ -5392,16 +5849,16 @@
       // 更新作品趨勢
       applyTrendShifts();
       applyFranchiseDecay();
-      
+
       // 在每回合結束時更新作品池（新增/退場）
       const rotationReport = updateFranchisePool();
       if (rotationReport) {
         showFranchiseRotationReport(rotationReport);
       }
-      
+
       saveGame();
-      console.log('[ProceedToNextRound] Rendering OBSERVATION phase');
-      renderPhase(PHASES.OBSERVATION);
+      console.log('[ProceedToNextRound] Rendering SOCIAL_ACTION phase');
+      renderPhase(PHASES.SOCIAL_ACTION);
       console.log('[ProceedToNextRound] Phase rendered, current phase:', GameState.phase);
     }
     
@@ -5541,14 +5998,18 @@
         }
       });
       
-      // 觀察階段
-      document.getElementById('btn-start-action').addEventListener('click', () => {
-        GameState.phase = PHASES.ACTION;
-        saveGame();
-        renderPhase(PHASES.ACTION);
+      // V3: 平台 tab 切換（用 currentTarget 避免點到子元素 .tab-count 時失效）
+      document.querySelectorAll('.platform-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+          const platformId = e.currentTarget.dataset.platform;
+          if (platformId) {
+            GameState.activePlatform = platformId;
+            renderPlatformFeed(platformId);
+          }
+        });
       });
-      
-      // 創作階段
+
+      // 創作階段 → 準備
       document.getElementById('btn-to-prep').addEventListener('click', () => {
         GameState.phase = PHASES.PREP;
         saveGame();
@@ -5591,7 +6052,8 @@
       document.getElementById('btn-close-club-management').addEventListener('click', closeClubManagement);
       
       // 歷史面板
-      document.getElementById('btn-view-history').addEventListener('click', openHistoryPanel);
+      const btnViewHistory = document.getElementById('btn-view-history');
+      if (btnViewHistory) btnViewHistory.addEventListener('click', openHistoryPanel);
       document.getElementById('btn-close-history').addEventListener('click', closeHistoryPanel);
       document.getElementById('history-overlay').addEventListener('click', closeHistoryPanel);
       

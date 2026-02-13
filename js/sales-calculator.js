@@ -155,12 +155,16 @@ const SalesCalculator = (function() {
     let baseEstimate;
     const attendeeMultiplier = BalanceConfig?.CONVENTION?.ATTENDEE_MULTIPLIER ?? 15;
     const multiplier = Number.isFinite(attendeeMultiplier) ? attendeeMultiplier : 15;
+    // 套用人氣抑制
+    const getEffP = (p) => (typeof BalanceConfig !== 'undefined' && BalanceConfig.getEffectivePopularity)
+      ? BalanceConfig.getEffectivePopularity(p) : p;
+
     if (isSimple || marketUnderstanding < 0.3) {
       // 簡化公式：只看人氣
-      baseEstimate = Math.round(work.popularity * 0.5 * 0.25 * multiplier);
+      baseEstimate = Math.round(getEffP(work.popularity) * 0.5 * 0.25 * multiplier);
     } else {
       // 完整公式：P × D × B
-      const popularity = work.popularity || 50;
+      const popularity = getEffP(work.popularity || 50);
       const density = work.audienceDensity || 0.3;
       const purchasingPower = work.purchasingPower || 1.0;
       
