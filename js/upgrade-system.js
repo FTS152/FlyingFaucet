@@ -71,6 +71,19 @@ const UpgradeSystem = (function() {
     }
     return GameState.circle.upgrades[upgradeId] || 0;
   }
+
+  // 取得指定升級的有效最大等級（含成就加成）
+  function getMaxLevel(upgradeId) {
+    const definition = getUpgradeDefinitions().find(function(d) { return d.id === upgradeId; });
+    if (!definition) return 0;
+    var base = definition.maxLevel;
+    if (base === null) return null; // 無上限
+    // 加上成就系統的 bonus（例如本物語）
+    if (typeof GameState !== 'undefined' && GameState._coserMaxLevelBonus && upgradeId === 'coser') {
+      base += GameState._coserMaxLevelBonus;
+    }
+    return base;
+  }
   
   // T024: 取得指定升級項目升至下一級的費用
   function getUpgradeCost(upgradeId) {
@@ -79,11 +92,12 @@ const UpgradeSystem = (function() {
       console.warn('[UpgradeSystem] Unknown upgrade:', upgradeId);
       return null;
     }
-    
+
     const currentLevel = getUpgradeLevel(upgradeId);
-    
+    const effectiveMaxLevel = getMaxLevel(upgradeId);
+
     // 檢查是否已達最高等級
-    if (definition.maxLevel !== null && currentLevel >= definition.maxLevel) {
+    if (effectiveMaxLevel !== null && currentLevel >= effectiveMaxLevel) {
       return null; // 已達最高等級
     }
     
@@ -112,11 +126,12 @@ const UpgradeSystem = (function() {
   function canUpgrade(upgradeId) {
     const definition = getUpgradeDefinitions().find(d => d.id === upgradeId);
     if (!definition) return false;
-    
+
     const currentLevel = getUpgradeLevel(upgradeId);
-    
+    const effectiveMaxLevel = getMaxLevel(upgradeId);
+
     // 檢查是否已達最高等級
-    if (definition.maxLevel !== null && currentLevel >= definition.maxLevel) {
+    if (effectiveMaxLevel !== null && currentLevel >= effectiveMaxLevel) {
       return false;
     }
     
@@ -132,29 +147,30 @@ const UpgradeSystem = (function() {
     }
     
     const currentLevel = getUpgradeLevel(upgradeId);
-    
+    const effectiveMaxLevel = getMaxLevel(upgradeId);
+
     // 檢查是否已達最高等級
-    if (definition.maxLevel !== null && currentLevel >= definition.maxLevel) {
+    if (effectiveMaxLevel !== null && currentLevel >= effectiveMaxLevel) {
       return { success: false, message: '已達最高等級' };
     }
-    
+
     const cost = getUpgradeCost(upgradeId);
     if (cost === null) {
       return { success: false, message: '無法取得升級費用' };
     }
-    
+
     // 檢查資金
     if (GameState.money < cost) {
       return { success: false, message: '資金不足' };
     }
-    
+
     // 扣除資金
     GameState.money -= cost;
-    
+
     // 增加等級
     GameState.circle.upgrades[upgradeId] = currentLevel + 1;
     const newLevel = GameState.circle.upgrades[upgradeId];
-    
+
     // T084: 開發者日誌
     if (typeof devLog === 'function') {
       devLog('UPGRADE', `購買升級: ${definition.name} Lv.${newLevel}`, {
@@ -165,7 +181,7 @@ const UpgradeSystem = (function() {
         remainingMoney: GameState.money
       });
     }
-    
+
     // 觸發事件
     if (typeof EventBus !== 'undefined') {
       EventBus.emit('upgrade:purchased', {
@@ -173,12 +189,12 @@ const UpgradeSystem = (function() {
         newLevel,
         cost
       });
-      
+
       // 檢查是否達到最高等級
-      if (definition.maxLevel !== null && newLevel >= definition.maxLevel) {
+      if (effectiveMaxLevel !== null && newLevel >= effectiveMaxLevel) {
         EventBus.emit('upgrade:maxReached', {
           upgradeId,
-          maxLevel: definition.maxLevel
+          maxLevel: effectiveMaxLevel
         });
       }
     }
@@ -208,16 +224,32 @@ const UpgradeSystem = (function() {
     
     // 取得對應等級的效果（等級從1開始，陣列從0開始）
     const effectIndex = currentLevel - 1;
-    
+
     if (definition.effects && definition.effects[effectIndex]) {
       return definition.effects[effectIndex];
     }
-    
+
+    // 超出 effects 陣列的等級（來自 grantFreeLevel bonus）
+    // 以最後一級效果為基礎，每超出一級加 10%
+    if (definition.effects && definition.effects.length > 0 && effectIndex >= definition.effects.length) {
+      var lastEffect = definition.effects[definition.effects.length - 1];
+      var extraLevels = effectIndex - definition.effects.length + 1;
+      var boosted = {};
+      Object.keys(lastEffect).forEach(function(key) {
+        if (typeof lastEffect[key] === 'number') {
+          boosted[key] = Math.round((lastEffect[key] + extraLevels * 0.10) * 100) / 100;
+        } else {
+          boosted[key] = lastEffect[key];
+        }
+      });
+      return boosted;
+    }
+
     // 使用公式計算效果（用於無上限的升級項目）
     if (definition.effectFormula) {
       return definition.effectFormula(currentLevel);
     }
-    
+
     return {};
   }
   
@@ -316,7 +348,48 @@ const UpgradeSystem = (function() {
     const analystEffect = getUpgradeEffect('analyst');
     return analystEffect.analystBonus || 0;
   }
-  
+
+  /**
+   * 免費增加一級升級（由成就系統等外部機制呼叫）
+   * 不扣除資金，但仍受有效最大等級限制
+   * @param {string} upgradeId
+   * @returns {{ success: boolean, newLevel: number }}
+   */
+  function grantFreeLevel(upgradeId) {
+    const definition = getUpgradeDefinitions().find(function(d) { return d.id === upgradeId; });
+    if (!definition) {
+      return { success: false, newLevel: 0 };
+    }
+
+    if (!GameState.circle || !GameState.circle.upgrades) {
+      return { success: false, newLevel: 0 };
+    }
+
+    var currentLevel = getUpgradeLevel(upgradeId);
+    var effectiveMax = getMaxLevel(upgradeId);
+
+    if (effectiveMax !== null && currentLevel >= effectiveMax) {
+      return { success: false, newLevel: currentLevel };
+    }
+
+    GameState.circle.upgrades[upgradeId] = currentLevel + 1;
+    var newLevel = GameState.circle.upgrades[upgradeId];
+
+    console.log('[UpgradeSystem] Granted free level:', definition.name, 'Lv.' + newLevel);
+
+    if (typeof devLog === 'function') {
+      devLog('UPGRADE', '免費升級 (成就獎勵): ' + definition.name + ' Lv.' + newLevel, {
+        upgradeId: upgradeId,
+        oldLevel: currentLevel,
+        newLevel: newLevel,
+        cost: 0,
+        source: 'achievement'
+      });
+    }
+
+    return { success: true, newLevel: newLevel };
+  }
+
   // 公開 API
   return {
     init: initUpgradeSystem,
@@ -329,6 +402,9 @@ const UpgradeSystem = (function() {
     getEffect: getUpgradeEffect,
     getAllEffects: getAllUpgradeEffects,
     
+    grantFreeLevel,
+    getMaxLevel,
+
     // 便捷方法
     getMaxSales,
     getStorageCostMultiplier,

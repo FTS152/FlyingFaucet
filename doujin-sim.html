@@ -350,10 +350,17 @@
       margin-top: 4px;
     }
     
-    .confidence-low { color: #ef4444; }
+    .confidence-低 { color: #ef4444; }
     .confidence-中 { color: #f59e0b; }
     .confidence-高 { color: #22c55e; }
     .confidence-極高 { color: #60a5fa; }
+
+    .prediction-note {
+      font-size: 0.72rem;
+      color: #888;
+      margin-top: 4px;
+      font-style: italic;
+    }
     
     /* === 次要按鈕樣式 === */
     .secondary-btn {
@@ -578,6 +585,81 @@
       font-size: 0.85rem;
     }
     
+    /* === 成就面板 === */
+    #achievement-panel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100vh;
+      background: #1a1a2e;
+      border-left: 1px solid rgba(245, 158, 11, 0.2);
+      z-index: 1000;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    #achievement-panel.open {
+      right: 0;
+    }
+    #achievement-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #achievement-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .achievement-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .achievement-item.unlocked {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.2);
+    }
+    .achievement-item.locked {
+      opacity: 0.4;
+    }
+    .achievement-icon {
+      font-size: 1.8rem;
+      width: 40px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .achievement-item.locked .achievement-icon {
+      filter: grayscale(1);
+    }
+    .achievement-info {
+      flex: 1;
+    }
+    .achievement-name {
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .achievement-desc {
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+    .achievement-date {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 2px;
+    }
+
     .form-group {
       margin-bottom: 20px;
     }
@@ -1429,6 +1511,7 @@
   <script src="js/sales-calculator.js"></script>
   <script src="js/inventory-manager.js"></script>
   <script src="js/game-over.js"></script>
+  <script src="js/achievement-system.js"></script>
 <script src="js/platform-engine.js"></script>
 </head>
 <body>
@@ -1463,6 +1546,7 @@
         <button id="btn-start-new-game" class="hidden" style="width: 100%;">開始冒險 →</button>
         <button id="btn-continue" class="hidden" style="width: 100%;">📂 繼續遊戲</button>
         <button id="btn-delete-save" class="hidden" style="width: 100%; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);">🗑️ 刪除存檔</button>
+        <button id="btn-achievements" style="width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000;">🏆 成就</button>
       </div>
       
       <!-- 版本與製作資訊 -->
@@ -1569,6 +1653,7 @@
 
       <div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
         <button id="btn-action-history" class="secondary-btn">📊 查看狀態</button>
+        <button id="btn-view-achievements" class="secondary-btn" style="padding: 8px 12px;">🏆</button>
         <button id="btn-to-prep" disabled>前往準備 →</button>
       </div>
     </div>
@@ -1744,6 +1829,16 @@
       <div id="history-content"></div>
     </div>
     
+    <!-- === 成就面板 === -->
+    <div id="achievement-overlay"></div>
+    <div id="achievement-panel">
+      <button class="history-close" id="btn-close-achievements">&times;</button>
+      <h2>🏆 成就</h2>
+      <div id="achievement-tier-display" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 16px;"></div>
+      <div id="achievement-progress" style="margin-bottom: 20px;"></div>
+      <div id="achievement-list" style="display: grid; gap: 8px;"></div>
+    </div>
+
     <!-- === V2: 社團管理介面 (T014) === -->
     <div id="club-management" class="phase hidden">
       <div class="phase-header">
@@ -2600,14 +2695,14 @@
     
     // T096: 獲取銷量預測（整合市場了解度）
     function getSalesPrediction(draft) {
-      console.log('Calculating sales prediction for draft:', draft);
-      console.log('Current market understanding:', GameState);
       const franchise = GameState.franchises.find(f => f.id === draft.franchiseId);
       if (!franchise) return null;
-      
-      const combinedLevel = (draft.essenceLevel + draft.audienceLevel) / 2;
-      
-      // T096: 使用 SalesCalculator 的預估功能（如果可用）
+
+      const audienceLevel = draft.audienceLevel || 0;
+
+      // Level 0 不顯示預估
+      if (audienceLevel <= 0) return null;
+
       if (typeof SalesCalculator !== 'undefined') {
         const work = {
           title: franchise.name,
@@ -2615,47 +2710,50 @@
           audienceDensity: franchise.audienceDensity,
           purchasingPower: franchise.purchasingPower
         };
-        
-        // 使用作品各自的市場了解度（基於研究等級）
-        const workUnderstanding = Math.min(1.0, draft.audienceLevel / 10);
-        
-        const prediction = SalesCalculator.estimateSales(work, workUnderstanding);
-        
-        // 根據 essence 調整預估（高理解度 = 更好的品質）
-        const essenceBonus = 1 + (draft.essenceLevel * 0.03);
-        
+
+        // 建構 gameContext（從 UpgradeSystem 取所有影響銷量的升級數據）
+        var gameContext = {
+          salesMultiplier: 1.0,
+          guaranteedSales: 0,
+          maxSales: 100,
+          boothAttractionBonus: 0,
+          qualityBonus: 0,
+          totalUpgradeLevels: 0
+        };
+
+        if (typeof UpgradeSystem !== 'undefined') {
+          gameContext.salesMultiplier = UpgradeSystem.getSalesMultiplier();
+          gameContext.guaranteedSales = UpgradeSystem.getGuaranteedSales();
+          gameContext.maxSales = UpgradeSystem.getMaxSales();
+          gameContext.boothAttractionBonus = UpgradeSystem.getBoothAttractionBonus();
+          gameContext.qualityBonus = UpgradeSystem.getQualityBonus();
+
+          // 計算總升級等級
+          var totalLevels = 0;
+          var defs = UpgradeSystem.getDefinitions();
+          if (defs && defs.length > 0) {
+            defs.forEach(function(def) {
+              totalLevels += UpgradeSystem.getLevel(def.id);
+            });
+          }
+          gameContext.totalUpgradeLevels = totalLevels;
+        }
+
+        const prediction = SalesCalculator.estimateSales(work, audienceLevel, gameContext);
+        if (!prediction) return null;
+
         return {
-          minSales: Math.round(prediction.min * essenceBonus),
-          maxSales: Math.round(prediction.max * essenceBonus),
+          minSales: prediction.min,
+          maxSales: prediction.max,
+          estimated: prediction.estimated,
           confidence: prediction.confidence,
-          combinedLevel,
-          errorPercent: prediction.errorPercent
+          audienceLevel: audienceLevel,
+          errorPercent: prediction.errorPercent,
+          standardNote: prediction.standardNote
         };
       }
-      
-      // 回退到原始計算邏輯
-      const baseRate = franchise.purchasingPower * franchise.audienceDensity * 0.5;
-      const essenceBonus = 1 + (draft.essenceLevel * 0.05);
-      const estimatedRate = baseRate * essenceBonus;
-      
-      const estimatedAttendees = Math.round(BalanceConfig.getEffectivePopularity(franchise.popularity) * franchise.audienceDensity * 50);
-      const baseSales = Math.round(estimatedAttendees * estimatedRate);
-      
-      let confidence = '低';
-      let variance = 0.5;
-      if (combinedLevel >= 3) { confidence = '中'; variance = 0.35; }
-      if (combinedLevel >= 6) { confidence = '高'; variance = 0.20; }
-      if (combinedLevel >= 9) { confidence = '極高'; variance = 0.10; }
-      
-      const minSales = Math.max(0, Math.round(baseSales * (1 - variance)));
-      const maxSales = Math.round(baseSales * (1 + variance));
-      
-      return {
-        minSales,
-        maxSales,
-        confidence,
-        combinedLevel
-      };
+
+      return null;
     }
     
     // === 場次模擬函數 ===
@@ -3254,6 +3352,9 @@
             // V3 新增欄位
             activePlatform: GameState.activePlatform || 'FEETBOOK',
             socialEventCooldowns: GameState.socialEventCooldowns || {},
+            // 成就系統跨遊戲修正值
+            _achievementModifiers: GameState._achievementModifiers || {},
+            _coserMaxLevelBonus: GameState._coserMaxLevelBonus || 0,
             saveVersion: 2
             // platformFeeds 不持久化，每次進入 phase 重新生成
           }
@@ -3376,6 +3477,15 @@
       } else {
         continueBtn.classList.add('hidden');
         deleteBtn.classList.add('hidden');
+      }
+
+      // 更新成就按鈕文字
+      if (typeof AchievementSystem !== 'undefined') {
+        AchievementSystem.init();
+        const achBtn = document.getElementById('btn-achievements');
+        if (achBtn) {
+          achBtn.textContent = '🏆 成就 (' + AchievementSystem.getUnlockedCount() + '/' + AchievementSystem.getTotalCount() + ')';
+        }
       }
     }
     
@@ -3706,7 +3816,214 @@
       document.getElementById('history-panel').classList.remove('open');
       document.getElementById('history-overlay').classList.remove('open');
     }
-    
+
+    // === 成就面板 ===
+
+    function openAchievementPanel() {
+      document.getElementById('achievement-panel').classList.add('open');
+      document.getElementById('achievement-overlay').classList.add('open');
+      renderAchievementPanel();
+    }
+
+    function closeAchievementPanel() {
+      document.getElementById('achievement-panel').classList.remove('open');
+      document.getElementById('achievement-overlay').classList.remove('open');
+    }
+
+    function renderAchievementPanel() {
+      if (typeof AchievementSystem === 'undefined') return;
+      AchievementSystem.init();
+
+      var defs = AchievementSystem.getDefinitions();
+      var unlockedCount = AchievementSystem.getUnlockedCount();
+      var totalCount = AchievementSystem.getTotalCount();
+      var tier = AchievementSystem.getCurrentTier();
+      var nextTier = AchievementSystem.getNextTier();
+      var state = AchievementSystem.getState();
+      var categoryNames = AchievementSystem.getCategoryNames();
+      var categoryOrder = AchievementSystem.getCategoryOrder();
+
+      // 稱號 + 獎勵顯示
+      var tierEl = document.getElementById('achievement-tier-display');
+      var bonuses = AchievementSystem.getStartingBonuses();
+      var bonusHTML = '';
+      if (bonuses.descriptions.length > 0) {
+        bonusHTML = '<div style="margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">' +
+          '<div style="font-size: 0.75rem; color: #aaa; margin-bottom: 4px;">已啟用獎勵</div>' +
+          bonuses.descriptions.map(function(d) {
+            return '<div style="font-size: 0.8rem; color: #34d399; margin-top: 2px;">' + d.icon + ' ' + d.text + '</div>';
+          }).join('') +
+          '</div>';
+      }
+      tierEl.innerHTML =
+        '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+          '<div>' +
+            '<div style="font-size: 0.8rem; color: #aaa;">目前稱號</div>' +
+            '<div style="font-size: 1.2rem; font-weight: bold; color: #f59e0b;">' + tier.name + '</div>' +
+          '</div>' +
+          '<div style="text-align: right;">' +
+            '<div style="font-size: 0.8rem; color: #aaa;">獎勵</div>' +
+            '<div style="font-size: 0.9rem; color: #22c55e;">' + tier.bonusDescription + '</div>' +
+          '</div>' +
+        '</div>' +
+        (nextTier
+          ? '<div style="margin-top: 8px; font-size: 0.8rem; color: #888;">下個稱號「' + nextTier.name + '」需要 ' + nextTier.needed + ' 個成就</div>'
+          : '<div style="margin-top: 8px; font-size: 0.8rem; color: #f59e0b;">已達最高稱號！</div>') +
+        bonusHTML;
+
+      // 進度條
+      var pct = Math.round((unlockedCount / totalCount) * 100);
+      document.getElementById('achievement-progress').innerHTML =
+        '<div style="display: flex; justify-content: space-between; margin-bottom: 4px;">' +
+          '<span>' + unlockedCount + ' / ' + totalCount + ' 解鎖</span>' +
+          '<span>' + pct + '%</span>' +
+        '</div>' +
+        '<div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">' +
+          '<div style="height: 100%; width: ' + pct + '%; background: linear-gradient(90deg, #f59e0b, #fbbf24); transition: width 0.3s;"></div>' +
+        '</div>';
+
+      // 按分類分組成就清單
+      var grouped = {};
+      var hiddenCount = 0;
+      defs.forEach(function(a) {
+        var isUnlocked = AchievementSystem.isUnlocked(a.id);
+        // hidden 成就在未解鎖時不顯示
+        if (a.hidden && !isUnlocked) {
+          hiddenCount++;
+          return;
+        }
+        if (!grouped[a.category]) grouped[a.category] = [];
+        grouped[a.category].push(a);
+      });
+
+      var listHTML = '';
+      categoryOrder.forEach(function(cat) {
+        if (!grouped[cat] || grouped[cat].length === 0) return;
+        var catName = categoryNames[cat] || cat;
+        listHTML += '<div style="margin-top: 12px; margin-bottom: 6px; font-size: 0.85rem; color: #888; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">' + catName + '</div>';
+        grouped[cat].forEach(function(a) {
+          var unlocked = AchievementSystem.isUnlocked(a.id);
+          var data = state.unlocked[a.id];
+          var dateStr = data ? new Date(data.unlockedAt).toLocaleDateString('zh-TW') : '';
+          var rewardHTML = '';
+          if (unlocked && a.reward && a.reward.desc) {
+            rewardHTML = '<div style="font-size: 0.75rem; color: #f59e0b; margin-top: 2px; font-style: italic;">' + a.reward.desc + '</div>';
+          }
+          if (unlocked) {
+            listHTML +=
+              '<div class="achievement-item unlocked">' +
+                '<div class="achievement-icon">' + a.icon + '</div>' +
+                '<div class="achievement-info">' +
+                  '<div class="achievement-name">' + a.name + '</div>' +
+                  '<div class="achievement-desc">' + a.desc + '</div>' +
+                  rewardHTML +
+                  '<div class="achievement-date">' + dateStr + ' 解鎖</div>' +
+                '</div>' +
+              '</div>';
+          } else {
+            listHTML +=
+              '<div class="achievement-item locked">' +
+                '<div class="achievement-icon">\u2753</div>' +
+                '<div class="achievement-info">' +
+                  '<div class="achievement-name">???</div>' +
+                  '<div class="achievement-desc">尚未解鎖</div>' +
+                '</div>' +
+              '</div>';
+          }
+        });
+      });
+
+      if (hiddenCount > 0) {
+        listHTML += '<div style="margin-top: 16px; text-align: center; font-size: 0.8rem; color: #666; font-style: italic;">還有 ' + hiddenCount + ' 個隱藏成就等待發現...</div>';
+      }
+
+      document.getElementById('achievement-list').innerHTML = listHTML;
+    }
+
+    let _achievementNotifQueue = [];
+    let _achievementNotifActive = false;
+
+    function showAchievementNotification(icon, name, desc) {
+      _achievementNotifQueue.push({ icon, name, desc });
+      if (!_achievementNotifActive) {
+        _processAchievementNotifQueue();
+      }
+    }
+
+    function _processAchievementNotifQueue() {
+      if (_achievementNotifQueue.length === 0) {
+        _achievementNotifActive = false;
+        return;
+      }
+      _achievementNotifActive = true;
+      const { icon, name, desc } = _achievementNotifQueue.shift();
+
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 16px 28px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%);
+        color: white;
+        font-weight: bold;
+        z-index: 5000;
+        animation: fadeInDown 0.4s ease-out;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(245, 158, 11, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      `;
+      notification.innerHTML = `
+        <div style="font-size: 1.5rem; margin-bottom: 4px;">${icon}</div>
+        <div style="font-size: 1.1rem;">成就解鎖！</div>
+        <div style="font-size: 1rem; margin-top: 4px;">${name}</div>
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.8); margin-top: 2px;">${desc}</div>
+      `;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'fadeOutUp 0.3s ease-out forwards';
+        setTimeout(() => {
+          notification.remove();
+          // 處理下一個通知（300ms 延遲）
+          setTimeout(_processAchievementNotifQueue, 300);
+        }, 300);
+      }, 3000);
+    }
+
+    function showHonmonogatariNotification(destroyedPub) {
+      var pubTitle = destroyedPub ? destroyedPub.title : '未知刊物';
+      var notification = document.createElement('div');
+      notification.style.cssText =
+        'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);' +
+        'padding: 32px 40px; border-radius: 16px;' +
+        'background: linear-gradient(135deg, rgba(120, 53, 15, 0.97) 0%, rgba(69, 26, 3, 0.97) 100%);' +
+        'color: #fbbf24; font-weight: bold; z-index: 5000;' +
+        'animation: fadeInDown 0.5s ease-out;' +
+        'text-align: center; box-shadow: 0 12px 48px rgba(0,0,0,0.6);' +
+        'border: 2px solid rgba(251, 191, 36, 0.5); max-width: 400px;';
+      notification.innerHTML =
+        '<div style="font-size: 2rem; margin-bottom: 8px;">\u{1F4D5}</div>' +
+        '<div style="font-size: 1.3rem; color: #fde68a;">本物語</div>' +
+        '<div style="font-size: 0.9rem; color: rgba(253,230,138,0.8); margin-top: 8px;">' +
+          '「' + pubTitle + '」在倉庫角落積灰了太久...<br>它悄悄地自我銷毀了。' +
+        '</div>' +
+        '<div style="font-size: 0.85rem; color: #fbbf24; margin-top: 12px; font-style: italic;">' +
+          '「我不是神秘美少女，我是你寫的本子」' +
+        '</div>' +
+        '<div style="font-size: 0.9rem; color: #34d399; margin-top: 12px;">' +
+          'Coser 小幫手等級 +1\uFF0C最大等級 +1' +
+        '</div>';
+      document.body.appendChild(notification);
+
+      setTimeout(function() {
+        notification.style.animation = 'fadeOutUp 0.5s ease-out forwards';
+        setTimeout(function() { notification.remove(); }, 500);
+      }, 5000);
+    }
+
     function openActionStatusPanel() {
       // 準備資料
       const totalInventory = GameState.inventory.reduce((sum, inv) => sum + inv.remainingCount, 0);
@@ -4115,25 +4432,20 @@
         return;
       }
       
-      // 市場研究等級為0時不顯示預測
-      if (draft.audienceLevel === 0) {
-        predictionEl.innerHTML = '';
-        return;
-      }
-      
       const prediction = getSalesPrediction(draft);
       if (!prediction) {
         predictionEl.innerHTML = '';
         return;
       }
-      
+
       predictionEl.innerHTML = `
         <div class="sales-prediction">
           <div class="prediction-label">預估銷量</div>
           <div class="prediction-value">${prediction.minSales} ~ ${prediction.maxSales} 本</div>
           <div class="prediction-confidence confidence-${prediction.confidence}">
-            信心度: ${prediction.confidence} (綜合研究等級: ${prediction.combinedLevel.toFixed(1)})
+            信心度: ${prediction.confidence} (市場調研 Lv.${prediction.audienceLevel}) ±${prediction.errorPercent}%
           </div>
+          ${prediction.standardNote ? '<div class="prediction-note">' + prediction.standardNote + '</div>' : ''}
         </div>
       `;
     }
@@ -4507,7 +4819,13 @@
         profit,
         notableEvents: triggeredEvents.map(e => e.name)
       });
-      
+
+      // 成就檢查
+      if (typeof AchievementSystem !== 'undefined') {
+        const totalRemainingForAch = GameState.inventory.reduce((sum, inv) => sum + inv.remainingCount, 0);
+        AchievementSystem.checkAfterResults(results, profit, totalSold, totalRemainingForAch, GameState);
+      }
+
       // 檢查是否達成目標
       if (!GameState.goalReached && GameState.money >= GOAL_AMOUNT) {
         GameState.goalReached = true;
@@ -4516,6 +4834,11 @@
     }
     
     function showGoalCelebration() {
+      // 成就檢查
+      if (typeof AchievementSystem !== 'undefined') {
+        AchievementSystem.checkAfterGoalReached();
+      }
+
       // 創建慶祝畫面
       const overlay = document.createElement('div');
       overlay.id = 'goal-celebration-overlay';
@@ -4654,9 +4977,29 @@
           }
         }
         
+        // 成就系統：新遊戲追蹤 + 全部獎勵套用
+        if (typeof AchievementSystem !== 'undefined') {
+          AchievementSystem.checkNewGameStart();
+          const bonuses = AchievementSystem.getStartingBonuses();
+          if (bonuses.money > 0) {
+            GameState.money += bonuses.money;
+            log('Achievement bonuses applied: money +' + bonuses.money);
+          }
+          if (bonuses.bonusAP > 0) {
+            GameState.ap += bonuses.bonusAP;
+            GameState.maxAp = Math.max(GameState.maxAp, GameState.ap);
+            log('Achievement bonuses applied: AP +' + bonuses.bonusAP);
+          }
+          // 儲存跨遊戲修正值供 publishDraft / proceedToNextRound 使用
+          GameState._achievementModifiers = {
+            storageCostReduction: bonuses.storageCostReduction,
+            printCostReduction: bonuses.printCostReduction
+          };
+        }
+
         log('New game initialized', GameState);
       }
-      
+
       renderPhase(GameState.phase);
     }
     
@@ -4741,6 +5084,11 @@
       }
       
       GameState.ap--;
+
+      // 成就檢查
+      if (typeof AchievementSystem !== 'undefined') {
+        AchievementSystem.checkAfterDraftAction(action, draft);
+      }
 
       // 每次行動後可能觸發既有事件（修改 P/D/B）
       triggerActionEvents();
@@ -4935,13 +5283,19 @@
       // T112: 封面吸引力 = 基礎 0.4 + 封面修正
       const coverStopRate = 0.4 + (coverConfig.attractionModifier || 0);
       
-      const totalCost = printCost + coverCost;
-      
+      var totalCost = printCost + coverCost;
+
+      // 成就獎勵：印刷成本折扣
+      var achMod = GameState._achievementModifiers || {};
+      if (achMod.printCostReduction > 0) {
+        totalCost = Math.round(totalCost * (1 - achMod.printCostReduction));
+      }
+
       if (totalCost > GameState.money) {
         alert('資金不足！');
         return;
       }
-      
+
       // 扣除資金
       GameState.money -= totalCost;
       
@@ -4993,7 +5347,12 @@
         remainingCount: quantity,
         accumulatedStorageCost: 0
       });
-      
+
+      // 成就檢查
+      if (typeof AchievementSystem !== 'undefined') {
+        AchievementSystem.checkAfterPublish(publication, GameState);
+      }
+
       saveGame();
       
       // 切換到庫存預覽模式：隱藏出版表單，顯示庫存和開始場次按鈕
@@ -5092,6 +5451,11 @@
         triggeredEvents = EventSystem.rollSessionEvents(GameState.round);
         console.log('[Convention] Triggered events:', triggeredEvents.length, 'events', triggeredEvents);
         GameState.sessionState.activeEvents = triggeredEvents;
+
+        // 成就檢查：多事件
+        if (typeof AchievementSystem !== 'undefined') {
+          AchievementSystem.checkAfterConventionEvents(triggeredEvents.length);
+        }
         
         // T042: 顯示事件通知（依序）
         console.log('[Convention] Showing event notifications for', triggeredEvents.length, 'events');
@@ -5617,14 +5981,18 @@
       }
       
       const result = UpgradeSystem.purchase(upgradeId);
-      
+
       // T031: 實作升級成功/失敗的 UI 提示
       if (result.success) {
         showUpgradeNotification(result.message, 'success');
+        // 成就檢查
+        if (typeof AchievementSystem !== 'undefined') {
+          AchievementSystem.checkAfterUpgrade(upgradeId, result.newLevel);
+        }
       } else {
         showUpgradeNotification(result.message, 'error');
       }
-      
+
       // 重新渲染
       renderClubManagement();
       saveGame();
@@ -5789,9 +6157,29 @@
         storageCost = Math.round(totalInventory * storageCostPerBook * storageCostMultiplier);
       }
       
+      // 成就獎勵：倉儲成本折扣
+      var achMod = GameState._achievementModifiers || {};
+      if (achMod.storageCostReduction > 0) {
+        storageCost = Math.round(storageCost * (1 - achMod.storageCostReduction));
+      }
+
       GameState.money -= storageCost;
       log(`Storage cost deducted: -${storageCost}`);
-      
+
+      // 成就系統：庫存老化檢查（壓箱寶 + 本物語）
+      if (typeof AchievementSystem !== 'undefined') {
+        var agingResult = AchievementSystem.checkInventoryAging(GameState);
+        if (agingResult.honmonogatariTriggered) {
+          // 本物語：Coser 等級 +1, 最大等級 +1
+          GameState._coserMaxLevelBonus = (GameState._coserMaxLevelBonus || 0) + 1;
+          if (typeof UpgradeSystem !== 'undefined') {
+            UpgradeSystem.grantFreeLevel('coser');
+          }
+          // 特殊通知
+          showHonmonogatariNotification(agingResult.destroyedPub);
+        }
+      }
+
       // 計算投資利息收益
       const interestRate = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getInterestRate() : 0;
       if (interestRate > 0 && GameState.money > 0) {
@@ -5829,6 +6217,12 @@
       
       // 繼續到下一回合
       GameState.round++;
+
+      // 成就檢查
+      if (typeof AchievementSystem !== 'undefined') {
+        AchievementSystem.checkRoundAdvance(GameState.round);
+      }
+
       GameState.ap = GameState.maxAp;
       GameState.phase = PHASES.SOCIAL_ACTION;
       GameState.currentPosts = []; // 向後相容
@@ -5864,6 +6258,11 @@
     
     // T069: 遊戲結束畫面動態渲染
     function showGameOver(reason) {
+      // 成就檢查（在清除存檔前）
+      if (typeof AchievementSystem !== 'undefined') {
+        AchievementSystem.checkGameOver();
+      }
+
       // 使用 GameOverManager 獲取統計
       let stats = {
         survivalRounds: GameState.round,
@@ -6005,6 +6404,10 @@
           if (platformId) {
             GameState.activePlatform = platformId;
             renderPlatformFeed(platformId);
+            // 成就追蹤
+            if (typeof AchievementSystem !== 'undefined') {
+              AchievementSystem.checkPlatformVisit(platformId);
+            }
           }
         });
       });
@@ -6056,7 +6459,23 @@
       if (btnViewHistory) btnViewHistory.addEventListener('click', openHistoryPanel);
       document.getElementById('btn-close-history').addEventListener('click', closeHistoryPanel);
       document.getElementById('history-overlay').addEventListener('click', closeHistoryPanel);
-      
+
+      // 成就面板
+      document.getElementById('btn-achievements').addEventListener('click', openAchievementPanel);
+      const btnViewAchievements = document.getElementById('btn-view-achievements');
+      if (btnViewAchievements) btnViewAchievements.addEventListener('click', openAchievementPanel);
+      document.getElementById('btn-close-achievements').addEventListener('click', closeAchievementPanel);
+      document.getElementById('achievement-overlay').addEventListener('click', closeAchievementPanel);
+
+      // 成就：監聽升級滿等事件
+      if (typeof EventBus !== 'undefined') {
+        EventBus.on('upgrade:maxReached', function() {
+          if (typeof AchievementSystem !== 'undefined') {
+            AchievementSystem.checkAfterMaxUpgrade();
+          }
+        });
+      }
+
       // T070: 遊戲結束畫面按鈕
       document.getElementById('btn-game-over-restart').addEventListener('click', () => {
         // 重置 GameOverManager
@@ -6199,6 +6618,17 @@
     function init() {
       log('Initializing game...');
       bindEventHandlers();
+
+      // 初始化成就系統
+      if (typeof AchievementSystem !== 'undefined') {
+        AchievementSystem.init();
+      }
+
+      // 監聽成就解鎖事件
+      document.addEventListener('achievement:unlocked', function(e) {
+        showAchievementNotification(e.detail.icon, e.detail.name, e.detail.desc);
+      });
+
       renderPhase(PHASES.MENU);
     }
     
