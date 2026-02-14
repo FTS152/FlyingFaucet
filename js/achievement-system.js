@@ -123,11 +123,16 @@ const AchievementSystem = (function() {
     // O. 進階挑戰
     { id: 'survivor_50', name: '永續經營', desc: '存活超過 50 回合', category: 'advanced', icon: '🏛️',
       reward: { type: 'storageCostReduction', value: 0.10, desc: '你的老家地下室越來越大了。倉儲成本 -10%' } },
-    { id: 'all_upgrade_types', name: '全方位社團', desc: '購買過所有 12 種不同的升級', category: 'advanced', icon: '🎪',
+    { id: 'all_upgrade_types', name: '全方位社團', desc: '購買過所有 13 種不同的升級', category: 'advanced', icon: '🎪',
       reward: { type: 'bonusAP', value: 1, desc: '萬事俱備的社團效率更高。首回合行動點 +1' } },
     { id: 'writing_10', name: '超級文豪', desc: '文筆提升到 10 級', category: 'advanced', icon: '📜', hidden: true,
       reward: { type: 'cosmetic', desc: '文筆已超越文學巨匠，但依然對銷量毫無幫助。值得一個勳章 ✍️' } },
-    { id: 'phoenix', name: '浴火鳳凰', desc: '破產後在新遊戲中資金達到 $100,000', category: 'advanced', icon: '🔥', hidden: true }
+    { id: 'phoenix', name: '浴火鳳凰', desc: '破產後在新遊戲中資金達到 $100,000', category: 'advanced', icon: '🔥', hidden: true },
+
+    // P. 收藏品
+    { id: 'coll_legendary', name: '傳說降臨', desc: '購入一件傳說品質的收藏品', category: 'advanced', icon: '💎' },
+    { id: 'coll_double_profit', name: '翻倍獲利', desc: '賣出價格達買入時兩倍以上的收藏品', category: 'advanced', icon: '📈' },
+    { id: 'coll_half_loss', name: '慘賠出場', desc: '賣出價格不到原來買入價格一半的收藏品', category: 'advanced', icon: '📉' }
   ];
 
   // === 階梯獎勵定義（6 階，適配 45 個成就） ===
@@ -470,7 +475,7 @@ const AchievementSystem = (function() {
       _sessionTracking.upgradesPurchased = {};
     }
     _sessionTracking.upgradesPurchased[upgradeId] = true;
-    if (Object.keys(_sessionTracking.upgradesPurchased).length >= 12) {
+    if (Object.keys(_sessionTracking.upgradesPurchased).length >= 13) {
       unlock('all_upgrade_types');
     }
   }
@@ -501,6 +506,21 @@ const AchievementSystem = (function() {
     }
     if (round >= 50) {
       unlock('survivor_50');
+    }
+  }
+
+  function checkAfterCollectiblePurchase(collectible) {
+    if (collectible && collectible.rarity === 'legendary') {
+      unlock('coll_legendary');
+    }
+  }
+
+  function checkAfterCollectibleSell(purchasePrice, sellPrice) {
+    if (purchasePrice > 0 && sellPrice >= purchasePrice * 2) {
+      unlock('coll_double_profit');
+    }
+    if (purchasePrice > 0 && sellPrice < purchasePrice * 0.5) {
+      unlock('coll_half_loss');
     }
   }
 
@@ -603,7 +623,9 @@ const AchievementSystem = (function() {
     checkRoundAdvance: checkRoundAdvance,
     checkGameOver: checkGameOver,
     checkNewGameStart: checkNewGameStart,
-    checkInventoryAging: checkInventoryAging
+    checkInventoryAging: checkInventoryAging,
+    checkAfterCollectiblePurchase: checkAfterCollectiblePurchase,
+    checkAfterCollectibleSell: checkAfterCollectibleSell
   };
 })();
 

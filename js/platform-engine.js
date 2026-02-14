@@ -25,6 +25,7 @@ const PlatformEngine = (function() {
   let _pdbThreshold = null; // PDB_THRESHOLD
   let _initialized = false;
   let _platformFeeds = {};  // { FEETBOOK: Post[], Y: Post[], THREECH: Post[] }
+  let _rng = Math.random;   // 當前使用的 RNG 函數（可由外部傳入）
 
   // ── 內部工具函數 ──
 
@@ -157,7 +158,7 @@ const PlatformEngine = (function() {
         break;
     }
 
-    var noise = 0.8 + Math.random() * 0.4; // 0.8 ~ 1.2
+    var noise = 0.8 + _rng() * 0.4; // 0.8 ~ 1.2
     var count = Math.floor(base * (P / 100) * A * biasMultiplier * noise);
     return Math.max(1, count); // 至少 1 則
   }
@@ -181,7 +182,7 @@ const PlatformEngine = (function() {
     }
 
     // 正規化後加權隨機
-    var r = Math.random() * total;
+    var r = _rng() * total;
     var cumulative = 0;
     for (var j = 0; j < types.length; j++) {
       cumulative += blended[types[j]];
@@ -296,27 +297,27 @@ const PlatformEngine = (function() {
       var noise;
       switch (metric) {
         case 'likes':
-          noise = 0.5 + Math.random() * 1.0;
+          noise = 0.5 + _rng() * 1.0;
           engagement.likes = Math.floor(base * (1 + positiveBias) * noise);
           break;
         case 'comments':
-          noise = 0.3 + Math.random() * 1.7;
+          noise = 0.3 + _rng() * 1.7;
           engagement.comments = Math.floor(base * (0.3 + toxicity) * (1 + dramaTagBonus) * noise);
           break;
         case 'shares':
-          noise = 0.2 + Math.random() * 0.8;
+          noise = 0.2 + _rng() * 0.8;
           engagement.shares = Math.floor(base * (0.2 + viralTagBonus) * noise);
           break;
         case 'retweets':
-          noise = 0.3 + Math.random() * 1.2;
+          noise = 0.3 + _rng() * 1.2;
           engagement.retweets = Math.floor(base * (0.3 + viralTagBonus) * noise);
           break;
         case 'replies':
-          noise = 0.5 + Math.random() * 1.5;
+          noise = 0.5 + _rng() * 1.5;
           engagement.replies = Math.floor(base * toxicity * 2 * noise);
           break;
         case 'thread_speed':
-          noise = 0.3 + Math.random() * 1.2;
+          noise = 0.3 + _rng() * 1.2;
           engagement.thread_speed = Math.floor(base * franchise.audienceActivity * noise);
           break;
       }
@@ -425,8 +426,11 @@ const PlatformEngine = (function() {
       }
     }
 
-    // 隨機排序模擬時間線
-    posts.sort(function() { return Math.random() - 0.5; });
+    // 隨機排序模擬時間線（使用 Fisher-Yates）
+    for (var si = posts.length - 1; si > 0; si--) {
+      var sj = Math.floor(_rng() * (si + 1));
+      var tmp = posts[si]; posts[si] = posts[sj]; posts[sj] = tmp;
+    }
 
     // 上限
     var max = _feedConfig.MAX_POSTS_PER_PLATFORM || 100;
@@ -437,8 +441,9 @@ const PlatformEngine = (function() {
 
   // ── 全平台 Feed 生成（主入口） ──
 
-  function generatePlatformFeeds(franchises, round) {
+  function generatePlatformFeeds(franchises, round, options) {
     if (!_initialized) init();
+    if (options && options.rng) _rng = options.rng;
     var feeds = {};
     var platformIds = Object.keys(_config);
     for (var i = 0; i < platformIds.length; i++) {
@@ -459,8 +464,9 @@ const PlatformEngine = (function() {
    * @param {number} round - 當前回合
    * @returns {Array} 觸發的事件列表 [{ event, targetFranchise }]
    */
-  function rollSocialEvents(franchises, cooldowns, round) {
+  function rollSocialEvents(franchises, cooldowns, round, options) {
     if (!_initialized) init();
+    if (options && options.rng) _rng = options.rng;
     var pool = ContentTemplates.SocialEventPool;
     if (!pool || pool.length === 0) return [];
     if (!franchises || franchises.length === 0) return [];
@@ -474,12 +480,12 @@ const PlatformEngine = (function() {
       if (cooldowns[evt.id] && cooldowns[evt.id] > round) continue;
 
       // 擲骰
-      if (Math.random() >= evt.probability) continue;
+      if (_rng() >= evt.probability) continue;
 
       // 選擇目標作品（以 popularity 加權）
       var totalPop = 0;
       for (var j = 0; j < franchises.length; j++) totalPop += franchises[j].popularity;
-      var r = Math.random() * totalPop;
+      var r = _rng() * totalPop;
       var cum = 0;
       var target = franchises[0];
       for (var k = 0; k < franchises.length; k++) {
@@ -549,11 +555,11 @@ const PlatformEngine = (function() {
 
         // 事件 contentHook 偏置 fanType
         if (event.contentHook === 'controversy' || event.contentHook === 'drama') {
-          if (Math.random() < 0.5) fanType = Math.random() < 0.5 ? 'CRITIC' : 'HATER';
+          if (_rng() < 0.5) fanType = _rng() < 0.5 ? 'CRITIC' : 'HATER';
         } else if (event.contentHook === 'viral' || event.contentHook === 'meme') {
-          if (Math.random() < 0.4) fanType = 'MEMER';
+          if (_rng() < 0.4) fanType = 'MEMER';
         } else if (event.contentHook === 'official' || event.contentHook === 'visual') {
-          if (Math.random() < 0.3) fanType = 'ENTHUSIAST';
+          if (_rng() < 0.3) fanType = 'ENTHUSIAST';
         }
 
         // 使用事件專屬模板生成內容
@@ -586,7 +592,7 @@ const PlatformEngine = (function() {
           engagementDisplay: wrapped.engagementDisplay,
           fanType: fanType,
           platformId: pid,
-          timestamp: Math.floor(Math.random() * 10 + 1) + 'm',
+          timestamp: Math.floor(_rng() * 10 + 1) + 'm',
           isVoice: contentResult.isVoice,
           voiceType: contentResult.voiceType,
           isEventTriggered: true,

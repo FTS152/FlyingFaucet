@@ -1539,6 +1539,14 @@
           <label style="display: block; margin-bottom: 8px; text-align: center;">為你的社團取個名字</label>
           <input type="text" id="circle-name-input" placeholder="例：太空水龍頭" maxlength="20" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; font-size: 1rem; text-align: center;">
         </div>
+        <!-- 種子碼輸入 -->
+        <div style="margin-top: 16px;">
+          <label style="display: block; margin-bottom: 8px; text-align: center; font-size: 0.9rem; color: #aaa;">種子碼（相同種子碼 = 相同遊戲世界）</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="seed-input" placeholder="留空 = 隨機生成" maxlength="12" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff; font-size: 0.9rem; text-align: center; font-family: monospace;">
+            <button id="btn-random-seed" style="padding: 10px 14px; font-size: 0.85rem; white-space: nowrap; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);" title="隨機生成種子碼">🎲</button>
+          </div>
+        </div>
       </div>
       
       <div class="menu-buttons" style="display: flex; flex-direction: column; gap: 12px; max-width: 300px; margin: 0 auto;">
@@ -1852,14 +1860,23 @@
             <span class="stat-label">負債</span>
             <span class="stat-value" id="club-debt" style="color: #ef4444;">$0</span>
           </div>
+          <div class="stat">
+            <span class="stat-label">倉儲成本</span>
+            <span class="stat-value" id="club-storage-cost" style="color: #f97316;">$0</span>
+          </div>
+          <div class="stat" style="cursor: pointer;" id="seed-display-container" title="點擊複製種子碼">
+            <span class="stat-label">種子碼</span>
+            <span class="stat-value" id="club-seed" style="color: #6366f1; font-family: monospace; font-size: 0.85rem;">-</span>
+          </div>
         </div>
       </div>
       
       <!-- 升級選項分頁 -->
-      <div class="club-tabs" style="display: flex; gap: 8px; margin-bottom: 20px;">
+      <div class="club-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
         <button class="club-tab active" data-tab="upgrades">🆙 升級</button>
         <button class="club-tab" data-tab="inventory">📦 庫存</button>
         <button class="club-tab" data-tab="finance">💰 財務</button>
+        <button class="club-tab" data-tab="collectibles">💎 收藏品</button>
       </div>
       
       <!-- 升級頁面 -->
@@ -1902,12 +1919,34 @@
           </div>
         </div>
       </div>
-      
+
+      <!-- 收藏品頁面 -->
+      <div id="club-tab-collectibles" class="club-tab-content hidden">
+        <!-- 倉儲成本警告 -->
+        <div id="collectible-storage-warning" style="display: none;"></div>
+        <!-- 市場動態 -->
+        <div id="collectible-events" style="margin-bottom: 16px;"></div>
+
+        <!-- 我的周邊收藏 -->
+        <div style="margin-bottom: 24px;">
+          <h3 style="margin-bottom: 8px;">我的周邊收藏</h3>
+          <div id="collectible-total-value" style="color: #aaa; margin-bottom: 12px; font-size: 0.9rem;"></div>
+          <div id="my-collectibles" style="display: grid; gap: 8px;"></div>
+        </div>
+
+        <!-- 市場列表 -->
+        <div>
+          <h3 style="margin-bottom: 8px;">市場列表</h3>
+          <div id="collectible-market-count" style="color: #aaa; margin-bottom: 12px; font-size: 0.9rem;"></div>
+          <div id="collectible-market" style="display: grid; gap: 8px;"></div>
+        </div>
+      </div>
+
       <div style="margin-top: 24px; text-align: center;">
         <button id="btn-close-club-management">確認並繼續 →</button>
       </div>
     </div>
-    
+
     <!-- === V2: 遊戲結束畫面 (T016) === -->
     <div id="game-over-screen" class="phase hidden">
       <div class="game-over-container" style="text-align: center; padding: 40px 20px;">
@@ -2269,6 +2308,12 @@
       platformFeeds: {},            // 三平台 feed 資料（不持久化）
       activePlatform: 'FEETBOOK',   // 當前選取的平台 tab
       socialEventCooldowns: {},     // 社群事件冷卻追蹤
+
+      // === V4 收藏品市場 ===
+      collectibles: [],             // 玩家持有的收藏品
+      collectibleMarket: [],        // 當前市場列表（最多 10 個）
+      collectibleEvents: [],        // 本回合收藏品事件
+
       saveVersion: 2                // 存檔版本
     };
     
@@ -2305,9 +2350,53 @@
     function pickRandom(array, rng = Math.random) {
       return array[Math.floor(rng() * array.length)];
     }
-    
+
     function generateId() {
       return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    // 字串轉數字 hash（用於非數字種子碼）
+    function hashString(str) {
+      var hash = 0;
+      for (var i = 0; i < str.length; i++) {
+        var ch = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + ch;
+        hash |= 0; // Convert to 32bit integer
+      }
+      return Math.abs(hash);
+    }
+
+    // === 多流 RNG 系統 ===
+    var GameRNG = {};
+
+    /**
+     * 初始化所有 RNG 流（每回合開始時呼叫）
+     * 每個系統使用獨立的 seed 偏移，互不干擾
+     * @param {number} seed - 遊戲種子碼
+     * @param {number} round - 當前回合數
+     */
+    function initGameRNG(seed, round) {
+      GameRNG.franchise  = seededRandom(seed + round * 100 + 1);  // 作品生成/衰退/輪替
+      GameRNG.event      = seededRandom(seed + round * 100 + 2);  // 場次事件
+      GameRNG.convention = seededRandom(seed + round * 100 + 3);  // 場次模擬
+      GameRNG.social     = seededRandom(seed + round * 100 + 4);  // 社群動態
+      GameRNG.action     = seededRandom(seed + round * 100 + 5);  // 創作行動
+      GameRNG.market     = seededRandom(seed + round * 100 + 6);  // 收藏品市場
+    }
+
+    /**
+     * Fisher-Yates 洗牌（確定性）
+     * @param {Array} array - 要洗牌的陣列
+     * @param {Function} rng - RNG 函數
+     * @returns {Array} - 洗牌後的新陣列（不修改原陣列）
+     */
+    function seededShuffle(array, rng) {
+      var a = array.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(rng() * (i + 1));
+        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+      }
+      return a;
     }
     
     // === EventBus 事件系統 ===
@@ -2758,9 +2847,10 @@
     
     // === 場次模擬函數 ===
     function createFallbackFranchise(item) {
-      const popularity = Math.round(5 + Math.random() * 10);
-      const audienceDensity = clamp(0.1 + Math.random() * 0.15, 0.1, 0.3);
-      const purchasingPower = clamp(0.5 + Math.random() * 0.3, 0.5, 0.9);
+      const rng = (typeof GameRNG !== 'undefined' && GameRNG.convention) ? GameRNG.convention : Math.random;
+      const popularity = Math.round(5 + rng() * 10);
+      const audienceDensity = clamp(0.1 + rng() * 0.15, 0.1, 0.3);
+      const purchasingPower = clamp(0.5 + rng() * 0.3, 0.5, 0.9);
       return {
         id: item.franchiseId,
         name: item.title || '下架作品',
@@ -2789,7 +2879,7 @@
       
       // 入場人數基於 P
       const baseCount = totalP * BalanceConfig.CONVENTION.ATTENDEE_MULTIPLIER;
-      const variance = normalRandom(0, 50);
+      const variance = normalRandom(0, 50, GameRNG.convention);
       const attendeeCount = Math.max(100, Math.floor(baseCount + variance));
       
       // 整體粉絲類型分布（基於攤位商品的平均特性）
@@ -2824,7 +2914,7 @@
       for (let i = 0; i < attendeeCount; i++) {
         // 根據權重選擇粉絲類型
         let fanType = 'CASUAL';
-        let r = Math.random() * totalWeight;
+        let r = GameRNG.convention() * totalWeight;
         let cumulative = 0;
         for (const type of fanTypes) {
           cumulative += fanTypeWeights[type];
@@ -2836,24 +2926,24 @@
 
         // 按顧客類型決定預算
         const budgetRange = BalanceConfig.CUSTOMER_BUDGETS[fanType] || { min: 1000, max: 3000 };
-        const budget = budgetRange.min + Math.random() * (budgetRange.max - budgetRange.min);
+        const budget = budgetRange.min + GameRNG.convention() * (budgetRange.max - budgetRange.min);
 
         // 生成 target list (per-franchise roll：同 franchise 只 roll 一次 D)
         const targetList = [];
         for (const [fId, fItems] of boothItemsByFranchise) {
           const franchise = allFranchises.find(f => f.id === fId);
-          if (franchise && Math.random() < franchise.audienceDensity) {
+          if (franchise && GameRNG.convention() < franchise.audienceDensity) {
             for (const item of fItems) targetList.push(item.id);
           }
         }
-        
+
         attendees.push({
           id: 'attendee_' + i,
           fanType,
           budget,
           targetList,
-          browseTendency: Math.random(),
-          priceSensitivity: 0.5 + Math.random() * 1.5,
+          browseTendency: GameRNG.convention(),
+          priceSensitivity: 0.5 + GameRNG.convention() * 1.5,
           fatigue: 0,
           purchasedItems: [],
           franchiseAffinities: {}
@@ -2900,13 +2990,13 @@
         
         // 目標客人才會來，停留率 = 基礎瀏覽傾向 × 封面吸引力 × (1 + 吸引力加成) × 顧客類型修正 × (1 - 疲勞)
         const stopRate = avgCoverQuality * (1 + avgAttractionBonus) * typeAttractionMod * (1 - attendee.fatigue * 0.5);
-        const willVisit = hasTarget && (Math.random() < attendee.browseTendency * stopRate);
-        
+        const willVisit = hasTarget && (GameRNG.convention() < attendee.browseTendency * stopRate);
+
         if (willVisit) {
           visits.push({
             attendeeId: attendee.id,
             attendee,
-            interest: hasTarget ? 0.8 : 0.3 + Math.random() * 0.3 + avgAttractionBonus,
+            interest: hasTarget ? 0.8 : 0.3 + GameRNG.convention() * 0.3 + avgAttractionBonus,
             isTarget: hasTarget
           });
           attendee.fatigue += 0.05;
@@ -3031,7 +3121,7 @@
           if (primary.retailPrice > priceThreshold) {
             const overThreshold = primary.retailPrice - priceThreshold;
             const reluctance = 1 - Math.min(1, overThreshold / priceThreshold);
-            if (Math.random() > reluctance) {
+            if (GameRNG.convention() > reluctance) {
               customerLog.push({ type: 'price_refuse', fanType: attendee.fanType, itemId: primary.id, price: primary.retailPrice });
               continue;
             }
@@ -3041,7 +3131,7 @@
           const prob = calcPurchaseProb(primary, franchise, attendee);
 
           // 主判定
-          if (Math.random() >= prob) {
+          if (GameRNG.convention() >= prob) {
             customerLog.push({ type: 'browse_only', fanType: attendee.fanType, itemId: primary.id });
             continue;
           }
@@ -3055,7 +3145,7 @@
             const bonusItem = remaining[i];
             if (bonusItem.remainingCount <= 0 || attendee.budget < bonusItem.retailPrice) continue;
             const bonusProb = bonusChances[i] !== undefined ? bonusChances[i] : bonusChances[bonusChances.length - 1];
-            if (Math.random() < bonusProb) {
+            if (GameRNG.convention() < bonusProb) {
               executePurchase(bonusItem, attendee);
             }
           }
@@ -3213,7 +3303,7 @@
           attendees = attendees.slice(0, newCount);
         } else if (newCount > originalCount) {
           while (attendees.length < newCount) {
-            attendees.push({ ...attendees[Math.floor(Math.random() * originalCount)] });
+            attendees.push({ ...attendees[Math.floor(GameRNG.convention() * originalCount)] });
           }
         }
         log(`Visitor count modified: ${originalCount} -> ${newCount} (x${visitorModifier})`);
@@ -3355,6 +3445,10 @@
             // 成就系統跨遊戲修正值
             _achievementModifiers: GameState._achievementModifiers || {},
             _coserMaxLevelBonus: GameState._coserMaxLevelBonus || 0,
+            // V4 收藏品市場
+            collectibles: GameState.collectibles || [],
+            collectibleMarket: GameState.collectibleMarket || [],
+            collectibleEvents: GameState.collectibleEvents || [],
             saveVersion: 2
             // platformFeeds 不持久化，每次進入 phase 重新生成
           }
@@ -3378,6 +3472,9 @@
 
         // V3: 存檔遷移
         migrateSaveData(saveData);
+
+        // 載入後初始化 RNG 流
+        initGameRNG(GameState.seed, GameState.round);
 
         log('Game loaded', GameState);
         return true;
@@ -3406,6 +3503,10 @@
       if (!GameState.platformFeeds) GameState.platformFeeds = {};
       if (!GameState.activePlatform) GameState.activePlatform = 'FEETBOOK';
       if (!GameState.socialEventCooldowns) GameState.socialEventCooldowns = {};
+      // 確保 V4 收藏品欄位存在
+      if (!GameState.collectibles) GameState.collectibles = [];
+      if (!GameState.collectibleMarket) GameState.collectibleMarket = [];
+      if (!GameState.collectibleEvents) GameState.collectibleEvents = [];
     }
     
     function clearSave() {
@@ -3530,7 +3631,7 @@
       if (!GameState.platformFeeds || Object.keys(GameState.platformFeeds).length === 0) {
         PlatformEngine.init();
         GameState.platformFeeds = PlatformEngine.generatePlatformFeeds(
-          GameState.franchises, GameState.round
+          GameState.franchises, GameState.round, { rng: GameRNG.social }
         );
       }
 
@@ -4934,6 +5035,7 @@
     function initGame(options = {}) {
       if (options.newGame || !loadGame()) {
         // 重置狀態
+        var gameSeed = options.seed || Date.now();
         GameState = {
           round: 1,
           money: BalanceConfig.STARTING_MONEY,
@@ -4947,7 +5049,7 @@
           history: [],
           eventLog: [],
           eventCooldowns: {},
-          seed: Date.now(),
+          seed: gameSeed,
           currentPosts: [],
           circleName: options.circleName || '無名社團',
           goalReached: false,
@@ -4955,21 +5057,30 @@
           platformFeeds: {},
           activePlatform: 'FEETBOOK',
           socialEventCooldowns: {},
+          // V4 收藏品市場
+          collectibles: [],
+          collectibleMarket: [],
+          collectibleEvents: [],
           saveVersion: 2
         };
-        
-        // 生成 10-15 個作品
+
+        // 初始化多流 RNG
+        initGameRNG(GameState.seed, GameState.round);
+
+        // 生成 10-15 個作品（使用 franchise RNG 流）
         const franchiseCountConfig = BalanceConfig.FRANCHISE_ROTATION?.STARTING_FRANCHISE_COUNT || { MIN: 10, MAX: 15 };
-        const franchiseCount = franchiseCountConfig.MIN + Math.floor(Math.random() * (franchiseCountConfig.MAX - franchiseCountConfig.MIN + 1));
+        const franchiseCount = franchiseCountConfig.MIN + Math.floor(GameRNG.franchise() * (franchiseCountConfig.MAX - franchiseCountConfig.MIN + 1));
         for (let i = 0; i < franchiseCount; i++) {
-          const franchise = generateFranchise({ seed: GameState.seed + i });
+          // 用 franchise RNG 流生成每個作品的 seed，而非 Date.now()
+          const franchiseSeed = Math.floor(GameRNG.franchise() * 2147483647);
+          const franchise = generateFranchise({ seed: franchiseSeed });
           franchise.addedRound = 1;
           GameState.franchises.push(franchise);
         }
-        
-        // 第一回合：隨機選擇一半的作品加上「當季新番」標籤
+
+        // 第一回合：隨機選擇一半的作品加上「當季新番」標籤（使用 seededShuffle）
         const halfCount = Math.floor(GameState.franchises.length / 2);
-        const shuffled = [...GameState.franchises].sort(() => Math.random() - 0.5);
+        const shuffled = seededShuffle(GameState.franchises, GameRNG.franchise);
         for (let i = 0; i < halfCount; i++) {
           if (!shuffled[i].tags.includes('當季新番')) {
             shuffled[i].tags.unshift('當季新番');
@@ -4987,8 +5098,8 @@
           }
           if (bonuses.bonusAP > 0) {
             GameState.ap += bonuses.bonusAP;
-            GameState.maxAp = Math.max(GameState.maxAp, GameState.ap);
-            log('Achievement bonuses applied: AP +' + bonuses.bonusAP);
+            // 不增加 maxAp，只有首回合多 AP（proceedToNextRound 會 reset ap = maxAp）
+            log('Achievement bonuses applied: AP +' + bonuses.bonusAP + ' (first round only)');
           }
           // 儲存跨遊戲修正值供 publishDraft / proceedToNextRound 使用
           GameState._achievementModifiers = {
@@ -4996,6 +5107,9 @@
             printCostReduction: bonuses.printCostReduction
           };
         }
+
+        // 生成初始收藏品市場
+        generateCollectibleMarket();
 
         log('New game initialized', GameState);
       }
@@ -5031,7 +5145,7 @@
           // 超級打字機：有機率獲得額外1份草稿
           if (typeof UpgradeSystem !== 'undefined') {
             const typewriterBonus = UpgradeSystem.getTypewriterBonus();
-            if (typewriterBonus > 0 && Math.random() < typewriterBonus) {
+            if (typewriterBonus > 0 && GameRNG.action() < typewriterBonus) {
               draft.stockCount++;
               log(`✨ 超級打字機觸發！額外獲得1份草稿`);
             }
@@ -5046,7 +5160,7 @@
             // 聖德太子：有機率獲得額外1級
             if (typeof UpgradeSystem !== 'undefined') {
               const sageBonus = UpgradeSystem.getSageBonus();
-              if (sageBonus > 0 && Math.random() < sageBonus) {
+              if (sageBonus > 0 && GameRNG.action() < sageBonus) {
                 increment = 2;
                 log(`✨ 聖德太子觸發！額外獲得1級理解度`);
               }
@@ -5068,7 +5182,7 @@
             // 市場分析達人：有機率獲得額外1級
             if (typeof UpgradeSystem !== 'undefined') {
               const analystBonus = UpgradeSystem.getAnalystBonus();
-              if (analystBonus > 0 && Math.random() < analystBonus) {
+              if (analystBonus > 0 && GameRNG.action() < analystBonus) {
                 increment = 2;
                 log(`✨ 市場分析達人觸發！額外獲得1級調研`);
               }
@@ -5100,7 +5214,7 @@
         PlatformEngine.init();
         if (!GameState.socialEventCooldowns) GameState.socialEventCooldowns = {};
         const socialEvents = PlatformEngine.rollSocialEvents(
-          GameState.franchises, GameState.socialEventCooldowns, GameState.round
+          GameState.franchises, GameState.socialEventCooldowns, GameState.round, { rng: GameRNG.social }
         );
         for (const { event: sEvt, targetFranchise } of socialEvents) {
           // 套用效果到作品屬性
@@ -5158,7 +5272,7 @@
     
     function triggerActionEvents() {
       // 50% 機率觸發 1 個事件
-      const roll = Math.random();
+      const roll = GameRNG.action();
       if (roll >= 0.5) return; // 50% 機率不觸發
       
       const event = selectEvent(GameState.franchises, GameState.eventCooldowns || {});
@@ -5448,7 +5562,7 @@
       if (typeof EventSystem !== 'undefined') {
         console.log('[Convention] EventSystem found, initializing...');
         EventSystem.init();
-        triggeredEvents = EventSystem.rollSessionEvents(GameState.round);
+        triggeredEvents = EventSystem.rollSessionEvents(GameState.round, { rng: GameRNG.event });
         console.log('[Convention] Triggered events:', triggeredEvents.length, 'events', triggeredEvents);
         GameState.sessionState.activeEvents = triggeredEvents;
 
@@ -5468,7 +5582,7 @@
           // 檢查是否有 random_work scope 的效果
           const hasRandomWorkEffect = event.effects?.some(e => e.scope === 'random_work');
           if (hasRandomWorkEffect && boothItems.length > 0) {
-            affectedWork = EventSystem.selectRandomWork(boothItems, 'random_work');
+            affectedWork = EventSystem.selectRandomWork(boothItems, 'random_work', { rng: GameRNG.event });
             // FR-007/FR-016: MUST 顯示完整作品名稱，不能使用「某作品」
             // 防禦性檢查：確保有有效的作品名稱
             if (affectedWork && affectedWork.title) {
@@ -5557,14 +5671,14 @@
           franchise.decayRate = getFranchiseDecayRate(franchise.tags || []);
         }
         const rates = decayRates[franchise.decayRate] || decayRates.normal;
-        const decayPercent = rates.minDecay + Math.random() * (rates.maxDecay - rates.minDecay);
+        const decayPercent = rates.minDecay + GameRNG.franchise() * (rates.maxDecay - rates.minDecay);
         const decayFactor = clamp(decayPercent / 100, 0, 1);
         franchise.popularity = clamp(franchise.popularity * (1 - decayFactor), 1, 100);
 
-        const densityDelta = normalRandom(-0.05, 0.03);
+        const densityDelta = normalRandom(-0.05, 0.03, GameRNG.franchise);
         franchise.audienceDensity = clamp(franchise.audienceDensity + densityDelta, 0.1, 1.0);
 
-        const purchasingDelta = normalRandom(-0.05, 0.03);
+        const purchasingDelta = normalRandom(-0.05, 0.03, GameRNG.franchise);
         franchise.purchasingPower = clamp(franchise.purchasingPower + purchasingDelta, 0.5, 2.0);
 
         franchise.archetype = classifyArchetype(
@@ -5590,44 +5704,44 @@
     
     function rollForEvents() {
       const events = [];
-      const roll = Math.random();
-      
+      const roll = GameRNG.event();
+
       // 50% 沒事件，40% 1個事件，10% 2個事件
       let eventCount = 0;
       if (roll > 0.5) eventCount = 1;
       if (roll > 0.9) eventCount = 2;
-      
+
       for (let i = 0; i < eventCount; i++) {
         const event = selectEvent();
         if (event) events.push(event);
       }
-      
+
       return events;
     }
-    
+
     function selectEvent() {
       // 過濾掉冷卻中的事件
       const availableEvents = EVENT_POOL.filter(evt => {
         const cooldown = GameState.eventCooldowns[evt.id] || 0;
         return cooldown <= GameState.round;
       });
-      
+
       if (availableEvents.length === 0) return null;
-      
+
       // 加權隨機選擇
       const totalProb = availableEvents.reduce((sum, evt) => sum + evt.probability, 0);
-      let roll = Math.random() * totalProb;
-      
+      let roll = GameRNG.event() * totalProb;
+
       for (const evt of availableEvents) {
         roll -= evt.probability;
         if (roll <= 0) {
           return evt;
         }
       }
-      
+
       return availableEvents[0];
     }
-    
+
     function applyEvent(eventTemplate) {
       // 選擇受影響的作品
       let targets = [];
@@ -5635,8 +5749,8 @@
         targets = GameState.franchises;
       } else {
         // 隨機選擇 1-2 個作品
-        const shuffled = [...GameState.franchises].sort(() => Math.random() - 0.5);
-        targets = shuffled.slice(0, 1 + Math.floor(Math.random() * 2));
+        const shuffled = seededShuffle(GameState.franchises, GameRNG.event);
+        targets = shuffled.slice(0, 1 + Math.floor(GameRNG.event() * 2));
       }
       
       // 套用效果
@@ -5699,7 +5813,7 @@
         }))
         .sort((a, b) => a.score - b.score); // 分數低的排前面
       
-      const removeCount = rotationConfig.REMOVE_MIN + Math.floor(Math.random() * (rotationConfig.REMOVE_MAX - rotationConfig.REMOVE_MIN + 1));
+      const removeCount = rotationConfig.REMOVE_MIN + Math.floor(GameRNG.franchise() * (rotationConfig.REMOVE_MAX - rotationConfig.REMOVE_MIN + 1));
       const toRemove = removalCandidates.slice(0, Math.min(removeCount, removalCandidates.length));
       
       for (const { franchise } of toRemove) {
@@ -5711,7 +5825,7 @@
           { name: '過氣', desc: `《${franchise.name}》已無人問津...` },
           { name: '被遺忘', desc: `還記得《${franchise.name}》嗎？已經沒人在討論了` }
         ];
-        const reason = removalReasons[Math.floor(Math.random() * removalReasons.length)];
+        const reason = removalReasons[Math.floor(GameRNG.franchise() * removalReasons.length)];
         
         // 從列表移除
         const idx = GameState.franchises.indexOf(franchise);
@@ -5741,11 +5855,12 @@
       }
       
       // === 新增作品（3-5個） ===
-      const addCount = rotationConfig.ADD_MIN + Math.floor(Math.random() * (rotationConfig.ADD_MAX - rotationConfig.ADD_MIN + 1));
+      const addCount = rotationConfig.ADD_MIN + Math.floor(GameRNG.franchise() * (rotationConfig.ADD_MAX - rotationConfig.ADD_MIN + 1));
       for (let i = 0; i < addCount; i++) {
         if (GameState.franchises.length >= 20) break; // 最多20個作品
-        
-        const newFranchise = generateFranchise({ seed: Date.now() + i });
+
+        const newFranchiseSeed = Math.floor(GameRNG.franchise() * 2147483647);
+        const newFranchise = generateFranchise({ seed: newFranchiseSeed });
         newFranchise.addedRound = GameState.round;
         
         // 添加當季新番標籤
@@ -5813,6 +5928,279 @@
     // === V2: 社團管理系統 (T029-T032) ===
     
     // T029: 實作社團管理介面的動態渲染
+    // ═══════════════════════════════════════════════════════════════
+    // 💎 收藏品市場系統
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 計算收藏品當前市值
+     * currentValue = baseCost × decayFactor × rarityBonus × eventMultiplier
+     */
+    function calculateCollectibleValue(collectible) {
+      var config = BalanceConfig.COLLECTIBLE_CONFIG;
+      var age = Math.max(0, GameState.round - collectible.purchaseRound);
+      var rarity = collectible.rarity;
+
+      // 衰退因子（絕版後停止衰退）
+      var decayRate = config.RARITY_DECAY_RATE[rarity] || 0.08;
+      var decayFactor = collectible.isRetired ? Math.pow(1 - decayRate, Math.max(0, (collectible.retiredAtRound || GameState.round) - collectible.purchaseRound)) : Math.pow(1 - decayRate, age);
+
+      // 稀有度增值
+      var appreciationRate = config.RARITY_APPRECIATION_RATE[rarity] || 0.05;
+      var rarityBonus = 1 + age * appreciationRate;
+
+      // 絕版加成（僅對有 hasRetiredBonus 屬性的收藏品）
+      if (collectible.isRetired && collectible.hasRetiredBonus) {
+        rarityBonus += config.RETIRED_BONUS[rarity] || 0;
+      }
+
+      var value = collectible.baseCost * decayFactor * rarityBonus * collectible.eventMultiplier;
+      return Math.max(1, Math.round(value));
+    }
+
+    /** 計算所有收藏品的總市值 */
+    function getTotalCollectiblesValue() {
+      if (!GameState.collectibles || GameState.collectibles.length === 0) return 0;
+      return GameState.collectibles.reduce(function(sum, c) {
+        return sum + calculateCollectibleValue(c);
+      }, 0);
+    }
+
+    /** 更新所有收藏品的計算欄位 */
+    function updateCollectibleValues() {
+      for (var i = 0; i < GameState.collectibles.length; i++) {
+        var c = GameState.collectibles[i];
+        c.currentValue = calculateCollectibleValue(c);
+        c.profitLoss = c.currentValue - c.purchasePrice;
+        c.profitLossPercent = c.purchasePrice > 0 ? Math.round((c.profitLoss / c.purchasePrice) * 100) : 0;
+      }
+    }
+
+    /** 用加權隨機選擇稀有度 */
+    function rollRarity(rng) {
+      var weights = BalanceConfig.COLLECTIBLE_CONFIG.RARITY_WEIGHTS;
+      var total = weights.common + weights.uncommon + weights.rare + weights.legendary;
+      var r = rng() * total;
+      if (r < weights.common) return 'common';
+      r -= weights.common;
+      if (r < weights.uncommon) return 'uncommon';
+      r -= weights.uncommon;
+      if (r < weights.rare) return 'rare';
+      return 'legendary';
+    }
+
+    /** 生成一個收藏品 */
+    function generateCollectible(franchise, rng) {
+      var config = BalanceConfig.COLLECTIBLE_CONFIG;
+      var templates = ContentTemplates.CollectibleTemplates;
+      var rarity = rollRarity(rng);
+
+      // 名稱 = 形容詞 + 作品名 + 周邊類型
+      var adjectives = templates.Adjectives;
+      var adjective = adjectives[Math.floor(rng() * adjectives.length)];
+      var peripheralType = templates.PeripheralTypes[Math.floor(rng() * templates.PeripheralTypes.length)];
+      var name = adjective + ' ' + franchise.name + ' ' + peripheralType;
+
+      // 價格（分層分布，與稀有度無關）
+      var tiers = config.PRICE_TIERS;
+      var totalWeight = 0;
+      for (var ti = 0; ti < tiers.length; ti++) totalWeight += tiers[ti].weight;
+      var pr = rng() * totalWeight;
+      var cum = 0;
+      var tier = tiers[0];
+      for (var tj = 0; tj < tiers.length; tj++) {
+        cum += tiers[tj].weight;
+        if (pr < cum) { tier = tiers[tj]; break; }
+      }
+      var baseCost = Math.round(tier.min + rng() * (tier.max - tier.min));
+
+      // 鑑賞難度 (0~1)
+      var diffRange = config.APPRAISAL_DIFFICULTY_RANGE[rarity] || { min: 0, max: 1 };
+      var appraisalDifficulty = Math.round((diffRange.min + rng() * (diffRange.max - diffRange.min)) * 100) / 100;
+
+      // 是否有絕版加成
+      var retiredBonusChance = config.HAS_RETIRED_BONUS_CHANCE[rarity] || 0.5;
+      var hasRetiredBonus = rng() < retiredBonusChance;
+
+      return {
+        id: 'coll_' + GameState.round + '_' + Math.floor(rng() * 99999),
+        name: name,
+        franchiseId: franchise.id,
+        franchiseName: franchise.name,
+        adjective: adjective,
+        peripheralType: peripheralType,
+        rarity: rarity,
+        baseCost: baseCost,
+        purchasePrice: 0,
+        purchaseRound: 0,
+        initialPopularity: franchise.popularity,
+        isRetired: false,
+        retiredAtRound: null,
+        eventMultiplier: 1.0,
+        appraisalDifficulty: appraisalDifficulty,
+        hasRetiredBonus: hasRetiredBonus,
+        currentValue: baseCost,
+        profitLoss: 0,
+        profitLossPercent: 0
+      };
+    }
+
+    /** 生成市場列表（每回合呼叫） */
+    function generateCollectibleMarket() {
+      var config = BalanceConfig.COLLECTIBLE_CONFIG;
+      var rng = GameRNG.market;
+
+      // 移除過舊的列表
+      var maxRounds = config.MAX_LISTING_ROUNDS || 3;
+      GameState.collectibleMarket = GameState.collectibleMarket.filter(function(listing) {
+        return GameState.round - listing.listedRound <= maxRounds;
+      });
+
+      // 計算需要新增多少
+      var currentCount = GameState.collectibleMarket.length;
+      if (currentCount >= config.MAX_MARKET_LISTINGS) return;
+
+      var addCount = config.LISTINGS_PER_ROUND.MIN + Math.floor(rng() * (config.LISTINGS_PER_ROUND.MAX - config.LISTINGS_PER_ROUND.MIN + 1));
+      addCount = Math.min(addCount, config.MAX_MARKET_LISTINGS - currentCount);
+
+      for (var i = 0; i < addCount; i++) {
+        if (GameState.franchises.length === 0) break;
+        // 隨機選擇一個作品（人氣加權）
+        var totalPop = GameState.franchises.reduce(function(s, f) { return s + f.popularity; }, 0);
+        var r = rng() * totalPop;
+        var cum = 0;
+        var franchise = GameState.franchises[0];
+        for (var j = 0; j < GameState.franchises.length; j++) {
+          cum += GameState.franchises[j].popularity;
+          if (r <= cum) { franchise = GameState.franchises[j]; break; }
+        }
+
+        var collectible = generateCollectible(franchise, rng);
+
+        GameState.collectibleMarket.push({
+          id: 'listing_' + GameState.round + '_' + i,
+          collectible: collectible,
+          listedRound: GameState.round,
+          askingPrice: collectible.baseCost
+        });
+      }
+    }
+
+    /** 擲骰收藏品市場事件 */
+    function rollCollectibleMarketEvents() {
+      var config = BalanceConfig.COLLECTIBLE_CONFIG;
+      var rng = GameRNG.market;
+      var events = config.MARKET_EVENTS;
+      var triggered = [];
+
+      if (!GameState.collectibles || GameState.collectibles.length === 0) return triggered;
+
+      for (var i = 0; i < events.length; i++) {
+        var evt = events[i];
+        if (rng() >= evt.probability) continue;
+
+        var affected = [];
+        switch (evt.scope) {
+          case 'all':
+            affected = GameState.collectibles.slice();
+            break;
+          case 'random_one':
+            if (GameState.collectibles.length > 0) {
+              affected = [GameState.collectibles[Math.floor(rng() * GameState.collectibles.length)]];
+            }
+            break;
+          case 'legendary':
+            affected = GameState.collectibles.filter(function(c) { return c.rarity === 'legendary'; });
+            break;
+          case 'random_type':
+            var types = ContentTemplates.CollectibleTemplates.PeripheralTypes;
+            var targetType = types[Math.floor(rng() * types.length)];
+            affected = GameState.collectibles.filter(function(c) { return c.peripheralType === targetType; });
+            evt = Object.assign({}, evt, { description: evt.description.replace('某類型', targetType) });
+            break;
+          case 'random_franchise':
+            if (GameState.collectibles.length > 0) {
+              var sample = GameState.collectibles[Math.floor(rng() * GameState.collectibles.length)];
+              var fId = sample.franchiseId;
+              affected = GameState.collectibles.filter(function(c) { return c.franchiseId === fId; });
+              evt = Object.assign({}, evt, { description: evt.description.replace('相關', '《' + sample.franchiseName + '》') });
+            }
+            break;
+        }
+
+        if (affected.length > 0) {
+          for (var j = 0; j < affected.length; j++) {
+            affected[j].eventMultiplier *= evt.multiplier;
+          }
+          triggered.push({ event: evt, affectedCount: affected.length });
+        }
+
+        // 每回合最多觸發 2 個收藏品事件
+        if (triggered.length >= 2) break;
+      }
+
+      GameState.collectibleEvents = triggered;
+      return triggered;
+    }
+
+    /** 檢查作品退場對收藏品的影響 */
+    function checkCollectibleRetirement(removedFranchiseIds) {
+      if (!removedFranchiseIds || removedFranchiseIds.length === 0) return;
+      for (var i = 0; i < GameState.collectibles.length; i++) {
+        var c = GameState.collectibles[i];
+        if (!c.isRetired && removedFranchiseIds.indexOf(c.franchiseId) !== -1) {
+          c.isRetired = true;
+          c.retiredAtRound = GameState.round;
+        }
+      }
+    }
+
+    // 公開到 window 供 onclick 使用
+    window.purchaseCollectible = function(listingId) {
+      var listing = GameState.collectibleMarket.find(function(l) { return l.id === listingId; });
+      if (!listing) { alert('找不到此收藏品'); return; }
+      if (GameState.money < listing.askingPrice) { alert('資金不足'); return; }
+
+      GameState.money -= listing.askingPrice;
+      var collectible = Object.assign({}, listing.collectible);
+      collectible.purchasePrice = listing.askingPrice;
+      collectible.purchaseRound = GameState.round;
+      GameState.collectibles.push(collectible);
+
+      // 從市場移除
+      GameState.collectibleMarket = GameState.collectibleMarket.filter(function(l) { return l.id !== listingId; });
+
+      // 成就檢查
+      if (typeof AchievementSystem !== 'undefined' && AchievementSystem.checkAfterCollectiblePurchase) {
+        AchievementSystem.checkAfterCollectiblePurchase(collectible);
+      }
+
+      saveGame();
+      renderClubManagement();
+    };
+
+    window.sellCollectible = function(collectibleId) {
+      if (!confirm('確定要賣出此收藏品嗎？')) return;
+      var idx = -1;
+      for (var i = 0; i < GameState.collectibles.length; i++) {
+        if (GameState.collectibles[i].id === collectibleId) { idx = i; break; }
+      }
+      if (idx === -1) { alert('找不到此收藏品'); return; }
+
+      var collectible = GameState.collectibles[idx];
+      var sellPrice = calculateCollectibleValue(collectible);
+      GameState.money += sellPrice;
+      GameState.collectibles.splice(idx, 1);
+
+      // 成就檢查
+      if (typeof AchievementSystem !== 'undefined' && AchievementSystem.checkAfterCollectibleSell) {
+        AchievementSystem.checkAfterCollectibleSell(collectible.purchasePrice, sellPrice);
+      }
+
+      saveGame();
+      renderClubManagement();
+    };
+
     function renderClubManagement() {
       // 初始化升級系統
       if (typeof UpgradeSystem !== 'undefined') {
@@ -5822,15 +6210,172 @@
       // 更新統計數據
       document.getElementById('club-money').textContent = formatCurrency(GameState.money);
       document.getElementById('club-debt').textContent = formatCurrency(GameState.debt || 0);
-      
+      document.getElementById('club-seed').textContent = GameState.seed || '-';
+
+      // 計算並顯示本回合倉儲成本
+      var totalInventory = GameState.inventory.reduce(function(sum, inv) { return sum + inv.remainingCount; }, 0);
+      var scMultiplier = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getStorageCostMultiplier() : 1;
+      var scPerBook = BalanceConfig.STORAGE_COST_PER_BOOK || 2;
+      var currentStorageCost = Math.round(totalInventory * scPerBook * scMultiplier);
+      var achMod = GameState._achievementModifiers || {};
+      if (achMod.storageCostReduction > 0) {
+        currentStorageCost = Math.round(currentStorageCost * (1 - achMod.storageCostReduction));
+      }
+      document.getElementById('club-storage-cost').textContent = formatCurrency(currentStorageCost);
+      // 資金不足支付倉儲成本時高亮警示
+      var storageCostEl = document.getElementById('club-storage-cost');
+      if (GameState.money < currentStorageCost && currentStorageCost > 0) {
+        storageCostEl.style.color = '#ef4444';
+        storageCostEl.style.fontWeight = 'bold';
+      } else {
+        storageCostEl.style.color = '#f97316';
+        storageCostEl.style.fontWeight = '';
+      }
+
       // 渲染升級列表
       renderUpgradeList();
-      
+
       // 渲染庫存列表
       renderInventoryList();
-      
+
       // 渲染財務資訊
       renderFinanceInfo();
+
+      // 渲染收藏品市場
+      renderCollectibles();
+    }
+
+    function getAppraisalLevel() {
+      if (typeof UpgradeSystem !== 'undefined') {
+        var effect = UpgradeSystem.getEffect('appraiser');
+        return effect.appraisalLevel || 0;
+      }
+      return 0;
+    }
+
+    function canAppraise(collectible) {
+      return getAppraisalLevel() * 0.2 >= (collectible.appraisalDifficulty || 0);
+    }
+
+    function renderCollectibles() {
+      var config = BalanceConfig.COLLECTIBLE_CONFIG;
+
+      // 更新收藏品數值
+      updateCollectibleValues();
+
+      // === 倉儲成本警告 ===
+      var warningEl = document.getElementById('collectible-storage-warning');
+      if (warningEl) {
+        var invTotal = GameState.inventory.reduce(function(s, inv) { return s + inv.remainingCount; }, 0);
+        var scMul = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getStorageCostMultiplier() : 1;
+        var scPB = BalanceConfig.STORAGE_COST_PER_BOOK || 2;
+        var sc = Math.round(invTotal * scPB * scMul);
+        var am = GameState._achievementModifiers || {};
+        if (am.storageCostReduction > 0) {
+          sc = Math.round(sc * (1 - am.storageCostReduction));
+        }
+        if (GameState.money < sc && sc > 0) {
+          warningEl.style.display = 'block';
+          warningEl.innerHTML = '<div style="background: rgba(239, 68, 68, 0.15); border: 2px solid rgba(239, 68, 68, 0.5); border-radius: 8px; padding: 14px; margin-bottom: 16px; text-align: center;">'
+            + '<div style="font-size: 1.2rem; margin-bottom: 6px;">⚠️ 倉儲成本警告</div>'
+            + '<div style="color: #f87171;">目前資金 <strong>' + formatCurrency(GameState.money) + '</strong> 不足以支付倉儲成本 <strong>' + formatCurrency(sc) + '</strong></div>'
+            + '<div style="color: #ef4444; font-weight: bold; margin-top: 6px;">下回合結算時遊戲將結束！請賣出收藏品或銷毀庫存以降低成本。</div>'
+            + '</div>';
+        } else {
+          warningEl.style.display = 'none';
+          warningEl.innerHTML = '';
+        }
+      }
+
+      // === 事件通知 ===
+      var eventsEl = document.getElementById('collectible-events');
+      if (eventsEl) {
+        var evtHtml = '';
+        var events = GameState.collectibleEvents || [];
+        for (var i = 0; i < events.length; i++) {
+          var e = events[i];
+          var isPositive = e.event.multiplier > 1;
+          evtHtml += '<div style="background: ' + (isPositive ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)') + '; border: 1px solid ' + (isPositive ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)') + '; border-radius: 8px; padding: 10px; margin-bottom: 8px;">'
+            + '<strong>' + e.event.name + '</strong> ' + e.event.description
+            + ' (影響 ' + e.affectedCount + ' 件)'
+            + '</div>';
+        }
+        eventsEl.innerHTML = evtHtml;
+      }
+
+      // === 我的收藏品 ===
+      var myEl = document.getElementById('my-collectibles');
+      var totalEl = document.getElementById('collectible-total-value');
+      if (myEl) {
+        if (GameState.collectibles.length === 0) {
+          myEl.innerHTML = '<p style="color: #666;">還沒有收藏品</p>';
+          if (totalEl) totalEl.textContent = '';
+        } else {
+          var totalValue = getTotalCollectiblesValue();
+          if (totalEl) totalEl.textContent = '持有 ' + GameState.collectibles.length + ' 件，總市值 ' + formatCurrency(totalValue);
+
+          myEl.innerHTML = GameState.collectibles.map(function(c) {
+            var known = canAppraise(c);
+            var color = known ? (config.RARITY_COLORS[c.rarity] || '#9CA3AF') : '#666';
+            var rarityName = known ? (config.RARITY_NAMES[c.rarity] || '普通') : '品質未知';
+            var plColor = c.profitLoss >= 0 ? '#22c55e' : '#ef4444';
+            var plSign = c.profitLoss >= 0 ? '+' : '';
+            var retiredBadge = c.isRetired ? ' <span style="color: #f59e0b; font-size: 0.75rem;">絕版</span>' : '';
+            return '<div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; border-left: 4px solid ' + color + ';">'
+              + '<div style="display: flex; justify-content: space-between; align-items: flex-start;">'
+              + '<div>'
+              + '<div style="font-weight: bold; margin-bottom: 4px;">' + c.name + retiredBadge + '</div>'
+              + '<div style="font-size: 0.8rem; color: ' + color + ';">' + rarityName + '</div>'
+              + '</div>'
+              + '<div style="text-align: right;">'
+              + '<div style="font-weight: bold;">' + formatCurrency(c.currentValue) + '</div>'
+              + '<div style="font-size: 0.8rem; color: ' + plColor + ';">' + plSign + formatCurrency(c.profitLoss) + ' (' + plSign + c.profitLossPercent + '%)</div>'
+              + '</div>'
+              + '</div>'
+              + '<div style="margin-top: 8px; display: flex; justify-content: flex-end;">'
+              + '<button onclick="sellCollectible(\'' + c.id + '\')" style="padding: 4px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">賣出 ' + formatCurrency(c.currentValue) + '</button>'
+              + '</div>'
+              + '</div>';
+          }).join('');
+        }
+      }
+
+      // === 市場列表 ===
+      var marketEl = document.getElementById('collectible-market');
+      var countEl = document.getElementById('collectible-market-count');
+      if (marketEl) {
+        if (countEl) countEl.textContent = '上架中 ' + GameState.collectibleMarket.length + ' / ' + config.MAX_MARKET_LISTINGS;
+
+        if (GameState.collectibleMarket.length === 0) {
+          marketEl.innerHTML = '<p style="color: #666;">目前沒有收藏品上架</p>';
+        } else {
+          var maxListRounds = config.MAX_LISTING_ROUNDS || 3;
+          marketEl.innerHTML = GameState.collectibleMarket.map(function(listing) {
+            var c = listing.collectible;
+            var known = canAppraise(c);
+            var color = known ? (config.RARITY_COLORS[c.rarity] || '#9CA3AF') : '#666';
+            var rarityName = known ? (config.RARITY_NAMES[c.rarity] || '普通') : '品質未知';
+            var canAfford = GameState.money >= listing.askingPrice;
+            var remainingRounds = maxListRounds - (GameState.round - listing.listedRound);
+            var urgencyColor = remainingRounds <= 0 ? '#ef4444' : '#999';
+            return '<div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 12px; border-left: 4px solid ' + color + ';">'
+              + '<div style="display: flex; justify-content: space-between; align-items: flex-start;">'
+              + '<div>'
+              + '<div style="font-weight: bold; margin-bottom: 4px;">' + c.name + '</div>'
+              + '<div style="font-size: 0.8rem; color: ' + color + ';">' + rarityName
+              + ' <span style="color: ' + urgencyColor + ';">· 剩餘 ' + remainingRounds + ' 回合</span></div>'
+              + '</div>'
+              + '<div style="text-align: right;">'
+              + '<div style="font-weight: bold; font-size: 1.1rem;">' + formatCurrency(listing.askingPrice) + '</div>'
+              + '<button onclick="purchaseCollectible(\'' + listing.id + '\')" style="margin-top: 6px; padding: 4px 12px; font-size: 0.8rem;" ' + (canAfford ? '' : 'disabled') + '>'
+              + (canAfford ? '購買' : '資金不足')
+              + '</button>'
+              + '</div>'
+              + '</div>'
+              + '</div>';
+          }).join('');
+        }
+      }
     }
     
     function renderUpgradeList() {
@@ -5938,8 +6483,8 @@
         loanSection.innerHTML = `
           <div style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); border-radius: 6px; padding: 12px; margin-bottom: 12px;">
             <p style="color: #fbbf24; font-size: 0.9rem; margin: 0;">
-              ⚠️ <strong>風險提醒：</strong>每回合結算時，如果負債超過當前資金，遊戲將結束！
-              （結算時機為結束社團管理頁面時，將會檢查資金扣掉倉儲成本後是否低於負債）
+              ⚠️ <strong>風險提醒：</strong>每回合結算時，如果負債超過總資產（資金 + 收藏品市值），遊戲將結束！
+              （結算時機為結束社團管理頁面時）
             </p>
           </div>
           <p>舉債額度: ${formatCurrency(debtLimit)}</p>
@@ -5971,6 +6516,25 @@
       } else {
         investmentSection.innerHTML = '<p style="color: #aaa;">需要先升級「股市投資」才能獲得利息</p>';
       }
+
+      // 淨資產摘要
+      var collValue = getTotalCollectiblesValue();
+      var netAssets = GameState.money + collValue - currentDebt;
+      var netColor = netAssets >= 0 ? '#22c55e' : '#ef4444';
+      var summaryEl = document.getElementById('net-assets-summary');
+      if (!summaryEl) {
+        summaryEl = document.createElement('div');
+        summaryEl.id = 'net-assets-summary';
+        investmentSection.parentNode.insertBefore(summaryEl, investmentSection.nextSibling);
+      }
+      summaryEl.innerHTML = '<div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 16px; margin-top: 16px;">'
+        + '<h3 style="margin-bottom: 12px;">📊 資產總覽</h3>'
+        + '<p>資金: ' + formatCurrency(GameState.money) + '</p>'
+        + '<p>收藏品市值: ' + formatCurrency(collValue) + '</p>'
+        + '<p>負債: <span style="color: #ef4444;">-' + formatCurrency(currentDebt) + '</span></p>'
+        + '<hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">'
+        + '<p style="font-size: 1.1rem;"><strong>淨資產: <span style="color: ' + netColor + ';">' + formatCurrency(netAssets) + '</span></strong></p>'
+        + '</div>';
     }
     
     // T030: 實作升級按鈕點擊事件處理器
@@ -6188,17 +6752,20 @@
         log(`Investment interest: +${interest}`);
       }
       
-      // 檢查遊戲結束條件
-      // 1. 負債超過資金：再也無法償還
+      // 檢查遊戲結束條件（計入收藏品市值）
       const currentDebt = GameState.debt || 0;
-      if (currentDebt > GameState.money) {
-        showGameOver('負債超過資金，無力償還');
+      const collectiblesValue = getTotalCollectiblesValue();
+      const totalAssets = GameState.money + collectiblesValue;
+
+      // 1. 有負債且總資產不足以償還
+      if (currentDebt > 0 && totalAssets < currentDebt) {
+        showGameOver('負債超過總資產（資金 + 收藏品），無力償還');
         return;
       }
-      
-      // 2. 資金負數且有負債：無法繼續經營
+
+      // 2. 資金負數：嘗試舉債
       if (GameState.money < 0) {
-        if (currentDebt > 0) {
+        if (currentDebt > 0 && totalAssets < currentDebt) {
           showGameOver('負債累累，無力償還');
           return;
         }
@@ -6209,6 +6776,9 @@
           GameState.debt = currentDebt + neededLoan;
           GameState.money = 0;
           alert(`資金不足！自動向天使投資人借款 ${formatCurrency(neededLoan)}`);
+        } else if (collectiblesValue > 0) {
+          // 有收藏品市值撐住，暫不破產
+          log('資金為負但收藏品市值足以支撐: ' + collectiblesValue);
         } else {
           showGameOver('資金耗盡，社團被迫解散');
           return;
@@ -6217,6 +6787,9 @@
       
       // 繼續到下一回合
       GameState.round++;
+
+      // 初始化新回合的 RNG 流
+      initGameRNG(GameState.seed, GameState.round);
 
       // 成就檢查
       if (typeof AchievementSystem !== 'undefined') {
@@ -6248,7 +6821,24 @@
       const rotationReport = updateFranchisePool();
       if (rotationReport) {
         showFranchiseRotationReport(rotationReport);
+        // 收藏品退場檢查：退場作品的收藏品獲得絕版加成
+        if (rotationReport.removed && rotationReport.removed.length > 0) {
+          var removedIds = [];
+          for (var ri = 0; ri < rotationReport.removed.length; ri++) {
+            // 從 eventLog 找到對應的 franchiseId
+            var removedEntry = GameState.eventLog.find(function(e) {
+              return e.eventId === 'franchise_removed' && e.round === GameState.round && e.franchiseName === rotationReport.removed[ri].name;
+            });
+            if (removedEntry) removedIds.push(removedEntry.franchiseId);
+          }
+          checkCollectibleRetirement(removedIds);
+        }
       }
+
+      // 收藏品市場：生成新列表 + 擲骰事件
+      generateCollectibleMarket();
+      rollCollectibleMarketEvents();
+      updateCollectibleValues();
 
       saveGame();
       console.log('[ProceedToNextRound] Rendering SOCIAL_ACTION phase');
@@ -6375,11 +6965,27 @@
       
       document.getElementById('btn-start-new-game').addEventListener('click', () => {
         const circleName = document.getElementById('circle-name-input').value.trim() || '無名社團';
-        initGame({ newGame: true, circleName });
+        const seedInput = document.getElementById('seed-input').value.trim();
+        const seed = seedInput ? parseInt(seedInput, 10) || hashString(seedInput) : Date.now();
+        initGame({ newGame: true, circleName, seed });
       });
-      
+
+      // 隨機生成種子碼按鈕
+      document.getElementById('btn-random-seed').addEventListener('click', () => {
+        const randomSeed = Math.floor(Math.random() * 999999) + 1;
+        document.getElementById('seed-input').value = randomSeed;
+      });
+
       // 輸入框按 Enter 也可以開始
       document.getElementById('circle-name-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          document.getElementById('btn-start-new-game').click();
+        }
+      });
+
+      // 種子碼輸入框按 Enter 也開始遊戲
+      document.getElementById('seed-input').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
           document.getElementById('btn-start-new-game').click();
@@ -6397,6 +7003,19 @@
         }
       });
       
+      // 種子碼點擊複製
+      document.getElementById('seed-display-container').addEventListener('click', () => {
+        const seed = GameState.seed;
+        if (seed && navigator.clipboard) {
+          navigator.clipboard.writeText(String(seed)).then(() => {
+            const el = document.getElementById('club-seed');
+            const orig = el.textContent;
+            el.textContent = '已複製!';
+            setTimeout(() => { el.textContent = orig; }, 1000);
+          });
+        }
+      });
+
       // V3: 平台 tab 切換（用 currentTarget 避免點到子元素 .tab-count 時失效）
       document.querySelectorAll('.platform-tab').forEach(tab => {
         tab.addEventListener('click', (e) => {

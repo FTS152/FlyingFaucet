@@ -349,6 +349,21 @@ const BalanceConfig = {
       ]
     },
     {
+      id: 'appraiser',
+      name: '收藏鑑賞家',
+      subDescription: '只要你懂市場，市場就會幫你',
+      description: '鑑定收藏品的真實品質',
+      maxLevel: 5,
+      costs: [1000, 4000, 10000, 20000, 30000],
+      effects: [
+        { appraisalLevel: 1 },
+        { appraisalLevel: 2 },
+        { appraisalLevel: 3 },
+        { appraisalLevel: 4 },
+        { appraisalLevel: 5 }
+      ]
+    },
+    {
       id: 'writing',
       name: '提升文筆',
       subDescription: '沒有效果，難道你覺得文筆對銷量有實際幫助嗎？',
@@ -652,6 +667,103 @@ const BalanceConfig = {
     EVENT_FLOOD_MULTIPLIER: 1.8,
     /** 互動數值基礎倍率 */
     ENGAGEMENT_BASE_MULTIPLIER: 10
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // 💎 收藏品市場
+  // ═══════════════════════════════════════════════════════════════
+
+  COLLECTIBLE_CONFIG: {
+    /** 每回合新上架收藏品數量 */
+    LISTINGS_PER_ROUND: { MIN: 3, MAX: 5 },
+    /** 市場最多同時上架數 */
+    MAX_MARKET_LISTINGS: 10,
+
+    /** 稀有度出現權重 */
+    RARITY_WEIGHTS: {
+      common:    50,
+      uncommon:  30,
+      rare:      15,
+      legendary:  5
+    },
+
+    /** 基礎售價分層分布（與稀有度無關） */
+    PRICE_TIERS: [
+      { weight: 50, min: 500,   max: 10000 },   // 50% 低價
+      { weight: 40, min: 10000, max: 50000 },   // 40% 中價
+      { weight: 10, min: 50000, max: 100000 }   // 10% 高價
+    ],
+
+    /** 上架最大存續回合數 */
+    MAX_LISTING_ROUNDS: 3,
+
+    /** 稀有度→內部衰退率（每回合） */
+    RARITY_DECAY_RATE: {
+      common:    0.08,
+      uncommon:  0.05,
+      rare:      0.03,
+      legendary: 0.01
+    },
+
+    /** 稀有度→增值率（每回合） */
+    RARITY_APPRECIATION_RATE: {
+      common:    0.05,
+      uncommon:  0.08,
+      rare:      0.12,
+      legendary: 0.18
+    },
+
+    /** 絕版加成（原作品退場時一次性加到 rarityBonus） */
+    RETIRED_BONUS: {
+      common:    0.30,
+      uncommon:  0.50,
+      rare:      0.80,
+      legendary: 1.20
+    },
+
+    /** 稀有度顏色（CSS） */
+    RARITY_COLORS: {
+      common:    '#9CA3AF',
+      uncommon:  '#22C55E',
+      rare:      '#3B82F6',
+      legendary: '#F59E0B'
+    },
+
+    /** 稀有度中文名稱 */
+    RARITY_NAMES: {
+      common:    '普通',
+      uncommon:  '精良',
+      rare:      '稀有',
+      legendary: '傳說'
+    },
+
+    /** 鑑賞難度範圍（按稀有度） */
+    APPRAISAL_DIFFICULTY_RANGE: {
+      common:    { min: 0.0, max: 0.8 },
+      uncommon:  { min: 0.2, max: 0.9 },
+      rare:      { min: 0.4, max: 1.0 },
+      legendary: { min: 0.6, max: 1.0 }
+    },
+
+    /** 有絕版加成的機率（按稀有度） */
+    HAS_RETIRED_BONUS_CHANCE: {
+      common:    0.30,
+      uncommon:  0.50,
+      rare:      0.70,
+      legendary: 0.90
+    },
+
+    /** 收藏品市場事件 */
+    MARKET_EVENTS: [
+      { id: 'collector_meetup',  name: '收藏家聚會',     probability: 0.08, multiplier: 1.15, scope: 'all',      description: '收藏家聚會帶動行情！所有收藏品 +15%' },
+      { id: 'market_downturn',   name: '市場低迷',       probability: 0.08, multiplier: 0.90, scope: 'all',      description: '市場景氣不佳...所有收藏品 -10%' },
+      { id: 'counterfeit_scare', name: '仿冒品風波',     probability: 0.06, multiplier: 0.80, scope: 'random_one', description: '仿冒品流入市場！某件收藏品 -20%' },
+      { id: 'celebrity_endorse', name: '知名收藏家推薦', probability: 0.04, multiplier: 1.25, scope: 'random_one', description: '知名收藏家公開推薦！某件收藏品 +25%' },
+      { id: 'auction_record',    name: '拍賣會天價成交', probability: 0.03, multiplier: 1.30, scope: 'legendary',  description: '拍賣會天價成交！傳說收藏品 +30%' },
+      { id: 'quality_issue',     name: '周邊品質問題',   probability: 0.05, multiplier: 0.85, scope: 'random_type', description: '某類型周邊爆出品質問題 -15%' },
+      { id: 'author_signing',    name: '作者簽名會',     probability: 0.06, multiplier: 1.20, scope: 'random_franchise', description: '作者親臨簽名會！相關收藏品 +20%' },
+      { id: 'limited_reissue',   name: '限量復刻',       probability: 0.04, multiplier: 0.75, scope: 'random_franchise', description: '限量復刻上市！相關收藏品 -25%' }
+    ]
   }
 };
 
