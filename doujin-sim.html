@@ -7029,6 +7029,9 @@
           if (platformId) {
             GameState.activePlatform = platformId;
             renderPlatformFeed(platformId);
+            // 切換後捲動到最上方
+            var feedEl = document.getElementById('feed-' + platformId);
+            if (feedEl) feedEl.scrollTop = 0;
             // 成就追蹤
             if (typeof AchievementSystem !== 'undefined') {
               AchievementSystem.checkPlatformVisit(platformId);
