@@ -522,19 +522,22 @@
     .history-panel {
       position: fixed;
       top: 0;
-      right: -400px;
       width: 400px;
+      max-width: 100vw;
       height: 100vh;
       background: #1a1a2e;
       border-left: 1px solid rgba(255, 255, 255, 0.1);
       z-index: 1000;
-      transition: right 0.3s ease;
+      transition: transform 0.3s ease;
+      transform: translateX(100%);
+      right: 0;
       overflow-y: auto;
       padding: 20px;
+      box-sizing: border-box;
     }
-    
+
     .history-panel.open {
-      right: 0;
+      transform: translateX(0);
     }
     
     .history-overlay {
@@ -589,18 +592,21 @@
     #achievement-panel {
       position: fixed;
       top: 0;
-      right: -420px;
+      right: 0;
       width: 420px;
+      max-width: 100vw;
       height: 100vh;
       background: #1a1a2e;
       border-left: 1px solid rgba(245, 158, 11, 0.2);
       z-index: 1000;
-      transition: right 0.3s ease;
+      transition: transform 0.3s ease;
+      transform: translateX(100%);
       overflow-y: auto;
       padding: 20px;
+      box-sizing: border-box;
     }
     #achievement-panel.open {
-      right: 0;
+      transform: translateX(0);
     }
     #achievement-overlay {
       position: fixed;
