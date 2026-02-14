@@ -349,6 +349,21 @@ const BalanceConfig = {
       ]
     },
     {
+      id: 'appraiser',
+      name: '收藏鑑賞家',
+      subDescription: '只要你懂市場，市場就會幫你',
+      description: '鑑定收藏品的真實品質',
+      maxLevel: 5,
+      costs: [1000, 4000, 10000, 20000, 30000],
+      effects: [
+        { appraisalLevel: 1 },
+        { appraisalLevel: 2 },
+        { appraisalLevel: 3 },
+        { appraisalLevel: 4 },
+        { appraisalLevel: 5 }
+      ]
+    },
+    {
       id: 'writing',
       name: '提升文筆',
       subDescription: '沒有效果，難道你覺得文筆對銷量有實際幫助嗎？',
@@ -508,7 +523,260 @@ const BalanceConfig = {
       maxDecay: 20,
       description: '歷久不衰的經典題材'
     }
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // 📱 V3: 社群平台系統
+  // ═══════════════════════════════════════════════════════════════
+
+  /** 三平台配置 */
+  PLATFORM_CONFIG: {
+    FEETBOOK: {
+      id: 'FEETBOOK',
+      name: 'FeetBook',
+      icon: '📘',
+      /** 平台受眾組成 (各 fanType 權重，總和 = 1.0) */
+      audienceMix: {
+        CASUAL: 0.30,
+        ENTHUSIAST: 0.25,
+        LURKER: 0.15,
+        COLLECTOR: 0.10,
+        WHALE: 0.08,
+        MEMER: 0.05,
+        CRITIC: 0.05,
+        HATER: 0.02
+      },
+      /** 曝光偏好：高人氣作品更容易出現 */
+      exposureBias: 'popularity',
+      /** 毒性：影響留言/評論比率 (0~1) */
+      toxicity: 0.1,
+      /** 貼文格式類型 */
+      postFormat: 'long',
+      /** 基礎貼文數量 */
+      basePostCount: 12,
+      /** 此平台顯示的互動指標 */
+      engagementMetrics: ['likes', 'comments', 'shares']
+    },
+    Y: {
+      id: 'Y',
+      name: 'Y',
+      icon: '🐦',
+      audienceMix: {
+        MEMER: 0.25,
+        ENTHUSIAST: 0.20,
+        CASUAL: 0.15,
+        HATER: 0.10,
+        CRITIC: 0.10,
+        LURKER: 0.10,
+        WHALE: 0.05,
+        COLLECTOR: 0.05
+      },
+      /** 曝光偏好：病毒式傳播力強的 tag 更容易出現 */
+      exposureBias: 'trending',
+      toxicity: 0.3,
+      postFormat: 'short',
+      basePostCount: 15,
+      engagementMetrics: ['likes', 'retweets']
+    },
+    THREECH: {
+      id: 'THREECH',
+      name: '3ch',
+      icon: '💬',
+      audienceMix: {
+        CRITIC: 0.25,
+        HATER: 0.20,
+        MEMER: 0.15,
+        LURKER: 0.15,
+        ENTHUSIAST: 0.10,
+        CASUAL: 0.10,
+        WHALE: 0.03,
+        COLLECTOR: 0.02
+      },
+      /** 曝光偏好：爭議性內容更容易出現 */
+      exposureBias: 'controversial',
+      toxicity: 0.6,
+      postFormat: 'anonymous',
+      basePostCount: 8,
+      engagementMetrics: ['replies', 'thread_speed']
+    }
+  },
+
+  /** Tag 對互動指標的影響偏置 (0~1) */
+  TAG_BIASES: {
+    '超展開':     { positiveBias: 0.3, viralTagBonus: 0.4, dramaTagBonus: 0.2 },
+    '燒腦':       { positiveBias: 0.5, viralTagBonus: 0.1, dramaTagBonus: 0.3 },
+    '日常系':     { positiveBias: 0.6, viralTagBonus: 0.1, dramaTagBonus: 0.0 },
+    '熱血':       { positiveBias: 0.7, viralTagBonus: 0.3, dramaTagBonus: 0.1 },
+    '致鬱':       { positiveBias: 0.2, viralTagBonus: 0.2, dramaTagBonus: 0.5 },
+    '治愈':       { positiveBias: 0.8, viralTagBonus: 0.2, dramaTagBonus: 0.0 },
+    '迷因化':     { positiveBias: 0.4, viralTagBonus: 0.8, dramaTagBonus: 0.1 },
+    '角色魅力強': { positiveBias: 0.6, viralTagBonus: 0.3, dramaTagBonus: 0.1 },
+    '劇情向':     { positiveBias: 0.5, viralTagBonus: 0.1, dramaTagBonus: 0.2 },
+    '世界觀獨特': { positiveBias: 0.4, viralTagBonus: 0.2, dramaTagBonus: 0.1 },
+    '爛到好笑':   { positiveBias: 0.3, viralTagBonus: 0.7, dramaTagBonus: 0.3 },
+    '反套路':     { positiveBias: 0.4, viralTagBonus: 0.3, dramaTagBonus: 0.2 },
+    'R18友好':    { positiveBias: 0.3, viralTagBonus: 0.2, dramaTagBonus: 0.4 },
+    '全年齡向':   { positiveBias: 0.6, viralTagBonus: 0.1, dramaTagBonus: 0.0 },
+    '當季新番':   { positiveBias: 0.5, viralTagBonus: 0.5, dramaTagBonus: 0.1 }
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ⚖️ V3: 人氣抑制系統
+  // ═══════════════════════════════════════════════════════════════
+
+  /** 人氣抑制參數：effectiveP = P + STRENGTH × (CENTER - P) */
+  POPULARITY_DAMPENING: {
+    CENTER: 50,     // 中心點（此值不受影響）
+    STRENGTH: 0.5   // 抑制強度（0=無效果, 1=全部拉到CENTER）
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // 💳 V3: 顧客預算系統
+  // ═══════════════════════════════════════════════════════════════
+
+  /** 各顧客類型的預算範圍 (取代統一的 1500-5000) */
+  CUSTOMER_BUDGETS: {
+    WHALE:      { min: 3000, max: 7500 },
+    COLLECTOR:  { min: 1600, max: 4000},
+    ENTHUSIAST: { min: 1200, max: 3000 },
+    CRITIC:     { min: 800, max: 2000 },
+    MEMER:      { min: 800, max: 2000 },
+    LURKER:     { min: 600, max: 1500 },
+    CASUAL:     { min: 600,  max: 1500 },
+    HATER:      { min: 300,  max: 750 }
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // 📚 V3: 同作品多本刊物 Bonus 系統
+  // ═══════════════════════════════════════════════════════════════
+
+  /**
+   * 同作品額外刊物的 bonus 購買機率
+   * index 0 = 第2本, index 1 = 第3本, ...
+   * 主判定成功後才會 roll bonus
+   */
+  FRANCHISE_BONUS_CHANCES: [0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125, 0.00390625],
+
+  /** 社群 Feed 系統常數 */
+  SOCIAL_FEED: {
+    /** 每平台最大貼文數 */
+    MAX_POSTS_PER_PLATFORM: 40,
+    /** 聲線模板出現機率 (0~1) */
+    VOICE_TEMPLATE_CHANCE: 0.15,
+    /** 事件洗版時該作品 visibility 倍率 */
+    EVENT_FLOOD_MULTIPLIER: 1.8,
+    /** 互動數值基礎倍率 */
+    ENGAGEMENT_BASE_MULTIPLIER: 10
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // 💎 收藏品市場
+  // ═══════════════════════════════════════════════════════════════
+
+  COLLECTIBLE_CONFIG: {
+    /** 每回合新上架收藏品數量 */
+    LISTINGS_PER_ROUND: { MIN: 3, MAX: 5 },
+    /** 市場最多同時上架數 */
+    MAX_MARKET_LISTINGS: 10,
+
+    /** 稀有度出現權重 */
+    RARITY_WEIGHTS: {
+      common:    50,
+      uncommon:  30,
+      rare:      15,
+      legendary:  5
+    },
+
+    /** 基礎售價分層分布（與稀有度無關） */
+    PRICE_TIERS: [
+      { weight: 50, min: 500,   max: 10000 },   // 50% 低價
+      { weight: 40, min: 10000, max: 50000 },   // 40% 中價
+      { weight: 10, min: 50000, max: 100000 }   // 10% 高價
+    ],
+
+    /** 上架最大存續回合數 */
+    MAX_LISTING_ROUNDS: 3,
+
+    /** 稀有度→內部衰退率（每回合） */
+    RARITY_DECAY_RATE: {
+      common:    0.08,
+      uncommon:  0.05,
+      rare:      0.03,
+      legendary: 0.01
+    },
+
+    /** 稀有度→增值率（每回合） */
+    RARITY_APPRECIATION_RATE: {
+      common:    0.05,
+      uncommon:  0.08,
+      rare:      0.12,
+      legendary: 0.18
+    },
+
+    /** 絕版加成（原作品退場時一次性加到 rarityBonus） */
+    RETIRED_BONUS: {
+      common:    0.30,
+      uncommon:  0.50,
+      rare:      0.80,
+      legendary: 1.20
+    },
+
+    /** 稀有度顏色（CSS） */
+    RARITY_COLORS: {
+      common:    '#9CA3AF',
+      uncommon:  '#22C55E',
+      rare:      '#3B82F6',
+      legendary: '#F59E0B'
+    },
+
+    /** 稀有度中文名稱 */
+    RARITY_NAMES: {
+      common:    '普通',
+      uncommon:  '精良',
+      rare:      '稀有',
+      legendary: '傳說'
+    },
+
+    /** 鑑賞難度範圍（按稀有度） */
+    APPRAISAL_DIFFICULTY_RANGE: {
+      common:    { min: 0.0, max: 0.8 },
+      uncommon:  { min: 0.2, max: 0.9 },
+      rare:      { min: 0.4, max: 1.0 },
+      legendary: { min: 0.6, max: 1.0 }
+    },
+
+    /** 有絕版加成的機率（按稀有度） */
+    HAS_RETIRED_BONUS_CHANCE: {
+      common:    0.30,
+      uncommon:  0.50,
+      rare:      0.70,
+      legendary: 0.90
+    },
+
+    /** 收藏品市場事件 */
+    MARKET_EVENTS: [
+      { id: 'collector_meetup',  name: '收藏家聚會',     probability: 0.08, multiplier: 1.15, scope: 'all',      description: '收藏家聚會帶動行情！所有收藏品 +15%' },
+      { id: 'market_downturn',   name: '市場低迷',       probability: 0.08, multiplier: 0.90, scope: 'all',      description: '市場景氣不佳...所有收藏品 -10%' },
+      { id: 'counterfeit_scare', name: '仿冒品風波',     probability: 0.06, multiplier: 0.80, scope: 'random_one', description: '仿冒品流入市場！某件收藏品 -20%' },
+      { id: 'celebrity_endorse', name: '知名收藏家推薦', probability: 0.04, multiplier: 1.25, scope: 'random_one', description: '知名收藏家公開推薦！某件收藏品 +25%' },
+      { id: 'auction_record',    name: '拍賣會天價成交', probability: 0.03, multiplier: 1.30, scope: 'legendary',  description: '拍賣會天價成交！傳說收藏品 +30%' },
+      { id: 'quality_issue',     name: '周邊品質問題',   probability: 0.05, multiplier: 0.85, scope: 'random_type', description: '某類型周邊爆出品質問題 -15%' },
+      { id: 'author_signing',    name: '作者簽名會',     probability: 0.06, multiplier: 1.20, scope: 'random_franchise', description: '作者親臨簽名會！相關收藏品 +20%' },
+      { id: 'limited_reissue',   name: '限量復刻',       probability: 0.04, multiplier: 0.75, scope: 'random_franchise', description: '限量復刻上市！相關收藏品 -25%' }
+    ]
   }
+};
+
+/**
+ * 計算抑制後的有效人氣值
+ * effectiveP = P + STRENGTH × (CENTER - P)
+ * P=100→75, P=80→65, P=50→50, P=20→35, P=10→30
+ * @param {number} rawP - 原始人氣值 (0-100)
+ * @returns {number} - 抑制後的有效人氣值
+ */
+BalanceConfig.getEffectivePopularity = function(rawP) {
+  const { CENTER, STRENGTH } = this.POPULARITY_DAMPENING;
+  return rawP + STRENGTH * (CENTER - rawP);
 };
 
 // 導出配置（支援多種環境）

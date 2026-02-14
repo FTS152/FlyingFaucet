@@ -47,9 +47,10 @@ const EventSystem = (function() {
    * @param {number} round - 目前回合數
    * @returns {RandomEvent[]} - 本場次觸發的事件列表
    */
-  function rollSessionEvents(round) {
+  function rollSessionEvents(round, options) {
     if (!_initialized) init();
-    
+    var _rng = (options && options.rng) ? options.rng : Math.random;
+
     const triggeredEvents = [];
     const triggeredIds = new Set();
     
@@ -76,7 +77,7 @@ const EventSystem = (function() {
       const probability = event.triggerConditions?.probability || 0;
       
       // 擲骰子
-      if (Math.random() < probability) {
+      if (_rng() < probability) {
         // 檢查互斥事件
         const exclusiveIds = event.triggerConditions?.exclusive || [];
         const hasExclusive = exclusiveIds.some(id => triggeredIds.has(id));
@@ -121,23 +122,24 @@ const EventSystem = (function() {
    * @param {string} scope - 'random_work' | 'specific_theme' | 'all'
    * @returns {Work|null}
    */
-  function selectRandomWork(works, scope) {
+  function selectRandomWork(works, scope, options) {
     if (!works || works.length === 0) {
       return null;
     }
-    
+    var _rng = (options && options.rng) ? options.rng : Math.random;
+
     if (scope === 'all') {
       return null; // 影響所有作品，不需選擇特定作品
     }
-    
+
     if (scope === 'random_work') {
-      const randomIndex = Math.floor(Math.random() * works.length);
+      const randomIndex = Math.floor(_rng() * works.length);
       return works[randomIndex];
     }
-    
+
     if (scope === 'specific_theme') {
       // 根據主題選擇（可擴展為更複雜的邏輯）
-      const randomIndex = Math.floor(Math.random() * works.length);
+      const randomIndex = Math.floor(_rng() * works.length);
       return works[randomIndex];
     }
     

@@ -106,96 +106,139 @@ const SalesCalculator = (function() {
     return `提示：需要升級小幫手才能處理更多顧客！`;
   }
   
+  // ═══════════════════════════════════════════════════════════════
+  // 預估銷量系統常數
+  // ═══════════════════════════════════════════════════════════════
+
+  const BASE_COEFFICIENT = 5.0;   // 基礎銷量係數（從模擬反推校準）
+  const DEFAULT_D = 0.45;         // 未知受眾密度時的預設值
+  const DEFAULT_B = 1.0;          // 未知購買力時的預設值
+  const ADOBE_QUALITY_FACTOR = 0.07; // Adobe 品質對整體銷量的影響係數
+
+  // 各 audienceLevel 對應的誤差百分比
+  const ERROR_TABLE = {
+    1: 0.65, 2: 0.55, 3: 0.45,
+    4: 0.35, 5: 0.28, 6: 0.22,
+    7: 0.15, 8: 0.10, 9: 0.07, 10: 0.05
+  };
+
+  // 各 audienceLevel 對應的信心標籤
+  const CONFIDENCE_TABLE = {
+    1: '低', 2: '低', 3: '低',
+    4: '中', 5: '中', 6: '中',
+    7: '高', 8: '高',
+    9: '極高', 10: '極高'
+  };
+
   /**
-   * T094: 根據市場了解度獲取預估誤差
-   * @param {number} marketUnderstanding - 作品的市場了解度 (0.0 ~ 1.0)，基於 draft.audienceLevel / 10
-   * @returns {{ minError: number, maxError: number, confidenceLevel: string }}
+   * T094: 根據 audienceLevel 獲取預估誤差
+   * @param {number} audienceLevel - 市場調研等級 (0~10)
+   * @returns {{ errorRange: number, errorPercent: number, confidenceLevel: string }}
    */
-  function getEstimationError(marketUnderstanding) {
-    // 市場了解度越高，誤差越小
-    // 0.0 = ±80% 誤差，1.0 = ±10% 誤差
-    const baseError = 0.8; // 80%
-    const minPossibleError = 0.1; // 10%
-    
-    const errorRange = baseError - (marketUnderstanding * (baseError - minPossibleError));
-    
-    // 判斷信心等級
-    let confidenceLevel;
-    if (marketUnderstanding >= 0.8) {
-      confidenceLevel = '高';
-    } else if (marketUnderstanding >= 0.5) {
-      confidenceLevel = '中';
-    } else if (marketUnderstanding >= 0.3) {
-      confidenceLevel = '低';
-    } else {
-      confidenceLevel = '極低';
+  function getEstimationError(audienceLevel) {
+    var level = Math.max(0, Math.min(10, Math.floor(audienceLevel)));
+    if (level === 0) {
+      return { errorRange: 1.0, errorPercent: 100, confidenceLevel: '無' };
     }
-    
+    var errorRange = ERROR_TABLE[level] || 0.65;
     return {
-      minError: -errorRange,
-      maxError: errorRange,
+      errorRange: errorRange,
       errorPercent: Math.round(errorRange * 100),
-      confidenceLevel
+      confidenceLevel: CONFIDENCE_TABLE[level] || '低'
     };
   }
-  
+
   /**
-   * T095: 預估作品銷量
-   * @param {object} work - 作品資料 (包含 popularity, audienceDensity, purchasingPower)
-   * @param {number} marketUnderstanding - 作品的市場了解度 (0.0 ~ 1.0)，來自 draft.audienceLevel / 10
-   * @param {boolean} isSimple - 是否使用簡化公式（低了解度時）
-   * @returns {{ min: number, max: number, estimated: number, confidence: string }}
+   * T095: 預估作品銷量（V2 重寫）
+   *
+   * 公式：baseSales = effP × D² × B × 5.0 × (1 + coserBonus) × adobeMultiplier
+   * 再依序套用 salesMultiplier、guaranteedSales、maxSales cap、stageBias
+   *
+   * @param {object} work - 作品資料 { popularity, audienceDensity, purchasingPower }
+   * @param {number} audienceLevel - 市場調研等級 (0~10)
+   * @param {object} gameContext - 遊戲狀態 { salesMultiplier, guaranteedSales, maxSales, boothAttractionBonus, qualityBonus, totalUpgradeLevels }
+   * @returns {{ min, max, estimated, confidence, errorPercent, standardNote } | null}
    */
-  function estimateSales(work, marketUnderstanding = 0.3, isSimple = false) {
-    if (!work) {
-      return { min: 0, max: 0, estimated: 0, confidence: '無資料' };
-    }
-    
-    // 基礎預估銷量
-    let baseEstimate;
-    const attendeeMultiplier = BalanceConfig?.CONVENTION?.ATTENDEE_MULTIPLIER ?? 15;
-    const multiplier = Number.isFinite(attendeeMultiplier) ? attendeeMultiplier : 15;
-    if (isSimple || marketUnderstanding < 0.3) {
-      // 簡化公式：只看人氣
-      baseEstimate = Math.round(work.popularity * 0.5 * 0.25 * multiplier);
-    } else {
-      // 完整公式：P × D × B
-      const popularity = work.popularity || 50;
-      const density = work.audienceDensity || 0.3;
-      const purchasingPower = work.purchasingPower || 1.0;
-      
-      // 基礎公式
-      baseEstimate = Math.round(popularity * density * purchasingPower * 0.8 * 0.25 * multiplier);
-    }
-    
-    // 獲取誤差範圍
-    const errorInfo = getEstimationError(marketUnderstanding);
-    
-    // 計算最小/最大預估值
-    const min = Math.max(0, Math.round(baseEstimate * (1 + errorInfo.minError)));
-    const max = Math.round(baseEstimate * (1 + errorInfo.maxError));
-    
-    // 加入隨機性到預估值（模擬不確定性）
-    const randomFactor = 1 + (Math.random() - 0.5) * errorInfo.maxError;
-    const estimated = Math.max(0, Math.round(baseEstimate * randomFactor));
-    
-    // T095: 開發者日誌
+  function estimateSales(work, audienceLevel, gameContext) {
+    if (!work) return null;
+
+    var level = Math.floor(audienceLevel || 0);
+    if (level <= 0) return null;
+
+    // 取得有效人氣
+    var getEffP = function(p) {
+      return (typeof BalanceConfig !== 'undefined' && BalanceConfig.getEffectivePopularity)
+        ? BalanceConfig.getEffectivePopularity(p) : p;
+    };
+    var effP = getEffP(work.popularity || 50);
+
+    // 根據 audienceLevel 分級選擇 D / B
+    var D = (level >= 4) ? (work.audienceDensity || DEFAULT_D) : DEFAULT_D;
+    var B = (level >= 7) ? (work.purchasingPower || DEFAULT_B) : DEFAULT_B;
+
+    // 從 gameContext 取升級數據（容錯）
+    var ctx = gameContext || {};
+    var coserBonus = ctx.boothAttractionBonus || 0;
+    var qualityBonus = ctx.qualityBonus || 0;
+    var salesMultiplier = ctx.salesMultiplier || 1.0;
+    var guaranteedSales = ctx.guaranteedSales || 0;
+    var maxSales = ctx.maxSales || 100;
+    var totalUpgradeLevels = ctx.totalUpgradeLevels || 0;
+
+    // Adobe 品質乘數：整體約 1 + 0.07 × qualityBonus
+    var adobeMultiplier = 1 + ADOBE_QUALITY_FACTOR * qualityBonus;
+
+    // 基礎銷量 = effP × D² × B × 5.0 × (1 + coserBonus) × adobeMultiplier
+    var baseSales = effP * D * D * B * BASE_COEFFICIENT * (1 + coserBonus) * adobeMultiplier;
+
+    // 套用社群銷量乘數 + 親友團保底
+    var adjustedSales = baseSales * salesMultiplier + guaranteedSales;
+
+    // 銷量上限
+    var cappedSales = Math.min(adjustedSales, maxSales);
+
+    // 遊戲階段偏差：前期低估、後期高估
+    var progressRatio = Math.min(1, Math.max(0, totalUpgradeLevels / 25));
+    var stageBias = 0.85 + progressRatio * 0.30;
+    var finalBase = cappedSales * stageBias;
+
+    // 誤差
+    var errorInfo = getEstimationError(level);
+    var errorRange = errorInfo.errorRange;
+
+    var min = Math.max(0, Math.round(finalBase * (1 - errorRange)));
+    var max = Math.round(finalBase * (1 + errorRange));
+
+    // 隨機預估值（正態近似，集中在中心）
+    var r1 = Math.random();
+    var r2 = Math.random();
+    var normalish = (r1 + r2 - 1); // 簡易近似 [-1, 1]，中心偏重
+    var estimated = Math.max(0, Math.round(finalBase + finalBase * errorRange * normalish * 0.5));
+
     if (typeof devLog === 'function') {
-      devLog('CALC', `銷量預估: ${work.title || '作品'}`, {
-        baseEstimate,
-        marketUnderstanding,
+      devLog('CALC', '銷量預估 V2: ' + (work.title || '作品'), {
+        audienceLevel: level,
+        effP: effP,
+        D: D,
+        B: B,
+        baseSales: Math.round(baseSales),
+        adjustedSales: Math.round(adjustedSales),
+        cappedSales: Math.round(cappedSales),
+        stageBias: stageBias,
+        finalBase: Math.round(finalBase),
         errorPercent: errorInfo.errorPercent,
-        range: `${min}-${max}`,
-        estimated
+        range: min + '-' + max,
+        estimated: estimated
       });
     }
-    
+
     return {
-      min,
-      max,
-      estimated,
+      min: min,
+      max: max,
+      estimated: estimated,
       confidence: errorInfo.confidenceLevel,
-      errorPercent: errorInfo.errorPercent
+      errorPercent: errorInfo.errorPercent,
+      standardNote: '計算基準：$300 / 無吸引力加成'
     };
   }
   
