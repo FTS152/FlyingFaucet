@@ -1691,6 +1691,7 @@
         <div class="form-group">
           <label>選擇要出版的草稿</label>
           <select id="draft-select"></select>
+          <div id="draft-tags-display" style="margin-top: 6px; min-height: 20px;"></div>
         </div>
         <div class="form-group">
           <label>刊物名稱</label>
@@ -4486,6 +4487,26 @@
     }
 
     function updateCostPreview() {
+      // 更新選中草稿的作品 TAG 顯示
+      var tagsEl = document.getElementById('draft-tags-display');
+      if (tagsEl) {
+        var selVal = document.getElementById('draft-select').value;
+        var selFranchise = selVal ? GameState.franchises.find(function(f) { return f.id === selVal; }) : null;
+        if (selFranchise && selFranchise.tags && selFranchise.tags.length > 0) {
+          tagsEl.innerHTML = selFranchise.tags.map(function(tag) {
+            if (tag === 'R18友好') {
+              return '<span class="tag" style="background: #ef4444; color: white; font-weight: bold;">' + tag + '</span>';
+            } else if (tag === '當季新番') {
+              return '<span class="tag seasonal">' + tag + '</span>';
+            } else {
+              return '<span class="tag">' + tag + '</span>';
+            }
+          }).join(' ');
+        } else {
+          tagsEl.innerHTML = '';
+        }
+      }
+
       const quantity = parseInt(document.getElementById('print-quantity').value) || 0;
       const baseCost = BalanceConfig.PRINT_BASE_COST || 150; // 每本基礎成本
       
@@ -6466,7 +6487,7 @@
           <div class="inventory-item" data-pub-id="${pub.id}">
             <div class="inventory-info">
               <h4>${pub.title}${pub.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>' : ''}</h4>
-              <div class="inventory-stock">庫存: ${inv.remainingCount} 本</div>
+              <div class="inventory-stock">庫存: ${inv.remainingCount} 本 | 售價: ${formatCurrency(pub.retailPrice)}</div>
               <div class="inventory-cost">倉儲成本: ${formatCurrency(itemStorageCost)}/回合</div>
             </div>
             <div class="inventory-actions">
