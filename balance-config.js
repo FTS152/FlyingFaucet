@@ -167,6 +167,52 @@ const BalanceConfig = {
     /** 入場人數倍率 */
     ATTENDEE_MULTIPLIER: 15
   },
+
+  /** V5: 場次等級定義 */
+  CONVENTION_TIERS: [
+    {
+      id: 'local',
+      name: '小型同人展',
+      icon: '🏪',
+      description: '小型同人販售活動',
+      entryFee: 0,
+      attendeeMultiplier: 1.0,
+      qualitySensitivity: 1.0,
+      attractionSensitivity: 1.0,
+      budgetMultiplier: 1.0,
+      fanTypeAdjust: {},
+      unlockRound: 1,
+      stars: 1
+    },
+    {
+      id: 'regional',
+      name: '大型同人展',
+      icon: '🏛️',
+      description: '全國性的大型同人展覽',
+      entryFee: 10000,
+      attendeeMultiplier: 1.25,
+      qualitySensitivity: 1.3,
+      attractionSensitivity: 1.2,
+      budgetMultiplier: 1.1,
+      fanTypeAdjust: {},
+      unlockRound: 6,
+      stars: 2
+    },
+    {
+      id: 'comiket',
+      name: 'Comic Market',
+      icon: '🔥',
+      description: '傳說中的最大同人盛典！',
+      entryFee: 100000,
+      attendeeMultiplier: 3.0,
+      qualitySensitivity: 1.8,
+      attractionSensitivity: 1.5,
+      budgetMultiplier: 1.25,
+      fanTypeAdjust: {},
+      unlockRound: 12,
+      stars: 3
+    }
+  ],
   
   /* UNUSED (V2 未使用)
   FAN_TYPE_BASE_DISTRIBUTION: {
@@ -204,14 +250,19 @@ const BalanceConfig = {
       name: '培訓小幫手',
       subDescription: '手腳俐落的小幫手千年一遇',
       description: '提升單場最大銷售量',
-      maxLevel: 5,
-      costs: [1000, 2500, 5000, 10000, 20000],
+      maxLevel: 10,
+      costs: [1000, 2500, 5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000],
       effects: [
         { maxSalesBonus: 100 },
         { maxSalesBonus: 200 },
         { maxSalesBonus: 500 },
         { maxSalesBonus: 1000 },
-        { maxSalesBonus: 2000 }
+        { maxSalesBonus: 2000 },
+        { maxSalesBonus: 3500 },
+        { maxSalesBonus: 5000 },
+        { maxSalesBonus: 7500 },
+        { maxSalesBonus: 10000 },
+        { maxSalesBonus: 15000 }
       ]
     },
     {
@@ -308,30 +359,42 @@ const BalanceConfig = {
       id: 'sage',
       name: '聖德太子',
       subDescription: '一心多用的傳說境界',
-      description: '研究作品時有機率獲得2級理解度',
-      maxLevel: 5,
-      costs: [1500, 5000, 10000, 25000, 50000],
+      description: '研究作品時有機率獲得2-3級理解度',
+      maxLevel: 10,
+      costs: [1500, 5000, 10000, 25000, 50000, 80000, 120000, 160000, 200000, 250000],
+      // Lv1-5: 機率獲得2級（否則1級）; Lv6-10: 機率獲得3級（否則2級）
       effects: [
-        { sageBonus: 0.20 }, // 20% 機率
-        { sageBonus: 0.40 }, // 40% 機率
-        { sageBonus: 0.60 }, // 60% 機率
-        { sageBonus: 0.80 }, // 80% 機率
-        { sageBonus: 1.00 }  // 100% 機率
+        { sageBonus: 0.20 }, // Lv1: 20% → 2級, 80% → 1級
+        { sageBonus: 0.40 }, // Lv2: 40% → 2級, 60% → 1級
+        { sageBonus: 0.60 }, // Lv3: 60% → 2級
+        { sageBonus: 0.80 }, // Lv4: 80% → 2級
+        { sageBonus: 1.00 }, // Lv5: 100% → 2級
+        { sageBonus: 0.20 }, // Lv6: 20% → 3級, 80% → 2級
+        { sageBonus: 0.40 }, // Lv7: 40% → 3級
+        { sageBonus: 0.60 }, // Lv8: 60% → 3級
+        { sageBonus: 0.80 }, // Lv9: 80% → 3級
+        { sageBonus: 1.00 }  // Lv10: 100% → 3級
       ]
     },
     {
       id: 'analyst',
       name: '市場分析達人',
       subDescription: '如果把這個能力拿去炒股該有多好',
-      description: '研究市場時有機率獲得2級調研等級',
-      maxLevel: 5,
-      costs: [1500, 5000, 10000, 25000, 50000],
+      description: '研究市場時有機率獲得2-3級調研等級',
+      maxLevel: 10,
+      costs: [1500, 5000, 10000, 25000, 50000, 80000, 120000, 160000, 200000, 250000],
+      // Lv1-5: 機率獲得2級（否則1級）; Lv6-10: 機率獲得3級（否則2級）
       effects: [
-        { analystBonus: 0.20 }, // 20% 機率
-        { analystBonus: 0.40 }, // 40% 機率
-        { analystBonus: 0.60 }, // 60% 機率
-        { analystBonus: 0.80 }, // 80% 機率
-        { analystBonus: 1.00 }  // 100% 機率
+        { analystBonus: 0.20 }, // Lv1: 20% → 2級, 80% → 1級
+        { analystBonus: 0.40 }, // Lv2: 40% → 2級, 60% → 1級
+        { analystBonus: 0.60 }, // Lv3: 60% → 2級
+        { analystBonus: 0.80 }, // Lv4: 80% → 2級
+        { analystBonus: 1.00 }, // Lv5: 100% → 2級
+        { analystBonus: 0.20 }, // Lv6: 20% → 3級, 80% → 2級
+        { analystBonus: 0.40 }, // Lv7: 40% → 3級
+        { analystBonus: 0.60 }, // Lv8: 60% → 3級
+        { analystBonus: 0.80 }, // Lv9: 80% → 3級
+        { analystBonus: 1.00 }  // Lv10: 100% → 3級
       ]
     },
     {
@@ -396,6 +459,21 @@ const BalanceConfig = {
         { baseQualityBonus: 0 }
       ],
       effectFormula: (level) => ({ baseQualityBonus: 0 }) // 超過預設陣列時使用公式
+    },
+    {
+      id: 'clubSpace',
+      name: '社團空間',
+      subDescription: '再塞一張桌子應該放得下吧',
+      description: '增加社團成員上限',
+      maxLevel: 5,
+      costs: [10000, 20000, 40000, 80000, 160000],
+      effects: [
+        { memberSlots: 1 },
+        { memberSlots: 2 },
+        { memberSlots: 3 },
+        { memberSlots: 4 },
+        { memberSlots: 5 }
+      ]
     }
   ],
   
@@ -776,6 +854,112 @@ const BalanceConfig = {
       { id: 'author_signing',    name: '作者簽名會',     probability: 0.06, multiplier: 1.20, scope: 'random_franchise', description: '作者親臨簽名會！相關收藏品 +20%' },
       { id: 'limited_reissue',   name: '限量復刻',       probability: 0.04, multiplier: 0.75, scope: 'random_franchise', description: '限量復刻上市！相關收藏品 -25%' }
     ]
+  },
+
+  // ═══════════════════════════════════════════════════════════════
+  // 👥 V5: 社團成員系統
+  // ═══════════════════════════════════════════════════════════════
+  //
+  // 【社團成員參數說明 — 供後續人員手動新增成員用】
+  //
+  // 每位成員為一個物件，格式如下：
+  //   {
+  //     id: 'unique_id',          // 唯一識別碼（英文小寫+底線，不可重複）
+  //     name: '顯示名稱（暱稱）', // 遊戲中顯示的名稱
+  //     rarity: 'R',              // 稀有度：'R'（普通）/ 'SR'（精良）/ 'SSR'（傳說）
+  //     description: '一句話描述', // 角色簡介
+  //     effects: { ... }          // 效果物件（見下方可用效果列表）
+  //   }
+  //
+  // 【可用效果 (effects) 一覽】
+  //   salesMultiplier        : 銷量倍率加成（小數，如 0.06 = +6%）
+  //   boothAttractionBonus   : 攤位吸引力加成（小數，如 0.12 = +12%）
+  //   qualityBonus           : 作品品質加成（小數，如 0.08 = +8%）
+  //   guaranteedSales        : 保底銷量（整數，如 8 = 每場+8本）
+  //   maxSalesBonus          : 最大銷售量加成（整數，如 30 = +30本上限）
+  //   printCostReduction     : 印刷成本減免（小數，如 0.12 = -12%）
+  //   storageCostReduction   : 倉儲成本減免（小數，如 0.05 = -5%）
+  //   typewriterBonus        : 創作雙倍草稿機率加成（小數，如 0.08 = +8%）
+  //   sageBonus              : 研究雙倍理解度機率加成（小數，如 0.10 = +10%）
+  //   analystBonus           : 市場分析雙倍機率加成（小數，如 0.10 = +10%）
+  //   interestRate           : 利息收入加成（小數，如 0.02 = +2%）
+  //   debtLimit              : 借款額度加成（整數，如 15000 = +$15,000）
+  //
+  // 【稀有度設計參考】
+  //   R   : 單一效果，數值較小（銷量倍率 0.02, 品質 0.03, 保底 3 等）
+  //   SR  : 1~2 個效果，數值中等（銷量倍率 0.06, 品質 0.08, 保底 8 等）
+  //   SSR : 2~3 個效果，數值較大（銷量倍率 0.10, 品質 0.15, 保底 5+ 等）
+  //
+  // 【新增步驟】
+  //   1. 在下方 MEMBER_DEFINITIONS 陣列中新增成員物件
+  //   2. 在 content-templates.js 的 MemberTemplates.recruitLines 中
+  //      新增對應 id 的招募台詞陣列（至少2句）
+  //   3. 確認 id 不與現有成員重複
+  //   4. 抽卡機率由 BANQUET_CONFIG.GACHA_RATES 控制（按稀有度）
+  //   5. 成員上限由升級「社團空間」(clubSpace) 控制，最高5人
+  //
+  // ═══════════════════════════════════════════════════════════════
+
+  MEMBER_DEFINITIONS: [
+    // ── R 級（普通）— 15 名 ──────────────────────────────────
+    { id: 'porter',        name: '搬貨小弟（黑狗）',     rarity: 'R',   description: '力氣大的搬運工',           effects: { maxSalesBonus: 20 } },
+    { id: 'art_junior',    name: '美術社後輩（小櫻）',   rarity: 'R',   description: '對排版有獨到品味',         effects: { qualityBonus: 0.03 } },
+    { id: 'social_intern', name: '推特小編（小鈴）',     rarity: 'R',   description: '一天發50則推文的少女',     effects: { salesMultiplier: 0.02 } },
+    { id: 'part_timer',    name: '打工仔（小翠）',       rarity: 'R',   description: '什麼都能做的萬能工讀',     effects: { storageCostReduction: 0.05 } },
+    { id: 'proofreader',   name: '校對達人（眼鏡娘）',   rarity: 'R',   description: '一個錯字都不放過',         effects: { typewriterBonus: 0.08 } },
+    { id: 'otaku_friend',  name: '忠實宅友（光）',       rarity: 'R',   description: '每場必到的忠實支持者',     effects: { guaranteedSales: 3 } },
+    { id: 'barker',        name: '快嘴叫賣（小春）',     rarity: 'R',   description: '嗓門大得遠近馳名',         effects: { boothAttractionBonus: 0.05 } },
+    { id: 'penny_pincher', name: '省錢達人（小財）',     rarity: 'R',   description: '精打細算的財務小能手',     effects: { printCostReduction: 0.05 } },
+    { id: 'night_owl',     name: '夜貓子作家（夜鶴）',   rarity: 'R',   description: '凌晨三點靈感最旺盛',       effects: { sageBonus: 0.06 } },
+    { id: 'bookbinder',    name: '裝訂師傅（阿紙）',     rarity: 'R',   description: '手工裝訂的溫度無可取代',   effects: { qualityBonus: 0.04 } },
+    { id: 'map_master',    name: '場佈達人（小地）',     rarity: 'R',   description: '攤位動線規劃大師',         effects: { boothAttractionBonus: 0.04 } },
+    { id: 'data_nerd',     name: '數據宅（阿算）',       rarity: 'R',   description: '用Excel分析銷售趨勢',      effects: { analystBonus: 0.06 } },
+    { id: 'cheerleader',   name: '啦啦隊長（元氣）',     rarity: 'R',   description: '元氣滿滿的應援團長',       effects: { salesMultiplier: 0.02 } },
+    { id: 'delivery_ace',  name: '快遞王（飛毛）',       rarity: 'R',   description: '搬運速度堪比閃電',         effects: { maxSalesBonus: 15 } },
+    { id: 'bargain_hunter', name: '特價獵人（折扣姬）',  rarity: 'R',   description: '找到最便宜的素材來源',     effects: { printCostReduction: 0.04 } },
+    // ── SR 級（精良）— 10 名 ─────────────────────────────────
+    { id: 'popular_coser',  name: '人氣Coser（愛麗絲）',   rarity: 'SR',  description: '她一站在攤位前人群就圍過來了', effects: { boothAttractionBonus: 0.12 } },
+    { id: 'genius_editor',  name: '天才編輯（與謝野）',    rarity: 'SR',  description: '她的修改建議總是一針見血',     effects: { qualityBonus: 0.08, sageBonus: 0.10 } },
+    { id: 'print_heir',     name: '印刷廠二代（老陳）',  rarity: 'SR',  description: '爸爸的印刷廠隨便用',           effects: { printCostReduction: 0.12 } },
+    { id: 'sns_influencer',  name: 'SNS紅人（小遙）',    rarity: 'SR',  description: '一條推文就能引爆話題',         effects: { salesMultiplier: 0.06 } },
+    { id: 'veteran',         name: '同人界前輩（火龍頭）',  rarity: 'SR',  description: '十年經驗不是蓋的',             effects: { guaranteedSales: 8, analystBonus: 0.10 } },
+    { id: 'manga_assistant', name: '漫畫助手（小綠）',    rarity: 'SR',  description: '背景和網點交給她就對了',       effects: { typewriterBonus: 0.15, qualityBonus: 0.05 } },
+    { id: 'event_planner',   name: '活動企劃（小桃）',    rarity: 'SR',  description: '攤位互動活動的天才',           effects: { boothAttractionBonus: 0.08, salesMultiplier: 0.03 } },
+    { id: 'logistics_queen', name: '物流女王（莉央）',  rarity: 'SR',  description: '最優化的倉儲與物流方案',       effects: { storageCostReduction: 0.10, printCostReduction: 0.08 } },
+    { id: 'otaku_celeb',     name: '宅界名人（柚子）',    rarity: 'SR',  description: '圈內無人不知的存在',           effects: { guaranteedSales: 6, boothAttractionBonus: 0.06 } },
+    { id: 'sharp_critic',    name: '毒舌評論家（三角）',  rarity: 'SR',  description: '嚴厲的意見反而是良藥',         effects: { sageBonus: 0.12, analystBonus: 0.08 } },
+    // ── SSR 級（傳說）— 5 名 ─────────────────────────────────
+    { id: 'legendary_artist', name: '傳說繪師（翻車魚）',    rarity: 'SSR', description: '大手筆の神之手',                 effects: { qualityBonus: 0.15, boothAttractionBonus: 0.10 } },
+    { id: 'industry_giant',   name: '業界大手（あやめ）',   rarity: 'SSR', description: '她的名字本身就是品牌',             effects: { salesMultiplier: 0.10, guaranteedSales: 5, maxSalesBonus: 30 } },
+    { id: 'angel',             name: '天使大人（香港人）',    rarity: 'SSR', description: '有錢任性的同人愛好者',             effects: { interestRate: 0.02, debtLimit: 15000 } },
+    { id: 'publisher_mogul',   name: '印刷廠老闆（卡了）', rarity: 'SSR', description: '給你完美的印刷品質與死線服務',        effects: { printCostReduction: 0.15, maxSalesBonus: 40, salesMultiplier: 0.06 } },
+    { id: 'meme_lord',         name: '迷因之王（草泥馬）',  rarity: 'SSR', description: '他的每條貼文都能引爆網路',         effects: { salesMultiplier: 0.08, boothAttractionBonus: 0.08, guaranteedSales: 3 } }
+  ],
+
+  /** 慶功宴（抽卡系統）配置 */
+  BANQUET_CONFIG: {
+    /** 費用遞增序列 */
+    COSTS: [5000, 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000],
+    /** 各場次等級的抽卡機率 */
+    GACHA_RATES: {
+      local:    { R: 0.75, SR: 0.22, SSR: 0.03 },
+      regional: { R: 0.65, SR: 0.28, SSR: 0.07 },
+      comiket:  { R: 0.50, SR: 0.35, SSR: 0.15 }
+    },
+    /** 抽到重複成員時退款比例 */
+    DUPLICATE_REFUND_RATE: 0.50,
+    /** 稀有度顏色 */
+    RARITY_COLORS: {
+      R:   '#9CA3AF',
+      SR:  '#a855f7',
+      SSR: '#F59E0B'
+    },
+    /** 稀有度背景色 */
+    RARITY_BG: {
+      R:   'rgba(156, 163, 175, 0.15)',
+      SR:  'rgba(168, 85, 247, 0.15)',
+      SSR: 'rgba(245, 158, 11, 0.15)'
+    }
   }
 };
 

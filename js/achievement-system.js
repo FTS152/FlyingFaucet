@@ -18,12 +18,14 @@ const AchievementSystem = (function() {
     upgrade: '升級', social: '社群', challenge: '挑戰', meta: 'Meta',
     bankruptcy: '破產', pricing: '售價', volume: '數量',
     stale: '過氣', niche: '冷門', production: '印刷',
-    publishing: '出版', advanced: '進階'
+    publishing: '出版', advanced: '進階',
+    convention: '場次', members: '社團成員'
   };
 
   // === 分類顯示順序 ===
   const CATEGORY_ORDER = [
     'beginner', 'financial', 'mastery', 'upgrade', 'social',
+    'convention', 'members',
     'publishing', 'production', 'volume', 'pricing', 'niche',
     'stale', 'bankruptcy', 'challenge', 'advanced', 'meta'
   ];
@@ -55,6 +57,8 @@ const AchievementSystem = (function() {
     { id: 'money_200k', name: '中產社團', desc: '累積資金達到 $200,000', category: 'financial', icon: '💎' },
     { id: 'money_500k', name: '大手之路', desc: '累積資金達到 $500,000', category: 'financial', icon: '🏆' },
     { id: 'money_1m', name: '百萬社團', desc: '累積資金達到 $1,000,000', category: 'financial', icon: '👑' },
+    { id: 'money_5m', name: '房屋頭期款', desc: '累積資金達到 $5,000,000', category: 'financial', icon: '🏠' },
+    { id: 'money_10m', name: '陶朱隱園的廁所', desc: '累積資金達到 $10,000,000', category: 'financial', icon: '🚽' },
     { id: 'goal_reached', name: '台積電之夢', desc: '達成遊戲目標', category: 'financial', icon: '🎊' },
 
     // C. 創作精通
@@ -88,6 +92,7 @@ const AchievementSystem = (function() {
     // H. 破產系
     { id: 'broke_5k', name: '入不敷出', desc: '場次結束後資金不足 $5,000', category: 'bankruptcy', icon: '😰' },
     { id: 'exact_zero', name: '精準破產', desc: '場次結束後資金剛好是 $0', category: 'bankruptcy', icon: '🎯', hidden: true,
+      hint: '精確到令人難以置信的財務結算',
       reward: { type: 'startingMoney', value: 1, desc: '你的財務計算能力令人發指。起始資金 +$1' } },
     { id: 'triple_gameover', name: '屢敗屢戰', desc: '累計破產 3 次', category: 'bankruptcy', icon: '🔁',
       reward: { type: 'storageCostReduction', value: 0.05, desc: '三次破產的經驗讓你更懂得省錢。倉儲成本 -5%' } },
@@ -104,6 +109,7 @@ const AchievementSystem = (function() {
     // K. 過氣系
     { id: 'stale_5', name: '壓箱寶', desc: '持有存放超過 5 回合仍有庫存的刊物', category: 'stale', icon: '📦' },
     { id: 'honmonogatari', name: '本物語', desc: '持有 11 回合以上完全未售出的刊物...', category: 'stale', icon: '📕', hidden: true,
+      hint: '被遺忘在角落的作品，也許有自己的故事...',
       reward: { type: 'midGameTrigger', desc: '我不是神秘美少女，我是你寫的本子。Coser 等級 +1，最大等級 +1' } },
 
     // L. 冷門系
@@ -123,26 +129,46 @@ const AchievementSystem = (function() {
     // O. 進階挑戰
     { id: 'survivor_50', name: '永續經營', desc: '存活超過 50 回合', category: 'advanced', icon: '🏛️',
       reward: { type: 'storageCostReduction', value: 0.10, desc: '你的老家地下室越來越大了。倉儲成本 -10%' } },
-    { id: 'all_upgrade_types', name: '全方位社團', desc: '購買過所有 13 種不同的升級', category: 'advanced', icon: '🎪',
+    { id: 'all_upgrade_types', name: '全方位社團', desc: '購買過所有 14 種不同的升級', category: 'advanced', icon: '🎪',
       reward: { type: 'bonusAP', value: 1, desc: '萬事俱備的社團效率更高。首回合行動點 +1' } },
     { id: 'writing_15', name: '超級文豪', desc: '文筆提升到 15 級', category: 'advanced', icon: '📜', hidden: true,
+      hint: '對文字的追求永無止境',
       reward: { type: 'cosmetic', desc: '不是哥們，有這筆錢怎麼不拿去買房 🏠' } },
-    { id: 'phoenix', name: '浴火鳳凰', desc: '破產後在新遊戲中資金達到 $100,000', category: 'advanced', icon: '🔥', hidden: true },
+    { id: 'phoenix', name: '浴火鳳凰', desc: '破產後在新遊戲中資金達到 $100,000', category: 'advanced', icon: '🔥', hidden: true,
+      hint: '從灰燼中重生，比以前更加強大' },
 
     // P. 收藏品
     { id: 'coll_legendary', name: '傳說降臨', desc: '購入一件傳說品質的收藏品', category: 'advanced', icon: '💎' },
     { id: 'coll_double_profit', name: '翻倍獲利', desc: '賣出價格達買入時兩倍以上的收藏品', category: 'advanced', icon: '📈' },
-    { id: 'coll_half_loss', name: '慘賠出場', desc: '賣出價格不到原來買入價格一半的收藏品', category: 'advanced', icon: '📉' }
+    { id: 'coll_half_loss', name: '慘賠出場', desc: '賣出價格不到原來買入價格一半的收藏品', category: 'advanced', icon: '📉' },
+
+    // ──────── 以下為 V5 新增成就 ────────
+
+    // Q. 場次系
+    { id: 'attend_regional', name: '邁向更大舞台', desc: '在大型同人展參展', category: 'convention', icon: '🏛️' },
+    { id: 'attend_comiket', name: 'COMIKET出道', desc: '在Comic Market參展', category: 'convention', icon: '🔥' },
+    { id: 'comiket_sellout', name: 'CM完售', desc: '在Comic Market完售所有刊物', category: 'convention', icon: '🎪', hidden: true,
+      hint: '在最頂級的舞台上完美謝幕' },
+
+    // R. 社團成員系
+    { id: 'first_member', name: '第一位夥伴', desc: '招募了第一位社團成員', category: 'members', icon: '🤝' },
+    { id: 'full_roster', name: '人才濟濟', desc: '社團成員達到上限', category: 'members', icon: '👥' },
+    { id: 'ssr_pull', name: '金色傳說', desc: '在慶功宴中招募到SSR級成員', category: 'members', icon: '⭐', hidden: true,
+      hint: '慶功宴上最閃耀的邂逅' },
+    { id: 'banquet_10', name: '宴會常客', desc: '累計舉辦10次慶功宴', category: 'members', icon: '🍻' },
+    { id: 'diverse_team', name: '多才多藝', desc: '社團成員覆蓋5種以上不同效果類型', category: 'members', icon: '🎨', hidden: true,
+      hint: '組建一支能力互補的夢幻團隊' }
   ];
 
-  // === 階梯獎勵定義（6 階，適配 45 個成就） ===
+  // === 階梯獎勵定義（7 階，適配 58 個成就） ===
   const TIERS = [
     { level: 0, name: '新人社團', needed: 0, startingBonusMoney: 0, bonusDescription: '解鎖更多成就以獲得獎勵' },
     { level: 1, name: '嶄露頭角', needed: 5, startingBonusMoney: 500, bonusDescription: '新遊戲起始資金 +$500' },
     { level: 2, name: '小有名氣', needed: 12, startingBonusMoney: 1500, bonusDescription: '新遊戲起始資金 +$1,500' },
     { level: 3, name: '人氣社團', needed: 22, startingBonusMoney: 3000, bonusDescription: '新遊戲起始資金 +$3,000' },
     { level: 4, name: '傳說大手', needed: 33, startingBonusMoney: 5000, bonusDescription: '新遊戲起始資金 +$5,000' },
-    { level: 5, name: '同人之神', needed: 42, startingBonusMoney: 8000, bonusDescription: '新遊戲起始資金 +$8,000' }
+    { level: 5, name: '同人之神', needed: 42, startingBonusMoney: 8000, bonusDescription: '新遊戲起始資金 +$8,000' },
+    { level: 6, name: '永恆傳說', needed: 55, startingBonusMoney: 12000, bonusDescription: '新遊戲起始資金 +$12,000' }
   ];
 
   // === 核心函數 ===
@@ -392,9 +418,15 @@ const AchievementSystem = (function() {
     if (gameState.money >= 200000) unlock('money_200k');
     if (gameState.money >= 500000) unlock('money_500k');
     if (gameState.money >= 1000000) unlock('money_1m');
+    if (gameState.money >= 5000000) unlock('money_5m');
+    if (gameState.money >= 10000000) unlock('money_10m');
     // 完售
     if (totalRemaining === 0 && totalSold > 0) {
       unlock('soldout');
+      // CM完售
+      if (gameState.selectedConventionTier === 'comiket') {
+        unlock('comiket_sellout');
+      }
     }
     // 血本無歸
     if (profit < -10000) {
@@ -475,7 +507,7 @@ const AchievementSystem = (function() {
       _sessionTracking.upgradesPurchased = {};
     }
     _sessionTracking.upgradesPurchased[upgradeId] = true;
-    if (Object.keys(_sessionTracking.upgradesPurchased).length >= 13) {
+    if (Object.keys(_sessionTracking.upgradesPurchased).length >= 14) {
       unlock('all_upgrade_types');
     }
   }
@@ -583,6 +615,74 @@ const AchievementSystem = (function() {
     return result;
   }
 
+  // === V5 新增 Check 函數 ===
+
+  /**
+   * 場次開始時檢查（在 startConvention 中呼叫）
+   * @param {string} tierId - 場次等級 ID ('local', 'regional', 'comiket')
+   */
+  function checkAfterConventionStart(tierId) {
+    if (tierId === 'regional') unlock('attend_regional');
+    if (tierId === 'comiket') unlock('attend_comiket');
+  }
+
+  /**
+   * 慶功宴招募後檢查
+   * @param {object} result - 抽卡結果 { memberId, rarity, isDuplicate }
+   * @param {object} gameState - 遊戲狀態
+   */
+  function checkAfterBanquet(result, gameState) {
+    // 累計慶功宴次數
+    if (!_state.stats.totalBanquets) _state.stats.totalBanquets = 0;
+    _state.stats.totalBanquets++;
+    _save();
+
+    if (_state.stats.totalBanquets >= 10) {
+      unlock('banquet_10');
+    }
+
+    if (!result.isDuplicate) {
+      // 第一位夥伴
+      if (gameState.members && gameState.members.length === 1) {
+        unlock('first_member');
+      }
+      // SSR
+      if (result.rarity === 'SSR') {
+        unlock('ssr_pull');
+      }
+    }
+
+    // 人才濟濟：成員達到上限
+    if (gameState.members && gameState.members.length > 0) {
+      var memberSlotLimit = 0;
+      if (typeof UpgradeSystem !== 'undefined') {
+        var clubSpaceEffect = UpgradeSystem.getEffect('clubSpace');
+        memberSlotLimit = clubSpaceEffect.memberSlots || 0;
+      }
+      if (memberSlotLimit > 0 && gameState.members.length >= memberSlotLimit) {
+        unlock('full_roster');
+      }
+    }
+
+    // 多才多藝：覆蓋 5 種以上不同效果類型
+    if (gameState.members && gameState.members.length >= 3) {
+      var effectTypes = {};
+      var memberDefs = (typeof BalanceConfig !== 'undefined') ? BalanceConfig.MEMBER_DEFINITIONS : [];
+      for (var i = 0; i < gameState.members.length; i++) {
+        var mDef = memberDefs.find(function(d) { return d.id === gameState.members[i].id; });
+        if (mDef && mDef.effects) {
+          var keys = Object.keys(mDef.effects);
+          for (var j = 0; j < keys.length; j++) {
+            effectTypes[keys[j]] = true;
+          }
+        }
+      }
+      if (Object.keys(effectTypes).length >= 5) {
+        unlock('diverse_team');
+      }
+    }
+  }
+
   // === 事件分發 ===
 
   function _dispatchUnlockEvent(def) {
@@ -625,7 +725,9 @@ const AchievementSystem = (function() {
     checkNewGameStart: checkNewGameStart,
     checkInventoryAging: checkInventoryAging,
     checkAfterCollectiblePurchase: checkAfterCollectiblePurchase,
-    checkAfterCollectibleSell: checkAfterCollectibleSell
+    checkAfterCollectibleSell: checkAfterCollectibleSell,
+    checkAfterConventionStart: checkAfterConventionStart,
+    checkAfterBanquet: checkAfterBanquet
   };
 })();
 

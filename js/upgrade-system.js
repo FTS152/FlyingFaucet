@@ -337,13 +337,13 @@ const UpgradeSystem = (function() {
     return typewriterEffect.typewriterBonus || 0;
   }
   
-  // 計算聖德太子加成（研究作品時獲得2級理解度的機率）
+  // 計算聖德太子觸發機率（Lv1-5: 機率2級否則1級, Lv6-10: 機率3級否則2級）
   function getSageBonus() {
     const sageEffect = getUpgradeEffect('sage');
     return sageEffect.sageBonus || 0;
   }
-  
-  // 計算市場分析達人加成（研究市場時獲得2級調研的機率）
+
+  // 計算市場分析達人觸發機率（Lv1-5: 機率2級否則1級, Lv6-10: 機率3級否則2級）
   function getAnalystBonus() {
     const analystEffect = getUpgradeEffect('analyst');
     return analystEffect.analystBonus || 0;

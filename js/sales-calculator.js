@@ -238,7 +238,7 @@ const SalesCalculator = (function() {
       estimated: estimated,
       confidence: errorInfo.confidenceLevel,
       errorPercent: errorInfo.errorPercent,
-      standardNote: '計算基準：$300 / 無吸引力加成'
+      standardNote: '計算基準：$300 / 無吸引力加成 / 小型同人展'
     };
   }
   
