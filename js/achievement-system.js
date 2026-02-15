@@ -596,7 +596,7 @@ const AchievementSystem = (function() {
         unlock('stale_5');
       }
 
-      // 本物語：11 回合以上且完全未售出
+      // 本物語：11 回合以上且完全未售出（一場遊戲只觸發一次獎勵）
       if (age >= 11 && inv.remainingCount === pub.printQuantity) {
         // 記錄被銷毀的刊物資訊
         result.destroyedPub = {
@@ -606,8 +606,8 @@ const AchievementSystem = (function() {
         };
         // 自毀：移除庫存
         gameState.inventory.splice(i, 1);
-        result.honmonogatariTriggered = true;
-        unlock('honmonogatari');
+        // 只有首次解鎖時才給予獎勵（unlock 回傳 true 表示新解鎖）
+        result.honmonogatariTriggered = unlock('honmonogatari');
         break; // 一次只觸發一本
       }
     }

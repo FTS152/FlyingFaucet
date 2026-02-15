@@ -7631,10 +7631,12 @@
       if (typeof AchievementSystem !== 'undefined') {
         var agingResult = AchievementSystem.checkInventoryAging(GameState);
         if (agingResult.honmonogatariTriggered) {
-          // 本物語：Coser 等級 +1, 最大等級 +1
-          GameState._coserMaxLevelBonus = (GameState._coserMaxLevelBonus || 0) + 1;
-          if (typeof UpgradeSystem !== 'undefined') {
-            UpgradeSystem.grantFreeLevel('coser');
+          // 本物語：Coser 等級 +1, 最大等級 +1（一場遊戲僅觸發一次，上限 6）
+          if (!(GameState._coserMaxLevelBonus > 0)) {
+            GameState._coserMaxLevelBonus = 1;
+            if (typeof UpgradeSystem !== 'undefined') {
+              UpgradeSystem.grantFreeLevel('coser');
+            }
           }
           // 特殊通知
           showHonmonogatariNotification(agingResult.destroyedPub);
