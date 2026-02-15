@@ -125,8 +125,8 @@ const AchievementSystem = (function() {
       reward: { type: 'storageCostReduction', value: 0.10, desc: '你的老家地下室越來越大了。倉儲成本 -10%' } },
     { id: 'all_upgrade_types', name: '全方位社團', desc: '購買過所有 13 種不同的升級', category: 'advanced', icon: '🎪',
       reward: { type: 'bonusAP', value: 1, desc: '萬事俱備的社團效率更高。首回合行動點 +1' } },
-    { id: 'writing_10', name: '超級文豪', desc: '文筆提升到 10 級', category: 'advanced', icon: '📜', hidden: true,
-      reward: { type: 'cosmetic', desc: '文筆已超越文學巨匠，但依然對銷量毫無幫助。值得一個勳章 ✍️' } },
+    { id: 'writing_15', name: '超級文豪', desc: '文筆提升到 15 級', category: 'advanced', icon: '📜', hidden: true,
+      reward: { type: 'cosmetic', desc: '不是哥們，有這筆錢怎麼不拿去買房 🏠' } },
     { id: 'phoenix', name: '浴火鳳凰', desc: '破產後在新遊戲中資金達到 $100,000', category: 'advanced', icon: '🔥', hidden: true },
 
     // P. 收藏品
@@ -467,8 +467,8 @@ const AchievementSystem = (function() {
       unlock('writing_10');
     }
     // 超級文豪
-    if (upgradeId === 'writing' && newLevel >= 10) {
-      unlock('writing_10');
+    if (upgradeId === 'writing' && newLevel >= 15) {
+      unlock('writing_15');
     }
     // 追蹤已購買的升級類型
     if (!_sessionTracking.upgradesPurchased) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>同人圈經營模擬器 v3.0</title>
+  <title>同人圈經營模擬器 v3.1</title>
   <style>
     /* === 基本樣式 === */
     * {
@@ -1565,7 +1565,7 @@
       
       <!-- 版本與製作資訊 -->
       <div style="margin-top: 32px; text-align: center; font-size: 0.75rem; color: #666;">
-        <p>Version 3.0 | Made with 💜</p>
+        <p>Version 3.1 | Made with 💜</p>
         <!-- 開發者模式切換（隱藏按鈕，多次點擊版本文字啟用） -->
         <p id="dev-mode-hint" class="hidden" style="color: #ff9800; margin-top: 8px;">🔧 開發者模式已啟用</p>
       </div>
@@ -1702,9 +1702,10 @@
           <select id="content-type">
             <option value="all-ages" selected>全年齡向</option>
             <option value="r18">R18 向（成人內容）</option>
+            <option value="review">評論集（作品評論/考察）</option>
           </select>
           <div class="hint" style="font-size: 0.8rem; color: #888; margin-top: 4px;">
-            R18 內容在有對應 tag 的作品上銷量更好，但全年齡向受眾更廣
+            R18 受眾較窄但粉絲願付更多 ｜ 評論集深受評論家和黑子歡迎
           </div>
         </div>
         <div class="form-group">
@@ -2353,6 +2354,12 @@
     function formatCurrency(amount) {
       return '$' + Math.round(amount).toLocaleString();
     }
+
+    function getContentBadge(pub) {
+      if (pub.isR18) return ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>';
+      if (pub.isReview) return ' <span style="background: #8b5cf6; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">評論</span>';
+      return '';
+    }
     
     function pickRandom(array, rng = Math.random) {
       return array[Math.floor(rng() * array.length)];
@@ -2438,10 +2445,13 @@
       return ARCHETYPES.DEAD_ZONE;
     }
     
-    function getFranchiseDecayRate(tags = []) {
-      if (tags.includes('當季新番') || tags.includes('時事熱門')) return 'trending';
-      if (tags.includes('經典') || tags.includes('長青')) return 'evergreen';
-      return 'normal';
+    // 已移除 getFranchiseDecayRate(tags) — decayRate 現在是 franchise 的獨立屬性
+    // 在 generateFranchise() 中隨機決定，不再依賴 tags
+    function rollDecayRate(rng) {
+      var roll = rng();
+      if (roll < 0.25) return 'trending';   // 25% 時事熱門（衰退快）
+      if (roll < 0.75) return 'normal';     // 50% 一般作品
+      return 'evergreen';                   // 25% 經典長青（衰退慢）
     }
 
     function generateFranchise(options = {}) {
@@ -2491,7 +2501,7 @@
         if (!tags.includes(tag)) tags.push(tag);
       }
       
-      const decayRate = getFranchiseDecayRate(tags);
+      const decayRate = rollDecayRate(rng);
 
       return {
         id: 'franchise_' + generateId(),
@@ -2774,11 +2784,8 @@
       // Lv10: 衰退類型
       if (audienceLevel >= 10) {
         const decayRates = BalanceConfig.DECAY_RATES;
-        let trendType = 'normal';
-        if (franchise.decayRate !== undefined) {
-          if (franchise.decayRate >= decayRates.trending.minDecay) trendType = 'trending';
-          else if (franchise.decayRate <= decayRates.evergreen.maxDecay) trendType = 'evergreen';
-        }
+        var trendType = franchise.decayRate || 'normal';
+        if (!decayRates[trendType]) trendType = 'normal';
         result.trendInfo = {
           type: trendType,
           name: decayRates[trendType].name,
@@ -3046,8 +3053,9 @@
       // 品質敏感的粉絲類型
       const QUALITY_SENSITIVE_FANS = ['ENTHUSIAST', 'COLLECTOR', 'CRITIC'];
       
-      // R18 內容偏好
+      // R18 / 評論集 內容偏好
       const R18_PREFERENCE = BalanceConfig.R18_PREFERENCE;
+      const REVIEW_PREFERENCE = BalanceConfig.REVIEW_PREFERENCE;
       
       const fallbackFranchises = new Map();
       const getSalesFranchise = (item) => {
@@ -3086,6 +3094,7 @@
         const essenceModifier = (item.essenceSnapshot - 5) * 0.05 + 1.0;
         if (QUALITY_SENSITIVE_FANS.includes(attendee.fanType)) prob *= essenceModifier;
         if (item.isR18) prob *= (R18_PREFERENCE[attendee.fanType] || 1.0);
+        if (item.isReview && REVIEW_PREFERENCE) prob *= (REVIEW_PREFERENCE[attendee.fanType] || 1.0);
         if (typeof UpgradeSystem !== 'undefined') prob *= UpgradeSystem.getSalesMultiplier();
         return clamp(prob, 0, 0.9);
       };
@@ -3791,24 +3800,27 @@
       // 計算當前庫存
       const totalInventory = GameState.inventory.reduce((sum, inv) => sum + inv.remainingCount, 0);
       
-      // 計算銷量 Top 3
+      // 計算銷量 Top 3（從歷史場次 itemSales 累計）
       const pubSales = {};
       GameState.publications.forEach(pub => {
         pubSales[pub.id] = {
           title: pub.title,
           isR18: pub.isR18,
+          isReview: pub.isReview,
           totalSold: 0
         };
       });
-      
-      if (GameState.salesData) {
-        GameState.salesData.forEach(sale => {
-          if (pubSales[sale.id]) {
-            pubSales[sale.id].totalSold += sale.sold;
-          }
-        });
-      }
-      
+
+      GameState.history.forEach(h => {
+        if (h.itemSales) {
+          Object.keys(h.itemSales).forEach(pubId => {
+            if (pubSales[pubId]) {
+              pubSales[pubId].totalSold += h.itemSales[pubId].sold || 0;
+            }
+          });
+        }
+      });
+
       const top3 = Object.entries(pubSales)
         .map(([id, data]) => ({ id, ...data }))
         .filter(item => item.totalSold > 0)
@@ -3849,7 +3861,7 @@
                 if (!pub) return '';
                 return `
                   <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: bold;">${pub.title}${pub.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>' : ''}</span>
+                    <span style="font-weight: bold;">${pub.title}${getContentBadge(pub)}</span>
                     <span style="color: #60a5fa;">${inv.remainingCount} 本</span>
                   </div>
                 `;
@@ -3866,7 +3878,7 @@
               ${top3.map((item, index) => `
                 <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; border-left: 3px solid ${index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : '#cd7f32'}; display: flex; justify-content: space-between; align-items: center;">
                   <span style="font-weight: bold;">
-                    ${index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} ${item.title}${item.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>' : ''}
+                    ${index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} ${item.title}${getContentBadge(item)}
                   </span>
                   <span style="color: #4ade80; font-weight: bold;">${item.totalSold} 本</span>
                 </div>
@@ -4199,7 +4211,7 @@
           
           <!-- 銷售 Top 3 -->
           ${(() => {
-            // 計算每個刊物的總銷量
+            // 計算每個刊物的總銷量（從歷史場次 itemSales 累計）
             const pubSales = {};
             GameState.publications.forEach(pub => {
               pubSales[pub.id] = {
@@ -4208,16 +4220,17 @@
                 totalSold: 0
               };
             });
-            
-            // 累計銷量（包括歷史銷售數據）
-            if (GameState.salesData) {
-              GameState.salesData.forEach(sale => {
-                if (pubSales[sale.id]) {
-                  pubSales[sale.id].totalSold += sale.sold;
-                }
-              });
-            }
-            
+
+            GameState.history.forEach(h => {
+              if (h.itemSales) {
+                Object.keys(h.itemSales).forEach(pubId => {
+                  if (pubSales[pubId]) {
+                    pubSales[pubId].totalSold += h.itemSales[pubId].sold || 0;
+                  }
+                });
+              }
+            });
+
             // 排序並取前三
             const top3 = Object.entries(pubSales)
               .map(([id, data]) => ({ id, ...data }))
@@ -4235,7 +4248,7 @@
                     <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 3px solid ${index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : '#cd7f32'};">
                       <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: bold;">
-                          ${index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} ${item.title}${item.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>' : ''}
+                          ${index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'} ${item.title}${getContentBadge(item)}
                         </span>
                         <span style="color: #4ade80; font-weight: bold;">${item.totalSold} 本</span>
                       </div>
@@ -4367,7 +4380,7 @@
             </div>
             ${fanDistHtml}
             ${intel.trendInfo ? `
-            <div style="margin-top: 4px; padding: 4px 8px; background: rgba(245,158,11,0.08); border-radius: 4px; font-size: 0.8rem; color: #fbbf24;">
+            <div style="margin-top: 4px; padding: 4px 8px; background: ${intel.trendInfo.type === 'trending' ? 'rgba(239,68,68,0.08)' : intel.trendInfo.type === 'evergreen' ? 'rgba(34,197,94,0.08)' : 'rgba(245,158,11,0.08)'}; border-radius: 4px; font-size: 0.8rem; color: ${intel.trendInfo.type === 'trending' ? '#ef4444' : intel.trendInfo.type === 'evergreen' ? '#22c55e' : '#fbbf24'};">
               ${intel.trendInfo.name} — ${intel.trendInfo.description}
             </div>` : ''}
             <div class="draft-info" style="margin: 8px 0; font-size: 0.85rem; color: #aaa;">
@@ -4624,6 +4637,7 @@
           id: pubId,
           title: pub.title,
           isR18: pub.isR18,
+          isReview: pub.isReview,
           sold: sales.sold,
           revenue: sales.revenue,
           price: pub.retailPrice,
@@ -4693,7 +4707,7 @@
                 <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; ${item.eventAffected ? 'border-left: 3px solid #fbbf24;' : ''}">
                   <div>
                     <div style="font-weight: bold; margin-bottom: 4px;">
-                      ${item.title}${item.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>' : ''}${eventBadge}
+                      ${item.title}${getContentBadge(item)}${eventBadge}
                     </div>
                     <div style="font-size: 0.85rem; color: #888;">
                       單價 ${formatCurrency(item.price)} × ${item.sold} 本
@@ -4916,7 +4930,7 @@
                 const isRetired = pub.isRetired ? '<span style="color: #f59e0b; font-size: 0.75rem; margin-left: 8px;">[停產]</span>' : '';
                 return `
                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px;">
-                    <span>${pub.title}${pub.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>' : ''}${isRetired}</span>
+                    <span>${pub.title}${getContentBadge(pub)}${isRetired}</span>
                     <div style="text-align: right;">
                       <span style="color: #f59e0b;">${inv.remainingCount} 本</span>
                       <span style="color: #aaa; font-size: 0.8rem; margin-left: 8px;">倉儲: ${formatCurrency(itemStorageCost)}/回合</span>
@@ -4938,14 +4952,15 @@
         remainingInvEl.innerHTML = '';
       }
       
-      // 記錄歷史（包含觸發的事件名稱）
+      // 記錄歷史（包含觸發的事件名稱 + 各刊物銷售明細）
       GameState.history.push({
         round: GameState.round,
         totalRevenue: results.totalRevenue,
         unitsSold: totalSold,
         expenses,
         profit,
-        notableEvents: triggeredEvents.map(e => e.name)
+        notableEvents: triggeredEvents.map(e => e.name),
+        itemSales: results.itemSales
       });
 
       // 成就檢查
@@ -4955,12 +4970,16 @@
       }
 
       // 檢查是否達成目標
+      checkGoalReached();
+    }
+
+    function checkGoalReached() {
       if (!GameState.goalReached && GameState.money >= GOAL_AMOUNT) {
         GameState.goalReached = true;
         showGoalCelebration();
       }
     }
-    
+
     function showGoalCelebration() {
       // 成就檢查
       if (typeof AchievementSystem !== 'undefined') {
@@ -5111,7 +5130,6 @@
         for (let i = 0; i < halfCount; i++) {
           if (!shuffled[i].tags.includes('當季新番')) {
             shuffled[i].tags.unshift('當季新番');
-            shuffled[i].decayRate = getFranchiseDecayRate(shuffled[i].tags);
           }
         }
         
@@ -5446,7 +5464,8 @@
       // 創建出版物
       const franchise = GameState.franchises.find(f => f.id === franchiseId);
       const isR18 = contentType === 'r18';
-      const defaultTitle = isR18 ? `${franchise.name} R18本` : `${franchise.name} 同人誌`;
+      const isReview = contentType === 'review';
+      const defaultTitle = isR18 ? `${franchise.name} R18本` : isReview ? `${franchise.name} 評論集` : `${franchise.name} 同人誌`;
       
       // T098: 儲存銷量預估（用於結算時比較）
       const prediction = getSalesPrediction(draft);
@@ -5460,6 +5479,7 @@
         franchiseId,
         title: customName || defaultTitle,
         isR18,
+        isReview,
         printQuantity: quantity,
         retailPrice: price,
         productionCost: totalCost,
@@ -5527,7 +5547,7 @@
         <div class="inventory-grid" style="display: grid; gap: 12px;">
           ${items.map(({ inv, pub, franchise, totalSold }) => `
             <div class="inventory-item" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-              <div style="font-weight: bold;">${pub.title}${pub.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 3px; font-weight: bold;">[R18]</span>' : ''}</div>
+              <div style="font-weight: bold;">${pub.title}${getContentBadge(pub)}</div>
               <div style="font-size: 0.85rem; color: #aaa;">
                 數量: ${inv.remainingCount}本 | 售價: ${formatCurrency(pub.retailPrice)} | 成本: ${formatCurrency(pub.productionCost)}
                 ${totalSold > 0 ? `<br>累計已售: ${totalSold}本` : ''}
@@ -5695,7 +5715,7 @@
       const decayRates = BalanceConfig.DECAY_RATES;
       for (const franchise of GameState.franchises) {
         if (!franchise.decayRate) {
-          franchise.decayRate = getFranchiseDecayRate(franchise.tags || []);
+          franchise.decayRate = 'normal'; // 舊存檔相容：預設為 normal
         }
         const rates = decayRates[franchise.decayRate] || decayRates.normal;
         const decayPercent = rates.minDecay + GameRNG.franchise() * (rates.maxDecay - rates.minDecay);
@@ -5725,7 +5745,7 @@
             franchise.tags.splice(tagIndex, 1);
           }
         }
-        franchise.decayRate = getFranchiseDecayRate(franchise.tags || []);
+        // decayRate 為獨立屬性，不隨 tag 變動
       }
     }
     
@@ -5890,11 +5910,10 @@
         const newFranchise = generateFranchise({ seed: newFranchiseSeed });
         newFranchise.addedRound = GameState.round;
         
-        // 添加當季新番標籤
+        // 添加當季新番標籤（純 UI 標記，不影響 decayRate）
         if (!newFranchise.tags.includes('當季新番')) {
           newFranchise.tags.unshift('當季新番');
         }
-        newFranchise.decayRate = getFranchiseDecayRate(newFranchise.tags);
         // 當季作品初始給予人氣加成
         newFranchise.popularity = Math.min(100, newFranchise.popularity + 20);
         
@@ -6224,6 +6243,9 @@
         AchievementSystem.checkAfterCollectibleSell(collectible.purchasePrice, sellPrice);
       }
 
+      // 賣出收藏品可能觸發目標達成
+      checkGoalReached();
+
       saveGame();
       renderClubManagement();
     };
@@ -6486,7 +6508,7 @@
         return `
           <div class="inventory-item" data-pub-id="${pub.id}">
             <div class="inventory-info">
-              <h4>${pub.title}${pub.isR18 ? ' <span style="background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 3px; font-weight: bold;">R18</span>' : ''}</h4>
+              <h4>${pub.title}${getContentBadge(pub)}</h4>
               <div class="inventory-stock">庫存: ${inv.remainingCount} 本 | 售價: ${formatCurrency(pub.retailPrice)}</div>
               <div class="inventory-cost">倉儲成本: ${formatCurrency(itemStorageCost)}/回合</div>
             </div>
@@ -6778,6 +6800,9 @@
         GameState.money += interest;
         log(`Investment interest: +${interest}`);
       }
+
+      // 利息可能觸發目標達成
+      checkGoalReached();
       
       // 檢查遊戲結束條件（計入收藏品市值）
       const currentDebt = GameState.debt || 0;
