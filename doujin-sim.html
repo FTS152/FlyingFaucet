@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>同人圈經營模擬器 v4.0</title>
+  <title>同人圈經營模擬器 v4.1</title>
   <style>
     /* === 基本樣式 === */
     * {
@@ -1565,7 +1565,7 @@
       
       <!-- 版本與製作資訊 -->
       <div style="margin-top: 32px; text-align: center; font-size: 0.75rem; color: #666;">
-        <p>Version 4.0 | Made with 💜</p>
+        <p>Version 4.1 | Made with 💜</p>
         <!-- 開發者模式切換（隱藏按鈕，多次點擊版本文字啟用） -->
         <p id="dev-mode-hint" class="hidden" style="color: #ff9800; margin-top: 8px;">🔧 開發者模式已啟用</p>
       </div>
@@ -2057,7 +2057,7 @@
     */
     
     // === 遊戲常數與設定 ===
-    const VERSION = '0.4.0';
+    const VERSION = '0.4.1';
     const SAVE_KEY_PREFIX = 'doujin-sim-save-';
     const SAVE_KEY_LEGACY = 'doujin-sim-save';
     const MAX_SAVE_SLOTS = 5;
@@ -3279,6 +3279,29 @@
         }
       }
       
+      // 事件保底銷量（回頭客等 sales + add + random_work 效果）
+      if (triggeredEvents && triggeredEvents.length > 0) {
+        for (const event of triggeredEvents) {
+          if (!event.effects || !event._affectedWork) continue;
+          for (const effect of event.effects) {
+            if (effect.target === 'sales' && effect.modifier === 'add' && effect.scope === 'random_work') {
+              var targetItem = items.find(function(it) { return it.id === event._affectedWork.id; });
+              if (targetItem && targetItem.remainingCount > 0) {
+                var canAddEvent = Math.min(effect.value, targetItem.remainingCount);
+                if (canAddEvent > 0) {
+                  targetItem.remainingCount -= canAddEvent;
+                  var eventGuaranteedRevenue = Math.round(targetItem.retailPrice * revenueMultiplier * canAddEvent);
+                  itemSales[targetItem.id].sold += canAddEvent;
+                  itemSales[targetItem.id].revenue += eventGuaranteedRevenue;
+                  totalRevenue += eventGuaranteedRevenue;
+                  customerLog.push({ type: 'event_bonus', itemId: targetItem.id, copies: canAddEvent, price: targetItem.retailPrice, eventId: event.id });
+                }
+              }
+            }
+          }
+        }
+      }
+
       // 加上獎勵收益 (如贊助商邵約等 add 效果)
       totalRevenue += bonusRevenue;
       
@@ -3579,6 +3602,11 @@
 
         // 載入後初始化 RNG 流
         initGameRNG(GameState.seed, GameState.round);
+
+        // 修復舊存檔的升級追蹤（全方位成就）
+        if (typeof AchievementSystem !== 'undefined' && AchievementSystem.repairUpgradeTracking) {
+          AchievementSystem.repairUpgradeTracking(GameState);
+        }
 
         log('Game loaded from slot', targetSlot, GameState);
         return true;
@@ -7391,20 +7419,21 @@
         loanSection.innerHTML = '<p style="color: #aaa;">需要先升級「天使投資人」才能舉債</p>';
       }
       
-      // 投資收益
+      // 投資收益（升級 + 成員加成）
       const investmentSection = document.getElementById('investment-status');
-      const stockLevel = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getLevel('stock') : 0;
-      const interestRate = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getInterestRate() : 0;
-      
-      if (stockLevel > 0) {
-        const potentialInterest = Math.round(GameState.money * interestRate);
+      var finUpgradeInterest = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getInterestRate() : 0;
+      var finMemberInterest = getMemberEffects().interestRate || 0;
+      var finTotalInterest = finUpgradeInterest + finMemberInterest;
+
+      if (finTotalInterest > 0) {
+        const potentialInterest = Math.round(GameState.money * finTotalInterest);
         investmentSection.innerHTML = `
-          <p>利率: ${(interestRate * 100).toFixed(0)}% / 回合</p>
+          <p>利率: ${(finTotalInterest * 100).toFixed(1)}% / 回合</p>
           <p>目前資金: ${formatCurrency(GameState.money)}</p>
           <p>預期收益: <span style="color: #22c55e;">+${formatCurrency(potentialInterest)}</span> / 回合</p>
         `;
       } else {
-        investmentSection.innerHTML = '<p style="color: #aaa;">需要先升級「股市投資」才能獲得利息</p>';
+        investmentSection.innerHTML = '<p style="color: #aaa;">需要升級「股市投資」或招募相關成員才能獲得利息</p>';
       }
 
       // 淨資產摘要

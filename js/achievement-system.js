@@ -502,12 +502,13 @@ const AchievementSystem = (function() {
     if (upgradeId === 'writing' && newLevel >= 15) {
       unlock('writing_15');
     }
-    // 追蹤已購買的升級類型
-    if (!_sessionTracking.upgradesPurchased) {
-      _sessionTracking.upgradesPurchased = {};
+    // 追蹤已購買的升級類型（持久化到 _state，避免重整網頁遺失）
+    if (!_state.stats.upgradesPurchased) {
+      _state.stats.upgradesPurchased = {};
     }
-    _sessionTracking.upgradesPurchased[upgradeId] = true;
-    if (Object.keys(_sessionTracking.upgradesPurchased).length >= 14) {
+    _state.stats.upgradesPurchased[upgradeId] = true;
+    _save();
+    if (Object.keys(_state.stats.upgradesPurchased).length >= 14) {
       unlock('all_upgrade_types');
     }
   }
@@ -571,6 +572,7 @@ const AchievementSystem = (function() {
       unlock('restart_after_over');
     }
     _state.stats.totalGamesPlayed++;
+    _state.stats.upgradesPurchased = {};
     _sessionTracking = {};
     _save();
   }
@@ -596,17 +598,16 @@ const AchievementSystem = (function() {
         unlock('stale_5');
       }
 
-      // 本物語：11 回合以上且完全未售出（一場遊戲只觸發一次獎勵）
-      if (age >= 11 && inv.remainingCount === pub.printQuantity) {
+      // 本物語：11 回合以上且完全未售出（一場遊戲只觸發一次）
+      if (age >= 11 && inv.remainingCount === pub.printQuantity && !isUnlocked('honmonogatari')) {
         // 記錄被銷毀的刊物資訊
         result.destroyedPub = {
           title: pub.title,
           printQuantity: pub.printQuantity,
           franchiseId: pub.franchiseId
         };
-        // 自毀：移除庫存
+        // 自毀：移除庫存（僅首次觸發時銷毀）
         gameState.inventory.splice(i, 1);
-        // 只有首次解鎖時才給予獎勵（unlock 回傳 true 表示新解鎖）
         result.honmonogatariTriggered = unlock('honmonogatari');
         break; // 一次只觸發一本
       }
@@ -697,6 +698,32 @@ const AchievementSystem = (function() {
     } catch (e) { /* silent */ }
   }
 
+  /**
+   * 載入存檔後修復 upgradesPurchased 追蹤（回補舊存檔缺失的資料）
+   * @param {object} gameState - GameState 物件
+   */
+  function repairUpgradeTracking(gameState) {
+    if (!_initialized) init();
+    if (!gameState || !gameState.circle || !gameState.circle.upgrades) return;
+    if (!_state.stats.upgradesPurchased) {
+      _state.stats.upgradesPurchased = {};
+    }
+    var upgrades = gameState.circle.upgrades;
+    var changed = false;
+    for (var key in upgrades) {
+      if (upgrades[key] > 0 && !_state.stats.upgradesPurchased[key]) {
+        _state.stats.upgradesPurchased[key] = true;
+        changed = true;
+      }
+    }
+    if (changed) {
+      _save();
+      if (Object.keys(_state.stats.upgradesPurchased).length >= 14) {
+        unlock('all_upgrade_types');
+      }
+    }
+  }
+
   // === 公開 API ===
   return {
     init: init,
@@ -727,7 +754,8 @@ const AchievementSystem = (function() {
     checkAfterCollectiblePurchase: checkAfterCollectiblePurchase,
     checkAfterCollectibleSell: checkAfterCollectibleSell,
     checkAfterConventionStart: checkAfterConventionStart,
-    checkAfterBanquet: checkAfterBanquet
+    checkAfterBanquet: checkAfterBanquet,
+    repairUpgradeTracking: repairUpgradeTracking
   };
 })();
 

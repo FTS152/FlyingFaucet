@@ -931,7 +931,7 @@ const BalanceConfig = {
     // ── SSR 級（傳說）— 5 名 ─────────────────────────────────
     { id: 'legendary_artist', name: '傳說繪師（翻車魚）',    rarity: 'SSR', description: '大手筆の神之手',                 effects: { qualityBonus: 0.15, boothAttractionBonus: 0.10 } },
     { id: 'industry_giant',   name: '業界大手（あやめ）',   rarity: 'SSR', description: '她的名字本身就是品牌',             effects: { salesMultiplier: 0.10, guaranteedSales: 5, maxSalesBonus: 30 } },
-    { id: 'angel',             name: '天使大人（香港人）',    rarity: 'SSR', description: '有錢任性的同人愛好者',             effects: { interestRate: 0.02, debtLimit: 15000 } },
+    { id: 'angel',             name: '天使大人（香港人）',    rarity: 'SSR', description: '有錢任性的同人愛好者',             effects: { interestRate: 0.02, debtLimit: 500000 } },
     { id: 'publisher_mogul',   name: '印刷廠老闆（卡了）', rarity: 'SSR', description: '給你完美的印刷品質與死線服務',        effects: { printCostReduction: 0.15, maxSalesBonus: 40, salesMultiplier: 0.06 } },
     { id: 'meme_lord',         name: '迷因之王（草泥馬）',  rarity: 'SSR', description: '他的每條貼文都能引爆網路',         effects: { salesMultiplier: 0.08, boothAttractionBonus: 0.08, guaranteedSales: 3 } }
   ],
