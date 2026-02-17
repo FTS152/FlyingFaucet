@@ -93,7 +93,7 @@ const AchievementSystem = (function() {
     { id: 'broke_5k', name: '入不敷出', desc: '場次結束後資金不足 $5,000', category: 'bankruptcy', icon: '😰' },
     { id: 'exact_zero', name: '精準破產', desc: '場次結束後資金剛好是 $0', category: 'bankruptcy', icon: '🎯', hidden: true,
       hint: '精確到令人難以置信的財務結算',
-      reward: { type: 'startingMoney', value: 1, desc: '你的財務計算能力令人發指。起始資金 +$1' } },
+      reward: { type: 'startingMoney', value: 1, desc: '你的財務計算能力令人髮指。起始資金 +$1' } },
     { id: 'triple_gameover', name: '屢敗屢戰', desc: '累計破產 3 次', category: 'bankruptcy', icon: '🔁',
       reward: { type: 'storageCostReduction', value: 0.05, desc: '三次破產的經驗讓你更懂得省錢。倉儲成本 -5%' } },
 
