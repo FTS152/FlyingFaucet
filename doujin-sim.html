@@ -7696,28 +7696,10 @@
         return;
       }
 
-      // 2. 資金負數：嘗試舉債
+      // 2. 資金負數：直接破產（倉儲成本已有預警，玩家應自行控管）
       if (GameState.money < 0) {
-        if (currentDebt > 0 && totalAssets < currentDebt) {
-          showGameOver('負債累累，無力償還');
-          return;
-        }
-        // 如果有天使投資人，可以舉債（升級 + 成員）
-        var upgradeDebtLimit = typeof UpgradeSystem !== 'undefined' ? UpgradeSystem.getDebtLimit() : 0;
-        var memberDebtLimit = getMemberEffects().debtLimit || 0;
-        const debtLimit = upgradeDebtLimit + memberDebtLimit;
-        if (debtLimit > 0 && Math.abs(GameState.money) <= debtLimit - currentDebt) {
-          const neededLoan = Math.abs(GameState.money);
-          GameState.debt = currentDebt + neededLoan;
-          GameState.money = 0;
-          alert(`資金不足！自動向天使投資人借款 ${formatCurrency(neededLoan)}`);
-        } else if (collectiblesValue > 0) {
-          // 有收藏品市值撐住，暫不破產
-          log('資金為負但收藏品市值足以支撐: ' + collectiblesValue);
-        } else {
-          showGameOver('資金耗盡，社團被迫解散');
-          return;
-        }
+        showGameOver('資金耗盡，社團被迫解散');
+        return;
       }
       
       // 繼續到下一回合
